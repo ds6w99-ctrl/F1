@@ -64,7 +64,10 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     }
     public IReadOnlyList<InstalledApplication> Inventory => session?.Inventory.Applications ?? [];
     public bool CanScanLeftovers => !Busy && receipt is not null;
-    public string LeftoverSummary => leftoverSession is { } scan ? $"{receipt?.DisplayName}: {scan.Items.Count} — {L[scan.Complete ? "UnScanComplete" : "UnPartial"]}" + (scan.Complete && scan.Items.Count == 0 ? "\n" + L["UnLeftoversEmpty"] : "") : "";
+    public string LeftoverSummary => leftoverSession is not { } scan ? ""
+        : scan.Items.Count == 0 ? L[scan.Complete ? "UnLeftoversEmpty" : "UnPartial"]
+        : L["UnLeftoversFound"] + "\n" + L.Format("UnLeftoverCountSize", scan.Items.Count, FormatSize(scan.Items.Sum(i => i.Size ?? 0)))
+            + (scan.Complete ? "" : "\n" + L["UnPartial"]);
     public IReadOnlyList<LeftoverItem> Leftovers => leftoverSession?.Items ?? [];
     public bool ShowLeftovers => leftoverSession is not null;
     public IReadOnlyList<LeftoverItem> LeftoverRows => Leftovers.Skip(page * 20).Take(20).ToArray();
@@ -86,10 +89,15 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             "Exact DataPath recorded before uninstall in an app-specific registry key with matching publisher and product/install identity" => "UnEvidenceData",
             "Exact pre-uninstall registry snapshot with matching publisher and product/install identity" => "UnEvidenceRegistry",
             "Reparse point rejected" => "UnEvidenceReparse",
+            "Unsupported file attributes or hard links" => "UnEvidenceAttributes",
+            "Shared game data rejected" => "UnEvidenceSharedGame",
             _ => "UnEvidenceUnsupported"
         };
-        return $"{SystemCore.Core.SystemInformation.InfoFormatting.Technical(item.DisplayLocation)}\n{L["UnType" + item.Type]} | {L["UnConfidence" + item.Confidence]} | {FormatSize(item.Size)}\n{L[evidenceKey]}\n"
-            + L[item.Confidence != LeftoverConfidence.Safe ? "UnDeleteSafetyRejected" : item.Type == LeftoverType.RegistryKey ? "UnRegistryWarning" : "UnOwnedRisk"]
+        var warningKey = item.Confidence != LeftoverConfidence.Safe ? "UnDeleteSafetyRejected"
+            : item.Type == LeftoverType.RegistryKey ? "UnRegistryWarning" : "UnOwnedRisk";
+        return $"{SystemCore.Core.SystemInformation.InfoFormatting.Technical(item.DisplayLocation)}\n{L["UnType" + item.Type]} | {L["UnConfidence" + item.Confidence]} | {FormatSize(item.Size)}"
+            + $"\n{L[evidenceKey]} {L[warningKey]}"
+            + (item.Confidence == LeftoverConfidence.Review ? "\n" + L["UnPersonalData"] : "")
             + (item.RequiresElevation ? "\n" + L["UnElevationScope"] : "") + "\n" + LeftoverResult(item.Id);
     }
     public string CleanupSummary => cleanup is null ? "" : $"{L["UnCleanupComplete"]}: {cleanup.Items.Count(i => i.Status == LeftoverDeletionStatus.Deleted)} / {cleanup.Items.Count}; {FormatSize(cleanup.RemovedBytes)}\n"
@@ -137,7 +145,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     {
         if (Busy) return;
         selectedId = ""; session = null; state = UninstallState.Ready; launcherFailed = false;
-        leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
+        receipt = null; leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
         Busy = true;
         try { session = await executor.RefreshAsync(BeginOperation()); page = 0; }
         catch (OperationCanceledException) { state = UninstallState.Cancelled; }
@@ -148,25 +156,51 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public async Task UninstallConfirmedAsync(string confirmedId)
     {
         if (Busy || session is null || Selected is not { CanUninstall: true } app || app.Id != confirmedId) return;
+        receipt = null; leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
         Busy = true;
+        var acceptingProgress = true;
         try
         {
-            var result = await executor.UninstallAsync(new(session.Id, app.Id), new Progress<UninstallState>(s => { state = s; OnPropertyChanged(nameof(Status)); }), BeginOperation());
+            var token = BeginOperation();
+            var result = await executor.UninstallAsync(new(session.Id, app.Id), new Progress<UninstallState>(s => { if (acceptingProgress) { state = s; OnPropertyChanged(nameof(Status)); } }), token);
+            acceptingProgress = false;
             state = result.State;
-            receipt = result.Receipt; leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
+            receipt = result.State == UninstallState.Removed && result.ApplicationId == app.Id && result.Receipt?.ApplicationId == app.Id
+                && app.ItemKind != ItemKind.Game ? result.Receipt : null;
             session = null; selectedId = ""; // consume the UI's inventory selection as well
+            if (receipt is not null && !token.IsCancellationRequested) await ScanLeftoversCoreAsync(token);
         }
         catch (OperationCanceledException) { state = UninstallState.Cancelled; session = null; }
-        finally { EndOperation(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception) { state = UninstallState.Failed; session = null; }
+        finally { acceptingProgress = false; EndOperation(); }
     }
     public async Task ScanLeftoversAsync()
     {
         if (!CanScanLeftovers || receipt is null) return;
-        Busy = true; state = UninstallState.ScanningLeftovers; leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); page = 0; OnPropertyChanged(nameof(Status));
-        try { leftoverSession = await leftovers.ScanAsync(receipt.Id, BeginOperation()); state = UninstallState.LeftoversReady; }
-        catch (OperationCanceledException) { state = UninstallState.Cancelled; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception) { state = UninstallState.Failed; }
+        Busy = true;
+        try { await ScanLeftoversCoreAsync(BeginOperation()); }
         finally { EndOperation(); }
+    }
+    // The automatic and retry paths share one read-only operation. Never chain deletion.
+    private async Task ScanLeftoversCoreAsync(CancellationToken token)
+    {
+        state = UninstallState.ScanningLeftovers; leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); page = 0; OnPropertyChanged(string.Empty);
+        try
+        {
+            var scan = await leftovers.ScanAsync(receipt!.Id, token);
+            token.ThrowIfCancellationRequested();
+            leftoverSession = scan; state = UninstallState.LeftoversReady;
+        }
+        catch (OperationCanceledException) { state = UninstallState.Removed; }
+        // Scanning is optional/read-only: even an unexpected provider fault must
+        // not escape the async UI handler or authorize a partial deletion session.
+        catch (Exception) { state = UninstallState.Failed; }
+    }
+    public void KeepLeftovers()
+    {
+        if (Busy || !ShowLeftovers) return;
+        leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); page = 0; state = UninstallState.Removed;
+        OnPropertyChanged(string.Empty);
     }
     public async Task DeleteLeftoversConfirmedAsync(Guid[] confirmedIds)
     {

@@ -1,13 +1,78 @@
 # Pre-release fixes 01 — Sidebar / Startup / Cleaner performance
 
-Scope: FIX 1 dead-code cleanup, FIX 2, FIX 3 scan performance, and partial FIX 5 game discovery. Version remains `0.9.0-dev`.
+Scope: FIX 1 dead-code cleanup, FIX 2, FIX 3 scan performance, partial FIX 5 game discovery, and FIX 6 native-application automatic leftovers. Version remains `0.9.0-dev`.
 No Phase 10, signing, installer finalization, deployment, or real startup mutation.
 
 ## Uninstaller
 
+### Automatic Leftover Flow
+
+FIX 6 native-application flow is implemented and verified; **DONE_WITH_CONCERNS**,
+not full game-removal acceptance. Full evidence/report:
+`artifacts/current/fix6-verify/task-6-report.md`.
+
+- A matching verified `Removed` receipt automatically enters the existing read-only
+  scan while retaining the same Busy/cancellation operation. Uninstall cancellation,
+  unverified outcomes, wrong identities and games cannot start it. Late uninstall
+  progress cannot overwrite the scan state. New inventory invalidates the UI receipt.
+- Cancellation leaves no results/selection and returns to verified removal, not an
+  error. Scanner faults leave manual retry available, never call deletion, and never
+  authorize partial cleanup. `UnScanLeftovers` and all previous AutomationIds remain.
+- Results use paired EN/AR `No leftovers.` or `Leftovers found` plus count/size.
+  Existing item details carry confidence and `may contain personal data`; no new
+  explanatory result paragraphs. Added a functional Keep action (there was no
+  existing standalone Keep button). Confirmation dialogs/registry warnings remain.
+- DataPath trees, save/screenshot/mod/profile/config/user-content paths and uncertain
+  file formats are Review. Only proven-owned application-binary-extension files can
+  remain Safe; the extension is a restriction, never ownership evidence. Registry
+  subtrees/non-identity values are Review. All defaults stay off. Review/Ignore are
+  unselectable and deletion still rejects them, including forged requests. Empty
+  directory deletion remains nonrecursive; reparse/hard-link Ignore takes priority.
+- Structural game shared-root/cache/anti-cheat/redistributable/mod/workshop guards
+  were added. **Games still receive no removal receipt (FIX 5); no automatic game
+  scan exists.** No launcher uninstall or game ownership evidence was invented.
+- Native harness changes followed observed failures, not a relaxed product gate:
+  `Removal verified by identity` saw the new completed scan state; the old enabled-
+  checkbox count saw 1 rather than 3 because DataPath rows correctly became Review.
+  The harness now verifies automatic results without pressing Scan, all three
+  defaults off, two disabled Review rows, exact registry confirmation, personal-data
+  retention, Keep, safe-only bytes and a post-fixture-teardown empty retry. Original
+  cancellation/sibling preservation assertions remain. `Test-F1UninstallerUi.ps1`
+  itself was unchanged; the synthetic lifecycle lives in `Test-UninstallerPage.ps1`.
+
+Fresh final checks (all exit **0**, no failures):
+
+| Check | Result |
+|---|---:|
+| Exact candidate build, locked restore + Debug/Release + app/helper publish | 0 warnings / 0 errors in each build |
+| Uninstaller default / full synthetic + scan + delete | 198 / 362 assertions |
+| Uninstaller regression command | 293 engine assertions + 62 native UI checks |
+| Security / Unit / Startup | 56 (+1,000 fuzz inputs) / 198 / 80 |
+| Cleaner default / executor / completion / scan-performance / scan-progress | 18 / 22 / 49 / 43 / 24 |
+| Game library UI / legacy Uninstaller UI / ten-route smoke | 26 / 57 / 34 |
+| Read-only native inventory | Complete; 135 raw / 27 removable / 108 hidden, 654 ms |
+
+The brief listed the last two Cleaner modes in the opposite order: actual unchanged
+counts are **scan-progress=24**, **scan-performance=43**, not vice versa. No Cleaner
+source/test changes were made. This is a reporting-order discrepancy, not a hidden pass.
+
+Automatic native scan on this machine was observed after synthetic uninstall:
+**365.7234 ms lower bound** from first sampled Scanning status until ready (100 ms
+polling); wait after confirmation was **1,766.0817 ms**, excluding the helper's prior
+250 ms wait. Not an exact scan benchmark. Isolated scanner fixtures measured
+14.5677 / 4.2627 ms with deterministic empty inventory, not real-device scan timings.
+No real application/game was uninstalled, nor real application files/registry keys/
+install folders targeted for mutation. Tests created/removed only isolated synthetic
+fixtures; UI scripts temporarily changed/restored F1 preferences and generated logs,
+screenshots and synthetic registry backups. A literal zero-write claim is not made.
+
+Visually inspected only the final English/light native `leftover-review.png`: compact
+found/count-size summary, Keep/Delete actions and disabled personal-data rows were
+visible. No full visual/accessibility, high-DPI, clean-VM or real-game certification.
+
 ### Game Discovery
 
-FIX 5 is **PARTIAL**, not six-launcher acceptance. No Phase 10 or FIX 4/6/7 work.
+FIX 5 is **PARTIAL**, not six-launcher acceptance. That work did not include Phase 10 or FIX 4/6/7; subsequent FIX 6 work is recorded above.
 
 Read-only device evidence: `artifacts/current/fix5-tests/game-inventory.json`, exit 0.
 

@@ -64,7 +64,8 @@ public sealed partial class UninstallerView : UserControl, IDisposable
                 if (Applications.ContainerFromIndex(index) is ListViewItem item) PresentRow(item, displayed[index]);
             Previous.IsEnabled = !ViewModel.Busy && ViewModel.HasPrevious; Next.IsEnabled = !ViewModel.Busy && ViewModel.HasNext;
             PageNumber.Text = $"{ViewModel.Page} / {Math.Max(1, (ViewModel.Count + 19) / 20)} — {ViewModel.Count}";
-            Details.Text = ViewModel.Selected is { } selected ? (UnifiedLibraryPresentation.IsLauncherManaged(selected) ? ViewModel.ManagedLabel(selected) + "\n" : "") + Label(selected) : ViewModel.Text("UnSelectDetails");
+            Details.Text = ViewModel.ShowLeftovers ? "" : ViewModel.Selected is { } selected ? (UnifiedLibraryPresentation.IsLauncherManaged(selected) ? ViewModel.ManagedLabel(selected) + "\n" : "") + Label(selected) : ViewModel.Text("UnSelectDetails");
+            Details.Visibility = ViewModel.ShowLeftovers ? Visibility.Collapsed : Visibility.Visible;
             AutomationProperties.SetHelpText(Status, $"Raw={ViewModel.RawCount};Hidden={ViewModel.HiddenCount};Removable={ViewModel.RemovableCount};Managed={ViewModel.ManagedCount}");
             Uninstall.IsEnabled = !ViewModel.Busy && ViewModel.Selected is { CanUninstall: true, IsProtected: false };
             Uninstall.Visibility = ViewModel.Selected is { } managed && UnifiedLibraryPresentation.IsLauncherManaged(managed) ? Visibility.Collapsed : Visibility.Visible;
@@ -75,6 +76,9 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             LeftoverSummary.Text = ViewModel.LeftoverSummary;
             DeleteLeftovers.Content = $"{ViewModel.Text("UnDeleteLeftovers")} ({ViewModel.SelectedLeftoverCount})";
             DeleteLeftovers.IsEnabled = ViewModel.CanDeleteLeftovers;
+            KeepLeftovers.Content = ViewModel.Text("UnKeepLeftovers");
+            KeepLeftovers.Visibility = ViewModel.ShowLeftovers ? Visibility.Visible : Visibility.Collapsed;
+            KeepLeftovers.IsEnabled = !ViewModel.Busy;
             CleanupSummary.Text = ViewModel.CleanupSummary;
         }
         finally { rendering = false; }
@@ -94,6 +98,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     }
     private void OnCancelOperation(object sender, RoutedEventArgs args) => ViewModel.CancelOperation();
     private async void OnScanLeftovers(object sender, RoutedEventArgs args) => await ViewModel.ScanLeftoversAsync();
+    private void OnKeepLeftovers(object sender, RoutedEventArgs args) => ViewModel.KeepLeftovers();
     private void OnLeftoverToggle(object sender, RoutedEventArgs args)
     {
         if (!rendering && sender is CheckBox { Tag: Guid id } choice) ViewModel.SelectLeftover(id, choice.IsChecked == true);

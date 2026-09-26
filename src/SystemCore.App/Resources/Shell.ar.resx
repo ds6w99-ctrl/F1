@@ -296,10 +296,10 @@
   <data name="UnScanLeftovers" xml:space="preserve"><value>فحص البقايا</value></data>
   <data name="UnScanComplete" xml:space="preserve"><value>اكتمل فحص البقايا للقراءة فقط</value></data>
   <data name="UnStateScanningLeftovers" xml:space="preserve"><value>جارٍ فحص بقايا التطبيق الموثقة…</value></data>
-  <data name="UnStateLeftoversReady" xml:space="preserve"><value>البقايا جاهزة للمراجعة. لم يحدث أي حذف.</value></data>
-  <data name="UnDeleteLeftovers" xml:space="preserve"><value>حذف البقايا المحددة</value></data>
+  <data name="UnStateLeftoversReady" xml:space="preserve"><value>البقايا جاهزة.</value></data>
+  <data name="UnDeleteLeftovers" xml:space="preserve"><value>حذف المحدد</value></data>
   <data name="UnDeleteConfirm" xml:space="preserve"><value>هل تريد حذف هذه البقايا المحددة فقط؟ سيُعاد التحقق من كل عنصر. ستُتجاوز العناصر المتغيرة أو المشتركة أو المحمية أو التي يتعذر الوصول إليها.</value></data>
-  <data name="UnRegistryWarning" xml:space="preserve"><value>توجد مفاتيح Registry محددة. يلزم حفظ نسخة احتياطية موثقة قبل الحذف. الاستعادة التلقائية غير مضمونة.</value></data>
+  <data name="UnRegistryWarning" xml:space="preserve"><value>تلزم نسخة Registry موثقة تحفظ الأنواع؛ الاستعادة التلقائية غير مضمونة.</value></data>
   <data name="UnCleanupComplete" xml:space="preserve"><value>نتائج التنظيف</value></data>
   <data name="UnDeleteDeleted" xml:space="preserve"><value>حُذف</value></data>
   <data name="UnDeleteSkipped" xml:space="preserve"><value>تم التجاوز</value></data>
@@ -321,11 +321,13 @@
   <data name="UnConfidenceSafe" xml:space="preserve"><value>ملكية عالية الثقة</value></data>
   <data name="UnConfidenceReview" xml:space="preserve"><value>مراجعة</value></data>
   <data name="UnConfidenceIgnore" xml:space="preserve"><value>تجاهل</value></data>
-  <data name="UnEvidenceInstall" xml:space="preserve"><value>احتوى مجلد التثبيت المسجل أداة الإزالة الأصلية الموثقة قبل إزالة التطبيق.</value></data>
-  <data name="UnEvidenceData" xml:space="preserve"><value>مسار بيانات محدد من مفتاح تطبيق يطابق الناشر وهوية المنتج أو التثبيت.</value></data>
-  <data name="UnEvidenceRegistry" xml:space="preserve"><value>لقطة Registry لم تتغير منذ ما قبل الإزالة وتطابق الناشر وهوية التطبيق.</value></data>
-  <data name="UnEvidenceReparse" xml:space="preserve"><value>رُفضت نقطة إعادة التحليل ولم يُتبع هدفها.</value></data>
-  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>سمات غير مدعومة أو روابط صلبة؛ مستبعدة من الحذف.</value></data>
+  <data name="UnEvidenceInstall" xml:space="preserve"><value>الملكية: مجلد مسجل وأداة إزالة موثقة.</value></data>
+  <data name="UnEvidenceData" xml:space="preserve"><value>مسار بيانات مطابق؛ الناشر وهوية التطبيق موثقان.</value></data>
+  <data name="UnEvidenceRegistry" xml:space="preserve"><value>لقطة لم تتغير؛ الناشر وهوية التطبيق موثقان.</value></data>
+  <data name="UnEvidenceReparse" xml:space="preserve"><value>حُظرت نقطة إعادة التحليل؛ لم يُتبع هدفها.</value></data>
+  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>دليل غير مدعوم أو غير موثق.</value></data>
+  <data name="UnEvidenceAttributes" xml:space="preserve"><value>سمات غير مدعومة أو روابط صلبة.</value></data>
+  <data name="UnEvidenceSharedGame" xml:space="preserve"><value>بيانات ألعاب مشتركة؛ الملكية غير حصرية.</value></data>
   <data name="UnOwnedRisk" xml:space="preserve"><value>بيانات مملوكة للتطبيق. الحذف دائم.</value></data>
   <data name="UnElevationScope" xml:space="preserve"><value>عنصر على مستوى الجهاز: تُستخدم صلاحيات المستخدم الحالي ويُتجاوز العنصر عند رفض الوصول.</value></data>
   <data name="StartReady" xml:space="preserve"><value>حدّث لقراءة مصادر بدء التشغيل. لا تُنفذ الأوامر من هذه الصفحة.</value></data>
@@ -542,7 +544,11 @@
   <data name="ProductNoMatches" xml:space="preserve"><value>لا توجد عناصر مطابقة. غيّر البحث أو عوامل التصفية.</value></data>
   <data name="StartEmpty" xml:space="preserve"><value>لم يُعثر على عناصر بدء تشغيل.</value></data>
   <data name="UnEmpty" xml:space="preserve"><value>لم يُعثر على تطبيقات مثبتة في المصادر المدعومة.</value></data>
-  <data name="UnLeftoversEmpty" xml:space="preserve"><value>لم يُعثر على بقايا في المواقع المدعومة.</value></data>
+  <data name="UnLeftoversEmpty" xml:space="preserve"><value>لا توجد بقايا.</value></data>
+  <data name="UnLeftoversFound" xml:space="preserve"><value>تم العثور على بقايا</value></data>
+  <data name="UnLeftoverCountSize" xml:space="preserve"><value>{0} عناصر • {1}</value></data>
+  <data name="UnPersonalData" xml:space="preserve"><value>قد يحتوي بيانات شخصية</value></data>
+  <data name="UnKeepLeftovers" xml:space="preserve"><value>إبقاء</value></data>
   <data name="F1Welcome" xml:space="preserve"><value>مرحباً بك</value></data>
   <data name="F1Intro" xml:space="preserve"><value>كل ما تحتاجه لإدارة نظامك من مكان واحد</value></data>
   <data name="F1Scan" xml:space="preserve"><value>ابدأ الفحص</value></data>

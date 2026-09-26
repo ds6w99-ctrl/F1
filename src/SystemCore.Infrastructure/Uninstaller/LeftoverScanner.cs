@@ -46,9 +46,11 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                         if (fresh.Applications.Any(a => string.Equals(a.DisplayName, receipt.Application.DisplayName, StringComparison.OrdinalIgnoreCase))) continue;
                         if (receipt.Application.InstallLocation is { } original && fresh.Applications.Any(a => a.InstallLocation is { } location && LeftoverSafety.Conflicts(original, location))) continue;
                         var id = Guid.NewGuid();
+                        var personal = snapshot.Tree.Keys.Any(k => k.Length != 0)
+                            || snapshot.Tree.Values.Any(v => !LeftoverSafety.IsRegistryIdentityValue(v.Name));
                         var item = new LeftoverItem(id, receipt.Application.Id, LeftoverType.RegistryKey,
                             $"{candidate.Hive}/{candidate.View}\\{candidate.Path}", "Exact pre-uninstall registry snapshot with matching publisher and product/install identity",
-                            LeftoverConfidence.Safe, "Registry backup required; no automatic rollback", null, candidate.Hive == InventoryHive.LocalMachine, false, "Unchanged verified snapshot");
+                            personal ? LeftoverConfidence.Review : LeftoverConfidence.Safe, personal ? "May contain personal data" : "Registry backup required; no automatic rollback", null, candidate.Hive == InventoryHive.LocalMachine, false, "Unchanged verified snapshot");
                         items.Add(id, new(item, candidate.Path, null, candidate.Path, snapshot));
                     }
                     catch (Win32Exception ex) when (ex.NativeErrorCode is 2 or 3) { }
@@ -76,6 +78,8 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                         var canonical = CleanerSafety.Canonical(path);
                         if (canonical is null || (canonical != root && !CleanerSafety.IsChild(root, canonical))) { complete = false; return; }
                         var attributes = File.GetAttributes(canonical);
+                        if (receipt.Application.ItemKind == ItemKind.Game && LeftoverSafety.SharedGamePath(canonical))
+                        { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Shared game data rejected", null); return; }
                         if ((attributes & FileAttributes.ReparsePoint) != 0) { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Reparse point rejected", null); return; }
                         var directory = (attributes & FileAttributes.Directory) != 0;
                         using var pinned = PinnedCleanerPath.Open(canonical, directory);
@@ -89,8 +93,12 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                 }
                 void Add(string path, string root, CleanerIdentity? identity, LeftoverType type, LeftoverConfidence confidence, string reason, long? size)
                 {
+                    // Never downgrade Ignore: reparse/hard-link/attribute rejection wins.
+                    if (confidence == LeftoverConfidence.Safe && (reason.StartsWith("Exact DataPath", StringComparison.Ordinal)
+                        || LeftoverSafety.MayContainPersonalData(path)
+                        || (type == LeftoverType.File && !LeftoverSafety.HasApplicationBinaryExtension(path)))) confidence = LeftoverConfidence.Review;
                     var id = Guid.NewGuid();
-                    var item = new LeftoverItem(id, receipt.Application.Id, type, path, reason, confidence, confidence == LeftoverConfidence.Safe ? "Application-owned" : "Safety rejected", size,
+                    var item = new LeftoverItem(id, receipt.Application.Id, type, path, reason, confidence, confidence == LeftoverConfidence.Safe ? "Application-owned" : confidence == LeftoverConfidence.Review ? "May contain personal data" : "Safety rejected", size,
                         false, false, confidence.ToString());
                     items.Add(id, new(item, path, identity, root));
                 }

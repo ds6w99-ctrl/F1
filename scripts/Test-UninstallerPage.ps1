@@ -13,8 +13,16 @@ $siblingRoot=$fixtureRoot+'-shared'
 $p=$null
 function Invoke-Button([string]$id){(Find $id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
 function Wait-Inventory {
- $watch=[Diagnostics.Stopwatch]::StartNew()
- do {Start-Sleep -Milliseconds 100;$control=Find 'UnRefresh'}while((!$control -or !$control.Current.IsEnabled) -and $watch.Elapsed.TotalSeconds -lt 30)
+ param([switch]$ObserveAutomaticScan)
+  $watch=[Diagnostics.Stopwatch]::StartNew()
+  $scanObservedAt=$null
+  do {
+   Start-Sleep -Milliseconds 100;$control=Find 'UnRefresh'
+   if($ObserveAutomaticScan -and $null -eq $scanObservedAt -and (Find 'UnStatus').Current.Name -eq 'Scanning verified application leftovers…'){$scanObservedAt=$watch.Elapsed.TotalMilliseconds}
+  }while((!$control -or !$control.Current.IsEnabled) -and $watch.Elapsed.TotalSeconds -lt 30)
+  if($ObserveAutomaticScan){
+   [pscustomobject]@{Scope='Synthetic native uninstall; real-device inventory read-only';WaitAfterConfirmationMilliseconds=$watch.Elapsed.TotalMilliseconds;ObservedScanningLowerBoundMilliseconds=$(if($null -ne $scanObservedAt){$watch.Elapsed.TotalMilliseconds-$scanObservedAt}else{$null});SampleIntervalMilliseconds=100;Note='Polling lower bound, not exact scan duration; confirmation helper already waited 250 ms'}|ConvertTo-Json|Set-Content "$EvidencePath/automatic-scan-timing.json" -Encoding utf8
+  }
  Check 'Inventory returns control' ($control -and $control.Current.IsEnabled) $watch.Elapsed.TotalSeconds
 }
 try {
@@ -53,31 +61,53 @@ try {
  Save-WindowPicture 'inventory-en'
  Invoke-Button 'UnUninstall'
  # Only the nonce-protected, GUID-named synthetic registration selected above.
- Invoke-Button 'PrimaryButton';Wait-Inventory
- Check 'Removal verified by identity' ((Find 'UnStatus').Current.Name -eq 'Application removal verified.') (Find 'UnStatus').Current.Name
+  Invoke-Button 'PrimaryButton';Wait-Inventory -ObserveAutomaticScan
+  # FIX 6: the verified-removal operation now includes its read-only scan.
+  Check 'Verified removal automatically reaches leftover results' ((Find 'UnStatus').Current.Name -eq 'Leftovers ready.') (Find 'UnStatus').Current.Name
  $remaining=$registry.OpenSubKey("$root\$name");Check 'Synthetic registration removed' ($null -eq $remaining) $null;if($remaining){$remaining.Dispose()}
  Save-WindowPicture 'synthetic-removed'
  Check 'Leftover scan offered after verified removal' ((Find 'UnScanLeftovers').Current.IsEnabled) $null
  Check 'No automatic leftover deletion' ([IO.File]::Exists((Join-Path $fixtureRoot 'owned.txt'))) $null
- Invoke-Button 'UnScanLeftovers';Wait-Inventory
+  Check 'Automatic leftover results shown without manual scan' ((Find 'UnLeftoverSummary').Current.Name -like "Leftovers found*") (Find 'UnLeftoverSummary').Current.Name
  $boxes=(Find 'UnApplications').FindAll([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::CheckBox))
- $choices=@($boxes|Where-Object {$_.Current.IsEnabled -and $_.Current.Name.Contains($name)})
- Check 'Synthetic file directory and registry leftovers found' ($choices.Count -eq 3) $choices.Count
- foreach($choice in $choices){Check 'Leftover not selected automatically' ($choice.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Current.ToggleState -eq [Windows.Automation.ToggleState]::Off) $null}
- foreach($choice in $choices){$choice.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 100}
+  $choices=@($boxes|Where-Object {$_.Current.Name.Contains($name)})
+  Check 'Synthetic file directory and registry leftovers found' ($choices.Count -eq 3) $choices.Count
+  # Removed is assigned and immediately advanced to ScanningLeftovers without a
+  # render/yield, so polling that transient status cannot prove the identity gate.
+  # Assert its durable equivalent separately: the exact hive/view/key identity is
+  # absent AND receipt-backed results belong to that same GUID-named fixture.
+  $identityKey=$registry.OpenSubKey("$root\$name")
+  $identityAbsent=$null -eq $identityKey
+  if($identityKey){$identityKey.Dispose()}
+  $identityLocations=@($choices|ForEach-Object {$_.Current.Name})
+  Check 'Removal verified by identity' ($identityAbsent -and $identityLocations -contains "CurrentUser/Registry64\Software\$name" -and $identityLocations -contains $fixtureRoot -and $identityLocations -contains (Join-Path $fixtureRoot 'owned.txt')) @{Hive='CurrentUser';View='Registry64';Key=$name;RegistrationAbsent=$identityAbsent;ReceiptBackedLocations=$identityLocations}
+  foreach($choice in $choices){Check 'Leftover not selected automatically' ($choice.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Current.ToggleState -eq [Windows.Automation.ToggleState]::Off) $null}
+  # DataPath ownership is not permission to delete personal data. FIX 6 classifies
+  # this fixture's directory/file Review; only its identity-only registry is Safe.
+  $safeChoices=@($choices|Where-Object {$_.Current.IsEnabled})
+  $reviewChoices=@($choices|Where-Object {!$_.Current.IsEnabled})
+  Check 'DataPath file and directory are unselectable Review' ($reviewChoices.Count -eq 2 -and $safeChoices.Count -eq 1) @{Review=$reviewChoices.Count;Safe=$safeChoices.Count}
+  foreach($choice in $safeChoices){$choice.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Start-Sleep -Milliseconds 100}
  Invoke-Button 'UnDeleteLeftovers'
  Check 'Explicit leftover deletion confirmation' ($null -ne (Find 'UnLeftoverConfirmation')) $null
  Invoke-Button 'CloseButton'
  Check 'Cancel leaves synthetic leftover intact' ([IO.File]::Exists((Join-Path $fixtureRoot 'owned.txt'))) $null
  Save-WindowPicture 'leftover-review'
  Invoke-Button 'UnDeleteLeftovers';Invoke-Button 'PrimaryButton';Wait-Inventory
- Check 'Synthetic leftover directory removed' (!(Test-Path $fixtureRoot)) $null
+  Check 'Review DataPath remains intact after confirmed safe-only deletion' ([IO.File]::ReadAllText((Join-Path $fixtureRoot 'owned.txt')) -eq 'leftover') $null
  $registryRemaining=$registry.OpenSubKey("Software\$name");Check 'Selected leftover registry key removed' ($null -eq $registryRemaining) $null;if($registryRemaining){$registryRemaining.Dispose()}
  Check 'Sibling/shared fixture preserved' ([IO.File]::ReadAllText((Join-Path $siblingRoot 'retain.txt')) -eq 'retain') $null
- Check 'Actual deleted file bytes displayed' ((Find 'UnCleanupSummary').Current.Name -match '8 B') (Find 'UnCleanupSummary').Current.Name
+  Check 'Registry-only deletion reports zero file bytes' ((Find 'UnCleanupSummary').Current.Name -match '0 B') (Find 'UnCleanupSummary').Current.Name
  Save-WindowPicture 'leftover-results'
  Invoke-Button 'UnScanLeftovers';Wait-Inventory
- Check 'Rescan has no stale leftovers' ((Find 'UnLeftoverSummary').Current.Name -match ': 0 ') (Find 'UnLeftoverSummary').Current.Name
+  Check 'Rescan retains only personal-data leftovers' ((Find 'UnLeftoverSummary').Current.Name -match '2 items') (Find 'UnLeftoverSummary').Current.Name
+  Check 'Review-only rescan cannot delete' (!(Find 'UnDeleteLeftovers').Current.IsEnabled) $null
+  Invoke-Button 'UnKeepLeftovers'
+  Check 'Keep retains personal-data fixture' ([IO.File]::ReadAllText((Join-Path $fixtureRoot 'owned.txt')) -eq 'leftover') $null
+  # Explicit test-fixture teardown, NOT product deletion. Verify the empty retry UI.
+  [IO.Directory]::Delete($fixtureRoot,$true)
+  Invoke-Button 'UnScanLeftovers';Wait-Inventory
+  Check 'Rescan has no stale leftovers' ((Find 'UnLeftoverSummary').Current.Name -eq 'No leftovers.') (Find 'UnLeftoverSummary').Current.Name
  Navigate 'NavDashboard';Navigate 'NavUninstaller'
  Check 'Consumed selection cannot uninstall again' (!(Find 'UnUninstall').Current.IsEnabled) $null
  Invoke-Button 'UnRefresh';Wait-Inventory

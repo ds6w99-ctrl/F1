@@ -296,10 +296,10 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnScanLeftovers" xml:space="preserve"><value>Scan for leftovers</value></data>
   <data name="UnScanComplete" xml:space="preserve"><value>Read-only leftover scan complete</value></data>
   <data name="UnStateScanningLeftovers" xml:space="preserve"><value>Scanning verified application leftovers…</value></data>
-  <data name="UnStateLeftoversReady" xml:space="preserve"><value>Leftovers ready for review. No deletion has occurred.</value></data>
-  <data name="UnDeleteLeftovers" xml:space="preserve"><value>Delete selected leftovers</value></data>
+  <data name="UnStateLeftoversReady" xml:space="preserve"><value>Leftovers ready.</value></data>
+  <data name="UnDeleteLeftovers" xml:space="preserve"><value>Delete selected</value></data>
   <data name="UnDeleteConfirm" xml:space="preserve"><value>Delete only these explicitly selected leftovers? Each item will be checked again. Changed, shared, protected or inaccessible items will be skipped.</value></data>
-  <data name="UnRegistryWarning" xml:space="preserve"><value>Registry keys are selected. A verified typed backup is required before deletion. Automatic restoration is not guaranteed.</value></data>
+  <data name="UnRegistryWarning" xml:space="preserve"><value>Verified typed registry backup required; automatic restore not guaranteed.</value></data>
   <data name="UnCleanupComplete" xml:space="preserve"><value>Cleanup results</value></data>
   <data name="UnDeleteDeleted" xml:space="preserve"><value>Deleted</value></data>
   <data name="UnDeleteSkipped" xml:space="preserve"><value>Skipped</value></data>
@@ -321,11 +321,13 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnConfidenceSafe" xml:space="preserve"><value>High-confidence ownership</value></data>
   <data name="UnConfidenceReview" xml:space="preserve"><value>Review</value></data>
   <data name="UnConfidenceIgnore" xml:space="preserve"><value>Ignore</value></data>
-  <data name="UnEvidenceInstall" xml:space="preserve"><value>Registered install directory contained the validated original uninstaller before removal.</value></data>
-  <data name="UnEvidenceData" xml:space="preserve"><value>Exact data path from an application key with matching publisher and product or installation identity.</value></data>
-  <data name="UnEvidenceRegistry" xml:space="preserve"><value>Unchanged pre-uninstall registry snapshot with matching publisher and application identity.</value></data>
-  <data name="UnEvidenceReparse" xml:space="preserve"><value>Reparse point rejected; target was not followed.</value></data>
-  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>Unsupported attributes or hard links; excluded from deletion.</value></data>
+  <data name="UnEvidenceInstall" xml:space="preserve"><value>Ownership: registered folder + verified uninstaller.</value></data>
+  <data name="UnEvidenceData" xml:space="preserve"><value>Exact data path; publisher/app identity verified.</value></data>
+  <data name="UnEvidenceRegistry" xml:space="preserve"><value>Unchanged snapshot; publisher/app identity verified.</value></data>
+  <data name="UnEvidenceReparse" xml:space="preserve"><value>Reparse point blocked; target not followed.</value></data>
+  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>Unsupported or unverified evidence.</value></data>
+  <data name="UnEvidenceAttributes" xml:space="preserve"><value>Unsupported attributes or hard links.</value></data>
+  <data name="UnEvidenceSharedGame" xml:space="preserve"><value>Shared game data; ownership not exclusive.</value></data>
   <data name="UnOwnedRisk" xml:space="preserve"><value>Application-owned data. Deletion is permanent.</value></data>
   <data name="UnElevationScope" xml:space="preserve"><value>Machine-wide item: current-user permissions apply; access-denied items are skipped.</value></data>
   <data name="StartReady" xml:space="preserve"><value>Refresh to read startup sources. Commands are never executed here.</value></data>
@@ -542,7 +544,11 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="ProductNoMatches" xml:space="preserve"><value>No matching items. Change the search or filters.</value></data>
   <data name="StartEmpty" xml:space="preserve"><value>No startup items found.</value></data>
   <data name="UnEmpty" xml:space="preserve"><value>No installed applications found in the supported sources.</value></data>
-  <data name="UnLeftoversEmpty" xml:space="preserve"><value>No leftovers found in the supported locations.</value></data>
+  <data name="UnLeftoversEmpty" xml:space="preserve"><value>No leftovers.</value></data>
+  <data name="UnLeftoversFound" xml:space="preserve"><value>Leftovers found</value></data>
+  <data name="UnLeftoverCountSize" xml:space="preserve"><value>{0} items • {1}</value></data>
+  <data name="UnPersonalData" xml:space="preserve"><value>may contain personal data</value></data>
+  <data name="UnKeepLeftovers" xml:space="preserve"><value>Keep</value></data>
   <data name="F1Welcome" xml:space="preserve"><value>Welcome back</value></data>
   <data name="F1Intro" xml:space="preserve"><value>Everything you need to manage your system in one place</value></data>
   <data name="F1Scan" xml:space="preserve"><value>Start scan</value></data>

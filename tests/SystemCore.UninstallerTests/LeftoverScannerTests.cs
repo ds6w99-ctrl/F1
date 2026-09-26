@@ -16,7 +16,7 @@ static class LeftoverScannerTests
         var keyPath = "Software\\" + name;
         Directory.CreateDirectory(root); Directory.CreateDirectory(outside); Directory.CreateDirectory(data);
         File.Copy(Path.Combine(AppContext.BaseDirectory, "SystemCore.UninstallerTests.exe"), Path.Combine(root, "uninstall.exe"));
-        File.WriteAllText(Path.Combine(root, "owned.txt"), "owned");
+        File.WriteAllText(Path.Combine(root, "owned.dll"), "owned");
         File.WriteAllText(Path.Combine(outside, "retain.txt"), "retain");
         File.WriteAllText(Path.Combine(data, "data.txt"), "app data");
         using var user = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
@@ -25,7 +25,7 @@ static class LeftoverScannerTests
             using (var key = user.CreateSubKey(keyPath))
             {
                 key.SetValue("Publisher", "SystemCore tests"); key.SetValue("InstallLocation", root); key.SetValue("DataPath", data);
-                key.SetValue("Number", 42, RegistryValueKind.DWord);
+                key.SetValue("VersionMajor", 42, RegistryValueKind.DWord);
             }
             var app = new InstalledApplication(name, name, "SystemCore tests", "1", null, root, null, null, ApplicationType.Win32,
                 $"\"{Path.Combine(root, "uninstall.exe")}\"", false, null, null, null, new(InventoryHive.CurrentUser, InventoryView.Registry64, name), null,
@@ -40,12 +40,34 @@ static class LeftoverScannerTests
             var scan = await scanner.ScanAsync(receipt.Id, default);
             Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { Metric = "SyntheticLeftoverScan", Milliseconds = scanClock.Elapsed.TotalMilliseconds, Items = scan.Items.Count,
                 Inventory = "Deterministic complete empty fixture inventory" }));
-            check("Exact install directory with executable evidence discovered", scan.Complete && scan.Items.Any(i => i.DisplayLocation == Path.Combine(root, "owned.txt") && i.Confidence == LeftoverConfidence.Safe));
+            check("Exact install directory with executable evidence discovered", scan.Complete && scan.Items.Any(i => i.DisplayLocation == Path.Combine(root, "owned.dll") && i.Confidence == LeftoverConfidence.Safe));
             check("Exact app-specific registry identity discovered", scan.Items.Any(i => i.Type == LeftoverType.RegistryKey && i.Confidence == LeftoverConfidence.Safe));
             check("Registry selection always defaults off", scan.Items.Where(i => i.Type == LeftoverType.RegistryKey).All(i => !i.SelectedByDefault));
             check("Strong registry DataPath discovered", scan.Items.Any(i => i.DisplayLocation == Path.Combine(data, "data.txt")));
+            check("DataPath is personal-data Review, never default selected", scan.Items.Where(i => i.DisplayLocation.StartsWith(data, StringComparison.Ordinal)).All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));
+            check("Every leftover defaults off", scan.Items.All(i => !i.SelectedByDefault));
+            var saves = Path.Combine(root, "Save Games"); Directory.CreateDirectory(saves);
+            var save = Path.Combine(saves, "slot.bin"); File.WriteAllText(save, "personal save");
+            var config = Path.Combine(root, "settings.ini"); File.WriteAllText(config, "personal config");
+            var opaque = Path.Combine(root, "opaque.unknown"); File.WriteAllText(opaque, "unknown user content");
+            var hardLink = Path.Combine(saves, "linked.sav");
+            if (!CreateHardLink(hardLink, Path.Combine(outside, "retain.txt"), IntPtr.Zero)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            var personalScan = await scanner.ScanAsync(receipt.Id, default);
+            check("Save folder and descendants require Review", personalScan.Items.Where(i => i.DisplayLocation == saves || i.DisplayLocation == save).Count(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault) == 2);
+            check("Config extension requires Review", personalScan.Items.Any(i => i.DisplayLocation == config && i.Confidence == LeftoverConfidence.Review));
+            check("Unknown file format fails conservatively to Review", personalScan.Items.Any(i => i.DisplayLocation == opaque && i.Confidence == LeftoverConfidence.Review));
+            check("Hard link remains Ignore even under personal-data path", personalScan.Items.Any(i => i.DisplayLocation == hardLink && i.Confidence == LeftoverConfidence.Ignore));
+            var personalDeletion = new LeftoverDeletionService(scanner, store, inventory, new RegistryBackupWriter());
+            var rejectedPersonal = await personalDeletion.DeleteAsync(new(personalScan.Id, app.Id, personalScan.Items.Where(i => i.DisplayLocation == save || i.DisplayLocation == hardLink).Select(i => i.Id).ToArray()), default);
+            check("Forged Review and Ignore selection is rejected by deletion service", rejectedPersonal.Items.All(i => i.Status == LeftoverDeletionStatus.SafetyRejected) && File.Exists(save) && File.Exists(hardLink));
+            File.Delete(hardLink); File.Delete(save); Directory.Delete(saves); File.Delete(config); File.Delete(opaque);
+            foreach (var shared in new[] { "Steam", "Epic", "EA", "Ubisoft", "Battle.net", "Launcher", "shadercache", "Shader Cache", "Anti-Cheat", "EasyAntiCheat", "Redistributables", "_CommonRedist", "Mods", "Workshop", "workshop\\content" })
+            {
+                var sharedPath = Path.Combine(root, shared);
+                check("Shared game leaf rejected: " + shared, !LeftoverSafety.CanOwnDirectory(app with { ItemKind = ItemKind.Game }, sharedPath, []));
+            }
             check("Similar-prefix sibling not traversed", scan.Items.All(i => !i.DisplayLocation.Contains(outside, StringComparison.Ordinal)));
-            using (var preserved = user.OpenSubKey(keyPath)) check("Read-only scan preserves exact files and registry", File.ReadAllText(Path.Combine(root, "owned.txt")) == "owned" && preserved is not null);
+            using (var preserved = user.OpenSubKey(keyPath)) check("Read-only scan preserves exact files and registry", File.ReadAllText(Path.Combine(root, "owned.dll")) == "owned" && preserved is not null);
             var invalid = false;
             try { await scanner.ScanAsync(Guid.NewGuid(), default); } catch (InvalidOperationException) { invalid = true; }
             check("Unknown receipt rejected", invalid);
@@ -59,12 +81,12 @@ static class LeftoverScannerTests
             check("Incomplete inventory prevents absence assertion", invalid);
             inventory.Result = new([app with { Id = "another-app", InstallLocation = root, DisplayName = "Another app" }], true, []);
             scan = await scanner.ScanAsync(receipt.Id, default);
-            check("Conflicting installed application owns install folder", scan.Items.All(i => i.DisplayLocation != Path.Combine(root, "owned.txt")));
+            check("Conflicting installed application owns install folder", scan.Items.All(i => i.DisplayLocation != Path.Combine(root, "owned.dll")));
             inventory.Result = new([], true, []);
-            using (var locked = new FileStream(Path.Combine(root, "owned.txt"), FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var locked = new FileStream(Path.Combine(root, "owned.dll"), FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 scan = await scanner.ScanAsync(receipt.Id, default);
-                check("Locked file makes scan incomplete without authorization", !scan.Complete && scan.Items.All(i => i.DisplayLocation != Path.Combine(root, "owned.txt")));
+                check("Locked file makes scan incomplete without authorization", !scan.Complete && scan.Items.All(i => i.DisplayLocation != Path.Combine(root, "owned.dll")));
             }
             var link = Path.Combine(root, "escape");
             Junction.Create(link, outside);
@@ -72,7 +94,7 @@ static class LeftoverScannerTests
             check("Real junction is safety rejected", scan.Items.Any(i => i.DisplayLocation == link && i.Confidence == LeftoverConfidence.Ignore));
             check("Junction target remains unvisited", scan.Items.All(i => !i.DisplayLocation.EndsWith("retain.txt", StringComparison.Ordinal)));
             Directory.Delete(link);
-            using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("Number", 43);
+            using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("VersionMajor", 43);
             scan = await scanner.ScanAsync(receipt.Id, default);
             check("Changed registry snapshot not accepted", scan.Items.All(i => i.Type != LeftoverType.RegistryKey));
             foreach (var path in new[] { @"C:\", Environment.GetFolderPath(Environment.SpecialFolder.Windows), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"\\server\share\app", root + "\\..\\other", root + ":ads" })
@@ -88,6 +110,18 @@ static class LeftoverScannerTests
             scan = await new LeftoverScanner(noEvidence, inventory).ScanAsync(noEvidence.ConfirmRemoved(weak.Id)!.Id, default);
             check("Name/location without executable or registry evidence cannot authorize directory", scan.Items.All(i => i.Type is not LeftoverType.File and not LeftoverType.Directory));
             await CheckRegistryLink(app, user, check);
+            foreach (var personal in new[] { "save-games\\slot.bin", "Screenshots\\image.bin", "Mods\\a.bin", "User-generated content\\a.bin", "Profiles\\a.bin", "Config\\a.bin", "a.cfg", "a.json" })
+                check("Personal candidate classified conservatively: " + personal, LeftoverSafety.MayContainPersonalData(personal));
+            using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("ProfileName", "Synthetic personal profile");
+            var profileStore = new ApplicationRemovalEvidence();
+            await profileStore.CaptureAsync(app, before, default);
+            var profileScanner = new LeftoverScanner(profileStore, inventory);
+            var profileScan = await profileScanner.ScanAsync(profileStore.ConfirmRemoved(app.Id)!.Id, default);
+            var profileItem = profileScan.Items.Single(i => i.Type == LeftoverType.RegistryKey);
+            check("Registry personal settings require non-default Review", profileItem.Confidence == LeftoverConfidence.Review && !profileItem.SelectedByDefault);
+            var profileResult = await new LeftoverDeletionService(profileScanner, profileStore, inventory, new RegistryBackupWriter()).DeleteAsync(new(profileScan.Id, app.Id, [profileItem.Id]), default);
+            using (var key = user.OpenSubKey(keyPath)) check("Review registry cannot be deleted even by forged request", profileResult.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && (string?)key?.GetValue("ProfileName") == "Synthetic personal profile");
+            using (var key = user.OpenSubKey(keyPath, true)) key!.DeleteValue("ProfileName");
             if (deletion)
             {
                 var deleteStore = new ApplicationRemovalEvidence();
@@ -102,10 +136,10 @@ static class LeftoverScannerTests
                 using (var retainedKey = user.OpenSubKey(keyPath)) check("Backup failure preserves registry", result.Items.Single().Status == LeftoverDeletionStatus.BackupFailed && retainedKey is not null);
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
                 registryItem = scan.Items.First(i => i.Type == LeftoverType.RegistryKey);
-                using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("Number", 99);
+                using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("VersionMajor", 99);
                 result = await deletionService.DeleteAsync(new(scan.Id, app.Id, [registryItem.Id]), default);
                 check("Registry modified after scan skipped", result.Items.Single().Status == LeftoverDeletionStatus.Changed);
-                using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("Number", 43);
+                using (var key = user.OpenSubKey(keyPath, true)) key!.SetValue("VersionMajor", 43);
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
                 check("Registry metadata changes detected even after values restored", scan.Items.All(i => i.Type != LeftoverType.RegistryKey));
                 // A fresh synthetic pre-uninstall snapshot starts the next independent
@@ -113,7 +147,7 @@ static class LeftoverScannerTests
                 await deleteStore.CaptureAsync(app, before, default);
                 deleteReceipt = deleteStore.ConfirmRemoved(app.Id)!;
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
-                var fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.txt"));
+                var fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.dll"));
                 var injectionRejected = false;
                 try { await deletionService.DeleteAsync(new(scan.Id, "other-application", [fileItem.Id]), default); } catch (InvalidOperationException) { injectionRejected = true; }
                 check("Other application identity cannot delete", injectionRejected);
@@ -127,29 +161,30 @@ static class LeftoverScannerTests
                 {
                     cancelled.Cancel(); var wasCancelled = false;
                     try { await deletionService.DeleteAsync(new(scan.Id, app.Id, [fileItem.Id]), cancelled.Token); } catch (OperationCanceledException) { wasCancelled = true; }
-                    check("Cancelled deletion leaves files intact", wasCancelled && File.Exists(Path.Combine(root, "owned.txt")));
+                    check("Cancelled deletion leaves files intact", wasCancelled && File.Exists(Path.Combine(root, "owned.dll")));
                 }
-                File.WriteAllText(Path.Combine(root, "owned.txt"), "changed content");
+                File.WriteAllText(Path.Combine(root, "owned.dll"), "changed content");
                 result = await deletionService.DeleteAsync(new(scan.Id, app.Id, [fileItem.Id]), default);
-                check("File changed after scan skipped", result.Items.Single().Status == LeftoverDeletionStatus.Changed && File.Exists(Path.Combine(root, "owned.txt")));
+                check("File changed after scan skipped", result.Items.Single().Status == LeftoverDeletionStatus.Changed && File.Exists(Path.Combine(root, "owned.dll")));
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
-                fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.txt"));
-                using (var locked = new FileStream(Path.Combine(root, "owned.txt"), FileMode.Open, FileAccess.Read, FileShare.None))
+                fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.dll"));
+                using (var locked = new FileStream(Path.Combine(root, "owned.dll"), FileMode.Open, FileAccess.Read, FileShare.None))
                 {
                     result = await deletionService.DeleteAsync(new(scan.Id, app.Id, [fileItem.Id]), default);
                     check("Locked after scan skipped", result.Items.Single().Status == LeftoverDeletionStatus.InUse);
                 }
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
-                fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.txt"));
+                fileItem = scan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.dll"));
                 File.WriteAllText(Path.Combine(root, "new-after-scan.txt"), "new");
                 result = await deletionService.DeleteAsync(new(scan.Id, app.Id, [fileItem.Id]), default);
-                check("Changed folder blocks selected descendants", result.Items.Single().Status == LeftoverDeletionStatus.Changed && File.Exists(Path.Combine(root, "owned.txt")));
+                check("Changed folder blocks selected descendants", result.Items.Single().Status == LeftoverDeletionStatus.Changed && File.Exists(Path.Combine(root, "owned.dll")));
                 File.Delete(Path.Combine(root, "new-after-scan.txt"));
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
                 var expectedBytes = scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe && i.Type == LeftoverType.File).Sum(i => i.Size ?? 0);
                 var request = new LeftoverDeletionRequest(scan.Id, app.Id, scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe).Select(i => i.Id).ToArray());
                 result = await deletionService.DeleteAsync(request, default);
-                check("Selected exact leftover files/directories removed bottom-up", !Directory.Exists(root) && !Directory.Exists(data) && result.Items.All(i => i.Status == LeftoverDeletionStatus.Deleted));
+                check("Selected exact safe install leftovers removed bottom-up", !Directory.Exists(root) && result.Items.All(i => i.Status == LeftoverDeletionStatus.Deleted));
+                check("Review DataPath retained by safe-only deletion", File.ReadAllText(Path.Combine(data, "data.txt")) == "app data");
                 check("Actual bytes agree with selected file sizes", result.RemovedBytes == expectedBytes);
                 using (var removedKey = user.OpenSubKey(keyPath)) check("Registry transaction committed exact selected key", removedKey is null);
                 check("Durable registry backup exists", result.Items.Where(i => i.BackupFile is not null).Any(i => File.Exists(i.BackupFile)));
@@ -219,6 +254,8 @@ static class LeftoverScannerTests
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode)] private static extern int RegSetValueExW(SafeRegistryHandle key, string name, int reserved, int type, byte[] data, int size);
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode)] private static extern int RegOpenKeyExW(SafeRegistryHandle key, string subkey, int options, int access, out SafeRegistryHandle result);
     [DllImport("ntdll.dll")] private static extern int NtDeleteKey(SafeRegistryHandle key);
+    [DllImport("kernel32.dll", EntryPoint = "CreateHardLinkW", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CreateHardLink(string link, string existing, IntPtr security);
     sealed class FailedBackup : IRegistryBackupWriter
     {
         public Task<string> SaveAsync(string applicationId, string displayName, string hive, string view, string path, byte[] snapshot, CancellationToken token) => throw new IOException("Synthetic backup failure");

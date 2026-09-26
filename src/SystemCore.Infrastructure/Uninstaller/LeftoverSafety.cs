@@ -5,7 +5,23 @@ namespace SystemCore.Infrastructure.Uninstaller;
 
 public static class LeftoverSafety
 {
-    private static readonly string[] SharedNames = ["Microsoft", "Adobe", "Google", "NVIDIA Corporation", "Steam", "Epic Games", "Common Files", "Packages", "Temp", "Cache", "Apps", "Programs", "Windows", "Users", "Documents", "Desktop", "Downloads"];
+    private static readonly string[] SharedNames = ["Microsoft", "Adobe", "Google", "NVIDIA Corporation", "Steam", "Epic Games", "Epic", "EA", "Ubisoft", "Battle.net", "Common Files", "Packages", "Temp", "Cache", "Apps", "Programs", "Windows", "Users", "Documents", "Desktop", "Downloads"];
+    private static readonly string[] SharedGameNames = ["steam", "steamlibrary", "steamapps", "epic", "epicgames", "epicgameslauncher", "ea", "eagames", "eadesktop", "ubisoft", "ubisoftgamelauncher", "battlenet", "launcher", "launchers", "launcherroot",
+            "shadercache", "shadercaches", "sharedshadercache", "dxcache", "glcache", "d3dscache", "anticheat", "easyanticheat", "battleye", "sharedanticheat",
+            "redistributable", "redistributables", "sharedredistributable", "sharedredistributables", "commonredist", "redist", "mods", "sharedmods", "sharedmodsdirectory", "workshop", "sharedworkshop", "workshopcontent", "sharedworkshopcontent"];
+    private static readonly string[] PersonalMarkers = ["save", "screenshot", "mod", "profile", "config", "setting", "userdata", "usergenerated", "usercontent", "ugc", "custom", "document", "project", "preset"];
+    private static readonly string[] PersonalExtensions = [".sav", ".save", ".ini", ".cfg", ".conf", ".config", ".json", ".xml", ".yaml", ".yml", ".db", ".sqlite", ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".mp4"];
+    private static readonly string[] ApplicationBinaryExtensions = [".exe", ".dll", ".mui", ".pdb", ".cat"];
+    private static readonly string[] RegistryIdentityValues = ["Publisher", "DisplayName", "DisplayVersion", "InstallLocation", "DataPath", "ProductCode", "PackageFamilyName", "VersionMajor", "VersionMinor"];
+    private static string Compact(string value) => new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+    public static bool SharedGamePath(string path) => path.Split(['\\', '/']).Any(part => SharedGameNames.Contains(Compact(part), StringComparer.Ordinal));
+    // Ownership alone cannot establish whether user-created data is disposable.
+    // A personal directory taints every descendant, including opaque binary saves.
+    public static bool MayContainPersonalData(string path) => path.Split(['\\', '/']).Select(Compact)
+        .Any(part => PersonalMarkers.Any(marker => part.Contains(marker, StringComparison.Ordinal)))
+        || PersonalExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
+    public static bool HasApplicationBinaryExtension(string path) => ApplicationBinaryExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
+    public static bool IsRegistryIdentityValue(string name) => RegistryIdentityValues.Contains(name, StringComparer.OrdinalIgnoreCase);
     public static bool SharedComponent(InstalledApplication application) => application.IsProtected || application.IsFramework || application.IsSystemComponent
         || SharedNames.Contains(application.DisplayName, StringComparer.OrdinalIgnoreCase)
         || new[] { "runtime", "redistributable", "framework", "driver", "anti-cheat", "anticheat", "codec", "sdk", "licensing", "update service" }.Any(word => application.DisplayName.Contains(word, StringComparison.OrdinalIgnoreCase));
@@ -13,6 +29,7 @@ public static class LeftoverSafety
     {
         var canonical = CleanerSafety.Canonical(path);
         if (canonical is null || canonical.Length <= 3 || SharedComponent(application)) return false;
+        if (application.ItemKind == ItemKind.Game && SharedGamePath(canonical)) return false;
         var roots = new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86, Environment.SpecialFolder.LocalApplicationData,
             Environment.SpecialFolder.ApplicationData, Environment.SpecialFolder.CommonApplicationData };
         if (!roots.Select(Environment.GetFolderPath).Where(r => r.Length > 0).Any(r => CleanerSafety.IsChild(r, canonical))) return false;
