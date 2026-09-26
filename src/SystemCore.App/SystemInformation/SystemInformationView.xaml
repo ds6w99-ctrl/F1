@@ -1,0 +1,46 @@
+<UserControl x:Class="SystemCore.App.SystemInformation.SystemInformationView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:info="using:SystemCore.App.SystemInformation">
+  <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Padding="{StaticResource F1PagePadding}" Spacing="16" MaxWidth="1200" HorizontalAlignment="Stretch">
+      <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle" />
+      <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}" TextWrapping="Wrap" />
+      <StackPanel Orientation="Horizontal" Spacing="16">
+        <Button Content="{x:Bind ViewModel.RefreshLabel, Mode=OneWay}" Command="{x:Bind ViewModel.RefreshCommand}" Style="{StaticResource F1PrimaryButtonStyle}" AutomationProperties.AutomationId="InfoRefresh" />
+        <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="24" Height="24" AutomationProperties.Name="{x:Bind ViewModel.LoadingLabel, Mode=OneWay}" />
+      </StackPanel>
+      <TextBlock Text="{x:Bind ViewModel.LoadingLabel, Mode=OneWay}" Visibility="{x:Bind ViewModel.LoadingVisibility, Mode=OneWay}" TextWrapping="Wrap" />
+      <Border Style="{StaticResource CardStyle}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{x:Bind ViewModel.LiveTitle, Mode=OneWay}" FontWeight="SemiBold" />
+          <TextBlock Text="{x:Bind ViewModel.LiveValues, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="InfoLive" />
+        </StackPanel>
+      </Border>
+      <ContentControl Content="{x:Bind ViewModel.Overview, Mode=OneWay}" HorizontalContentAlignment="Stretch">
+        <ContentControl.ContentTemplate><DataTemplate x:DataType="info:InformationGroup"><Border Style="{StaticResource CardStyle}"><StackPanel Spacing="16">
+          <TextBlock Text="{x:Bind Title}" FontSize="22" FontWeight="SemiBold" Foreground="{ThemeResource F1BlueBrush}"/>
+          <ItemsControl ItemsSource="{x:Bind Rows}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="info:InformationRow"><Grid ColumnDefinitions="2*,3*" ColumnSpacing="16" Padding="0,8"><TextBlock Text="{x:Bind Label}" TextWrapping="Wrap" Foreground="{ThemeResource F1SecondaryBrush}"/><TextBlock Grid.Column="1" Text="{x:Bind Value}" TextWrapping="Wrap" FlowDirection="LeftToRight" IsTextSelectionEnabled="True"/></Grid></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+        </StackPanel></Border></DataTemplate></ContentControl.ContentTemplate>
+      </ContentControl>
+      <ItemsControl ItemsSource="{x:Bind ViewModel.DetailGroups, Mode=OneWay}" AutomationProperties.AutomationId="InfoGroups">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="info:InformationGroup">
+            <Expander Header="{x:Bind Title}" IsExpanded="{x:Bind Expanded}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,0,0,12">
+              <ItemsControl ItemsSource="{x:Bind Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="info:InformationRow">
+                    <Grid ColumnDefinitions="2*,3*" ColumnSpacing="16" Padding="0,6">
+                      <TextBlock Text="{x:Bind Label}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                      <TextBlock Grid.Column="1" Text="{x:Bind Value}" TextWrapping="Wrap" FlowDirection="LeftToRight" IsTextSelectionEnabled="True" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Expander>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

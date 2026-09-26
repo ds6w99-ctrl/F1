@@ -1,0 +1,9 @@
+<UserControl x:Class="SystemCore.App.Performance.HistoryChart"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Grid RowDefinitions="Auto,100" FlowDirection="LeftToRight">
+  <TextBlock x:Name="ScaleLabel" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+  <Grid x:Name="Plot" Grid.Row="1" SizeChanged="OnSizeChanged" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+   <Path x:Name="Line" Stroke="{ThemeResource AccentFillColorDefaultBrush}" StrokeThickness="1.5" IsHitTestVisible="False" />
+  </Grid>
+ </Grid>
+</UserControl>

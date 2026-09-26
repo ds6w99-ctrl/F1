@@ -1,0 +1,21 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "properties": [
+      { "name": "systemcore:scope", "value": "Phase-0 Inno Setup build-tool archive only. Not a complete native release SBOM." }
+    ]
+  },
+  "components": [
+    {
+      "type": "application",
+      "name": "Inno Setup x64 compiler portable installer",
+      "version": "7.1.0",
+      "hashes": [ { "alg": "SHA-256", "content": "0362a383ed217d4c4239b5933866dd96d3eb2102737da92f80f6057a4b40df2f" } ],
+      "licenses": [ { "license": { "name": "Inno Setup custom license", "url": "https://raw.githubusercontent.com/jrsoftware/issrc/is-7_1_0/license.txt" } } ],
+      "externalReferences": [ { "type": "distribution", "url": "https://github.com/jrsoftware/issrc/releases/download/is-7_1_0/innosetup-7.1.0-x64.exe" } ],
+      "properties": [ { "name": "systemcore:authenticode", "value": "Verified Valid; publisher Pyrsys B.V. before portable extraction." } ]
+    }
+  ]
+}

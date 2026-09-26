@@ -1,0 +1,23 @@
+[
+    {
+        "Name":  "communitytoolkit.mvvm",
+        "Version":  "8.4.2",
+        "License":  "MIT",
+        "SHA512":  "RaMGdvVHQt/XSAZaaVK0VjvZ+KoZh39ZL5tUvUZL80+tyYLEs/HHFw2S+zTVmWbVvQX2p5Bqv65goSfqoO3KUw==",
+        "Source":  "https://api.nuget.org/v3/index.json"
+    },
+    {
+        "Name":  "microsoft.extensions.dependencyinjection",
+        "Version":  "10.0.12",
+        "License":  "MIT",
+        "SHA512":  "4bTS7TpB4aMRxegFpYgsp9HDI0TvFC6bt2n9SsyJ9xLy6ZEspW2ji7bQ7dKguG2w5LbsJtFiWz+wiPZgpmQ/KQ==",
+        "Source":  "https://api.nuget.org/v3/index.json"
+    },
+    {
+        "Name":  "microsoft.extensions.dependencyinjection.abstractions",
+        "Version":  "10.0.12",
+        "License":  "MIT",
+        "SHA512":  "kTf3x6w7DOuNj6kS0kL8oEGSSXJnqiPm3G+ddUfVB743EaO5Np8CX3r9pQp0ovBY7/J+KY0JLbwuhC02nFQO1g==",
+        "Source":  "https://api.nuget.org/v3/index.json"
+    }
+]

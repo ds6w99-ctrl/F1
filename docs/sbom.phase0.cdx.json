@@ -1,0 +1,17 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": { "type": "application", "name": "SystemCore phase-0 source probe", "version": "0.0.1" },
+    "properties": [
+      { "name": "systemcore:inventory-scope", "value": "Declared direct packages only. Transitive/native closure not resolved. NOT a release SBOM." }
+    ]
+  },
+  "components": [
+    { "type": "library", "name": "Microsoft.WindowsAppSDK.WinUI", "version": "2.3.9", "purl": "pkg:nuget/Microsoft.WindowsAppSDK.WinUI@2.3.9" },
+    { "type": "library", "name": "Microsoft.WindowsAppSDK.Runtime", "version": "2.5.1", "purl": "pkg:nuget/Microsoft.WindowsAppSDK.Runtime@2.5.1" },
+    { "type": "library", "name": "Microsoft.WindowsAppSDK.InteractiveExperiences", "version": "2.1.9", "purl": "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9" },
+    { "type": "library", "name": "Microsoft.Windows.SDK.BuildTools", "version": "10.0.26100.9169", "purl": "pkg:nuget/Microsoft.Windows.SDK.BuildTools@10.0.26100.9169" }
+  ]
+}

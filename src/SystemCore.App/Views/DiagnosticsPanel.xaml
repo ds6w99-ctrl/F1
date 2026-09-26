@@ -1,0 +1,14 @@
+<UserControl x:Class="SystemCore.App.Views.DiagnosticsPanel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:f1="using:SystemCore.App.DesignSystem">
+ <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12">
+  <TextBlock x:Name="Title" FontSize="20" /><TextBlock x:Name="Description" TextWrapping="Wrap" />
+  <TextBlock Text="{x:Bind ViewModel.Storage, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="DiagnosticsStorage" />
+  <TextBlock Text="{x:Bind ViewModel.Status, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="DiagnosticsStatus" />
+  <f1:F1WrapPanel>
+   <Button x:Name="OpenLogs" Click="OnOpenLogs" IsEnabled="{x:Bind ViewModel.CanAct, Mode=OneWay}" AutomationProperties.AutomationId="DiagnosticsOpenLogs" />
+   <Button x:Name="Export" Grid.Column="1" Click="OnExport" Style="{StaticResource F1PrimaryButtonStyle}" IsEnabled="{x:Bind ViewModel.CanAct, Mode=OneWay}" AutomationProperties.AutomationId="DiagnosticsExport" />
+   <Button x:Name="Clear" Grid.Row="1" Click="OnClear" Style="{StaticResource DangerButtonStyle}" IsEnabled="{x:Bind ViewModel.CanAct, Mode=OneWay}" AutomationProperties.AutomationId="DiagnosticsClear" />
+   <Button x:Name="OpenExports" Grid.Row="1" Grid.Column="1" Click="OnOpenExports" IsEnabled="{x:Bind ViewModel.CanAct, Mode=OneWay}" AutomationProperties.AutomationId="DiagnosticsOpenExports" />
+   <Button x:Name="OpenData" Grid.Row="2" Click="OnOpenData" IsEnabled="{x:Bind ViewModel.CanAct, Mode=OneWay}" AutomationProperties.AutomationId="DiagnosticsOpenData" />
+  </f1:F1WrapPanel>
+ </StackPanel></Border>
+</UserControl>

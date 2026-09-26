@@ -1,0 +1,58 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+*.user
+*.pfx
+*.p12
+
+# F1 Git baseline rules
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET / WinUI build outputs
+**/bin/
+**/obj/
+TestResults/
+coverage/
+.coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish / generated artifacts
+artifacts/
+publish/
+
+# Temporary / logs
+*.tmp
+*.temp
+*.log
+*.bak
+*.cache
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Local diagnostics
+*.dmp
+*.etl
+*.etlx
+*.gcdump
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+
+# Keep source-controlled documentation and assets
+!docs/
+!src/
+!tests/
+!scripts/

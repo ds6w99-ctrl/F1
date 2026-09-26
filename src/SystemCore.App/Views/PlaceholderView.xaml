@@ -1,0 +1,15 @@
+<UserControl x:Class="SystemCore.App.Views.PlaceholderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Padding="{StaticResource F1PagePadding}" Spacing="24" MaxWidth="900" HorizontalAlignment="Stretch">
+      <TextBlock Text="{x:Bind ViewModel.CurrentPageTitle, Mode=OneWay}" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle" />
+      <Border Style="{StaticResource CardStyle}">
+        <StackPanel Spacing="12">
+          <TextBlock Text="{x:Bind ViewModel.PlaceholderTitle, Mode=OneWay}" FontSize="20" TextWrapping="Wrap" AutomationProperties.AutomationId="DeferredFeature" />
+          <TextBlock Text="{x:Bind ViewModel.PlaceholderDescription, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

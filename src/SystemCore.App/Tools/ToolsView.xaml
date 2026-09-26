@@ -1,0 +1,7 @@
+<UserControl x:Class="SystemCore.App.Tools.ToolsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Grid Padding="{StaticResource F1PagePadding}" RowDefinitions="Auto,Auto,*" RowSpacing="16">
+   <Grid ColumnDefinitions="*,Auto"><TextBlock x:Name="Title" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle" /><Button x:Name="Refresh" Grid.Column="1" Click="OnRefresh" Style="{StaticResource F1PrimaryButtonStyle}" AutomationProperties.AutomationId="ToolsRefresh" /></Grid>
+  <StackPanel Grid.Row="1" Spacing="8"><TextBlock x:Name="Description" TextWrapping="Wrap" /><TextBlock x:Name="Status" TextWrapping="Wrap" AutomationProperties.AutomationId="ToolsStatus" /></StackPanel>
+  <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="Cards" Spacing="12" /></ScrollViewer>
+ </Grid>
+</UserControl>

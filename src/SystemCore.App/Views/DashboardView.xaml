@@ -1,0 +1,48 @@
+<UserControl x:Class="SystemCore.App.Views.DashboardView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:f1="using:SystemCore.App.DesignSystem">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled" FlowDirection="LeftToRight">
+    <StackPanel x:Name="DashboardLayout" Padding="32,26,32,20" Spacing="16" MaxWidth="1500" HorizontalAlignment="Stretch" SizeChanged="OnLayoutChanged">
+      <Grid x:Name="Hero" ColumnDefinitions="*,Auto" ColumnSpacing="16" Margin="4,16,0,20">
+        <StackPanel Spacing="12" VerticalAlignment="Center">
+          <TextBlock Text="{x:Bind ViewModel.HeroTitle, Mode=OneWay}" AutomationProperties.AutomationId="PageTitle" FontSize="44" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="{x:Bind ViewModel.HeroDescription, Mode=OneWay}" FontSize="18" Foreground="{ThemeResource F1SecondaryBrush}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" x:Name="HeroAction" Spacing="10" VerticalAlignment="Center" MaxWidth="266">
+          <Button Command="{x:Bind ViewModel.StartScanCommand}" Style="{StaticResource F1PrimaryButtonStyle}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="F1HeroScan" AutomationProperties.Name="{x:Bind ViewModel.ScanDetail, Mode=OneWay}">
+            <StackPanel Orientation="Horizontal" Spacing="18"><FontIcon Glyph="&#xE945;" Foreground="{ThemeResource F1ActionTextBrush}" FontSize="24"/><TextBlock Text="{x:Bind ViewModel.ScanLabel, Mode=OneWay}" FontSize="18" Foreground="{ThemeResource F1ActionTextBrush}"/><FontIcon Glyph="&#xE76C;" FontSize="14"/></StackPanel>
+          </Button>
+          <TextBlock Text="{x:Bind ViewModel.ScanDetail, Mode=OneWay}" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Foreground="{ThemeResource F1SecondaryBrush}"/>
+        </StackPanel>
+      </Grid>
+      <TextBlock Text="{x:Bind ViewModel.Status, Mode=OneWay}" TextWrapping="Wrap" Visibility="{x:Bind ViewModel.StatusVisibility, Mode=OneWay}" />
+      <Grid x:Name="MetricRow" ColumnSpacing="16" RowSpacing="16"><f1:F1MetricCard x:Name="Cpu"/><f1:F1MetricCard x:Name="Memory"/><f1:F1MetricCard x:Name="Disk"/></Grid>
+      <Grid x:Name="ActionRow" ColumnSpacing="16" RowSpacing="16">
+        <Border Style="{StaticResource CardStyle}"><Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12" MinHeight="214">
+          <Viewbox Width="44" Height="44" HorizontalAlignment="Center" AutomationProperties.AccessibilityView="Raw"><Path Data="M 25,2 L 30,5 L 22,23 L 17,20 Z M 15,18 L 27,24 L 25,30 L 10,23 Z M 10,25 L 24,32 L 17,43 L 13,41 L 17,33 L 11,40 L 7,38 L 11,30 L 5,36 L 1,33 Z" Fill="{ThemeResource F1BlueBrush}"/></Viewbox>
+          <TextBlock Grid.Row="1" Text="{x:Bind ViewModel.CleanupTitle, Mode=OneWay}" FontSize="22" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+          <StackPanel Grid.Row="2" Spacing="8"><TextBlock Text="{x:Bind ViewModel.CleanupBody, Mode=OneWay}" Foreground="{ThemeResource F1SecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock Text="{x:Bind ViewModel.CleanerValue, Mode=OneWay}" FontSize="12" TextAlignment="Center" AutomationProperties.AutomationId="JunkStatus"/></StackPanel>
+          <Button Grid.Row="3" Content="{x:Bind ViewModel.ScanLabel, Mode=OneWay}" Command="{x:Bind ViewModel.StartScanCommand}" Style="{StaticResource F1PrimaryButtonStyle}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="F1ActionScan"/>
+        </Grid></Border>
+        <Border Style="{StaticResource CardStyle}"><Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12" MinHeight="214">
+          <FontIcon Glyph="&#xE74D;" FontSize="42" Foreground="{ThemeResource F1PurpleBrush}" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Row="1" Text="{x:Bind ViewModel.ProgramsTitle, Mode=OneWay}" FontSize="22" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+          <StackPanel Grid.Row="2" Spacing="8"><TextBlock Text="{x:Bind ViewModel.ProgramsBody, Mode=OneWay}" Foreground="{ThemeResource F1SecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock Text="{x:Bind ViewModel.Cards[4].Value, Mode=OneWay}" TextAlignment="Center" FontSize="12" AutomationProperties.AutomationId="MetricApps"/></StackPanel>
+          <Button Grid.Row="3" Content="{x:Bind ViewModel.ManagePrograms, Mode=OneWay}" Command="{x:Bind ViewModel.ManageProgramsCommand}" Style="{StaticResource F1PrimaryButtonStyle}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="F1ActionPrograms"/>
+        </Grid></Border>
+        <Border Style="{StaticResource CardStyle}"><Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12" MinHeight="214">
+          <FontIcon Glyph="&#xE7E8;" FontSize="42" Foreground="{ThemeResource F1TealBrush}" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Row="1" Text="{x:Bind ViewModel.StartupTitle, Mode=OneWay}" FontSize="22" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+          <StackPanel Grid.Row="2" Spacing="8"><TextBlock Text="{x:Bind ViewModel.StartupBody, Mode=OneWay}" Foreground="{ThemeResource F1SecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock Text="{x:Bind ViewModel.Cards[5].Value, Mode=OneWay}" FontSize="12" TextAlignment="Center" AutomationProperties.AutomationId="MetricStartup"/></StackPanel>
+          <Button Grid.Row="3" Content="{x:Bind ViewModel.OpenManager, Mode=OneWay}" Command="{x:Bind ViewModel.ManageStartupCommand}" Style="{StaticResource F1PrimaryButtonStyle}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="F1ActionStartup"/>
+        </Grid></Border>
+      </Grid>
+      <Border Style="{StaticResource CardStyle}" Padding="20,14">
+        <Grid x:Name="StatusRow" ColumnSpacing="18" RowSpacing="12">
+          <StackPanel Spacing="4"><TextBlock Text="{x:Bind ViewModel.ReadyLabel, Mode=OneWay}" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource F1TealBrush}"/><TextBlock Text="{x:Bind ViewModel.UpdatedText, Mode=OneWay}" AutomationProperties.AutomationId="SampleTime" FontSize="12" Foreground="{ThemeResource F1SecondaryBrush}"/></StackPanel>
+          <StackPanel Spacing="4"><TextBlock Text="{x:Bind ViewModel.SystemDescription, Mode=OneWay}" AutomationProperties.AutomationId="WindowsVersion" FontSize="12" TextWrapping="Wrap"/><TextBlock Text="{x:Bind ViewModel.DeviceName, Mode=OneWay}" AutomationProperties.AutomationId="DeviceName" FontSize="12" Foreground="{ThemeResource F1SecondaryBrush}"/><TextBlock Text="{x:Bind ViewModel.Uptime, Mode=OneWay}" AutomationProperties.AutomationId="SystemUptime" FontSize="12" Foreground="{ThemeResource F1SecondaryBrush}"/></StackPanel>
+          <StackPanel Spacing="4"><TextBlock Text="{x:Bind ViewModel.LastScanLabel, Mode=OneWay}" FontSize="12"/><TextBlock Text="{x:Bind ViewModel.LastScan, Mode=OneWay}" FontSize="12" TextWrapping="Wrap" Foreground="{ThemeResource F1SecondaryBrush}"/><TextBlock Text="{x:Bind ViewModel.Cards[3].Value, Mode=OneWay}" AutomationProperties.AutomationId="MetricFree" FontSize="12"/></StackPanel>
+        </Grid>
+      </Border>
+      <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{x:Bind ViewModel.HistoryLabel, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource F1MutedBrush}"/><TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Attribution}" FontSize="12" Foreground="{ThemeResource F1SecondaryBrush}"/></Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

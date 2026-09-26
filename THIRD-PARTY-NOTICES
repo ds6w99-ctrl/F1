@@ -1,0 +1,30 @@
+F1 development build — third-party notices
+
+The About page includes the original license and notice texts preserved under
+docs/licenses/, including the .NET 10.0.12 private runtime. These development
+notices do not replace the final exact-payload license review before distribution.
+
+This project references Microsoft .NET and Windows App SDK / WinUI packages and
+Windows SDK build tools. Copyright and redistribution terms are those of their
+respective owners. Source-code licenses are not a substitute for binary package terms.
+
+.NET: https://github.com/dotnet/runtime/blob/main/LICENSE.TXT
+Runtime third-party notices: https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT
+Windows App SDK: inspect license.txt in every resolved package and framework payload.
+Windows SDK tools: https://aka.ms/WinSDKLicenseURL
+WebView2: inspect the resolved Microsoft.Web.WebView2 package license.
+
+Experimental installer compiler: Inno Setup 7.1.0, Copyright (C) 1997-2026 Jordan Russell.
+Portions Copyright (C) 2000-2026 Martijn Laan. https://jrsoftware.org/
+Exact release: https://github.com/jrsoftware/issrc/releases/tag/is-7_1_0
+Used to compile the phase-0 test fixture; no commercial release is asserted.
+
+No third-party font, icon, illustration or logo is redistributed by this source probe.
+The F1 mark and temporary mountain SVG are original project artwork; provenance and
+the missing clean reference background are documented in docs/F1-ASSETS.md.
+Before binary distribution replace this preliminary notice with complete exact-version
+license texts and required notices from the successful dependency restore and publication.
+Exact restored package license/notice texts are preserved in docs/licenses/, indexed by
+package/version. The NuGet graph is recorded in docs/dependencies.resolved.json and
+docs/sbom.resolved-nuget.cdx.json. SDK/runtime/native payload review remains open.
+See DEPENDENCIES.md. This file does not assert license clearance or commercial readiness.

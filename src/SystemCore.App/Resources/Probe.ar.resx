@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Stage" xml:space="preserve"><value>المرحلة 0 — فحص التوافق والنشر</value></data>
+  <data name="NoticeTitle" xml:space="preserve"><value>نموذج تطوير</value></data>
+  <data name="Notice" xml:space="preserve"><value>هذان التبويبان مخصصان لاختبار اللغة والثيم والتنقل بلوحة المفاتيح فقط. لم تُنفذ عمليات صيانة.</value></data>
+  <data name="Language" xml:space="preserve"><value>اللغة</value></data>
+  <data name="Theme" xml:space="preserve"><value>المظهر</value></data>
+  <data name="System" xml:space="preserve"><value>النظام</value></data>
+  <data name="Light" xml:space="preserve"><value>فاتح</value></data>
+  <data name="Dark" xml:space="preserve"><value>داكن</value></data>
+  <data name="Compatibility" xml:space="preserve"><value>التوافق</value></data>
+  <data name="Deployment" xml:space="preserve"><value>النشر</value></data>
+  <data name="DeploymentText" xml:space="preserve"><value>حزمة x64 مع بيئة تشغيل مضمّنة. تُسجل نتائج التثبيت وإعادة التشغيل والإزالة على جهاز نظيف في TEST-RESULTS.md. هذا النص ليس إثباتًا لاجتياز تلك الاختبارات.</value></data>
+  <data name="UacText" xml:space="preserve"><value>اختبار UAC الذي يقرأ الصلاحيات فقط منفصل. اتبع إجراء بيئة الاختبار المخصصة في docs/SMOKE-TESTS.md. هذه النافذة لا تطلب رفع الصلاحية.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>تحديث الإمكانات</value></data>
+  <data name="Scope" xml:space="preserve"><value>Windows 11 إصدار 23H2 أو أحدث، x64. الإصدارات Home وPro وEnterprise وEducation. يُوصى بإصدار 24H2 أو أحدث.</value></data>
+  <data name="Architecture" xml:space="preserve"><value>المعمارية</value></data>
+  <data name="Eligible" xml:space="preserve"><value>الأهلية التقنية</value></data>
+  <data name="Mica" xml:space="preserve"><value>توفر Mica</value></data>
+  <data name="TechnicalScope" xml:space="preserve"><value>الأهلية لا تثبت دعم Microsoft أو اجتياز اختبارات المنتج.</value></data>
+</root>

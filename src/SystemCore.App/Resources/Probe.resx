@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Stage" xml:space="preserve"><value>Phase 0 — compatibility and deployment probe</value></data>
+  <data name="NoticeTitle" xml:space="preserve"><value>Development probe</value></data>
+  <data name="Notice" xml:space="preserve"><value>These two test tabs exercise language, theme and keyboard navigation only. No maintenance operations are implemented.</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="System" xml:space="preserve"><value>System</value></data>
+  <data name="Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Compatibility" xml:space="preserve"><value>Compatibility</value></data>
+  <data name="Deployment" xml:space="preserve"><value>Deployment</value></data>
+  <data name="DeploymentText" xml:space="preserve"><value>Self-contained x64 publication. Clean-machine installation, restart and uninstall results are recorded in TEST-RESULTS.md. This text does not certify those tests.</value></data>
+  <data name="UacText" xml:space="preserve"><value>The token-only UAC probe is separate. Follow the dedicated-machine procedure in docs/SMOKE-TESTS.md. This window never requests elevation.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh capabilities</value></data>
+  <data name="Scope" xml:space="preserve"><value>Windows 11 23H2 or later, x64. Home, Pro, Enterprise and Education. Recommended: 24H2 or later.</value></data>
+  <data name="Architecture" xml:space="preserve"><value>Architecture</value></data>
+  <data name="Eligible" xml:space="preserve"><value>Technical eligibility</value></data>
+  <data name="Mica" xml:space="preserve"><value>Mica available</value></data>
+  <data name="TechnicalScope" xml:space="preserve"><value>Eligibility is not proof of Microsoft servicing or tested product support.</value></data>
+</root>

@@ -1,0 +1,64 @@
+<UserControl x:Class="SystemCore.App.Performance.PerformanceView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:perf="using:SystemCore.App.Performance" xmlns:f1="using:SystemCore.App.DesignSystem">
+ <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+   <StackPanel Padding="{StaticResource F1PagePadding}" Spacing="16">
+    <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle" />
+   <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}" TextWrapping="Wrap" />
+   <TextBlock Text="{x:Bind ViewModel.HistoryStatus, Mode=OneWay}" AutomationProperties.AutomationId="PerfHistory" />
+    <f1:F1AdaptivePanel MaximumColumns="2" MinimumItemWidth="320">
+    <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="8">
+     <TextBlock Text="{x:Bind ViewModel.CpuTitle, Mode=OneWay}" FontWeight="SemiBold" />
+     <TextBlock Text="{x:Bind ViewModel.CpuValue, Mode=OneWay}" FontSize="24" AutomationProperties.AutomationId="PerfCpu" />
+     <TextBlock Text="{x:Bind ViewModel.CpuDetail, Mode=OneWay}" TextWrapping="Wrap" />
+     <perf:HistoryChart Metric="0" Culture="{x:Bind ViewModel.Culture, Mode=OneWay}" Points="{x:Bind ViewModel.History, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.CpuTitle, Mode=OneWay}" AutomationProperties.HelpText="{x:Bind ViewModel.ChartLabel, Mode=OneWay}" />
+    </StackPanel></Border>
+    <Border Grid.Column="1" Style="{StaticResource CardStyle}"><StackPanel Spacing="8">
+     <TextBlock Text="{x:Bind ViewModel.MemoryTitle, Mode=OneWay}" FontWeight="SemiBold" />
+     <TextBlock Text="{x:Bind ViewModel.MemoryValue, Mode=OneWay}" FontSize="24" TextWrapping="Wrap" AutomationProperties.AutomationId="PerfMemory" FlowDirection="LeftToRight" />
+     <TextBlock Text="{x:Bind ViewModel.MemoryDetail, Mode=OneWay}" TextWrapping="Wrap" />
+     <perf:HistoryChart Metric="1" Culture="{x:Bind ViewModel.Culture, Mode=OneWay}" Points="{x:Bind ViewModel.History, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.MemoryTitle, Mode=OneWay}" AutomationProperties.HelpText="{x:Bind ViewModel.ChartLabel, Mode=OneWay}" />
+    </StackPanel></Border>
+    <Border Grid.Row="1" Style="{StaticResource CardStyle}"><StackPanel Spacing="8">
+     <TextBlock Text="{x:Bind ViewModel.DiskTitle, Mode=OneWay}" FontWeight="SemiBold" />
+     <TextBlock Text="{x:Bind ViewModel.DiskValue, Mode=OneWay}" FontSize="24" AutomationProperties.AutomationId="PerfDisk" FlowDirection="LeftToRight" />
+     <TextBlock Text="{x:Bind ViewModel.DiskDetail, Mode=OneWay}" TextWrapping="Wrap" />
+     <TextBlock Text="{x:Bind ViewModel.DiskScope, Mode=OneWay}" FontSize="12" TextWrapping="Wrap" />
+     <perf:HistoryChart Metric="2" Culture="{x:Bind ViewModel.Culture, Mode=OneWay}" Points="{x:Bind ViewModel.History, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.DiskTitle, Mode=OneWay}" AutomationProperties.HelpText="{x:Bind ViewModel.ChartLabel, Mode=OneWay}" />
+    </StackPanel></Border>
+    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}"><StackPanel Spacing="8">
+     <TextBlock Text="{x:Bind ViewModel.NetworkTitle, Mode=OneWay}" FontWeight="SemiBold" />
+     <TextBlock Text="{x:Bind ViewModel.NetworkValue, Mode=OneWay}" FontSize="20" TextWrapping="Wrap" AutomationProperties.AutomationId="PerfNetwork" />
+     <TextBlock Text="{x:Bind ViewModel.NetworkDetail, Mode=OneWay}" TextWrapping="Wrap" />
+     <TextBlock Text="{x:Bind ViewModel.NetworkScope, Mode=OneWay}" FontSize="12" TextWrapping="Wrap" />
+     <perf:HistoryChart Metric="3" Culture="{x:Bind ViewModel.Culture, Mode=OneWay}" Points="{x:Bind ViewModel.History, Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.NetworkTitle, Mode=OneWay}" AutomationProperties.HelpText="{x:Bind ViewModel.ChartLabel, Mode=OneWay}" />
+    </StackPanel></Border>
+    </f1:F1AdaptivePanel>
+   <TextBlock Text="{x:Bind ViewModel.ChartLabel, Mode=OneWay}" TextWrapping="Wrap" />
+    <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="16"><TextBlock Text="{x:Bind ViewModel.ProcessTitle, Mode=OneWay}" FontSize="20" FontWeight="SemiBold" />
+   <TextBlock Text="{x:Bind ViewModel.ProcessNotice, Mode=OneWay}" TextWrapping="Wrap" />
+   <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+    <ComboBox x:Name="ModePicker" SelectedIndex="{x:Bind ViewModel.Mode, Mode=TwoWay}" Header="{x:Bind ViewModel.ModeLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfMode" HorizontalAlignment="Stretch" />
+    <ComboBox x:Name="SortPicker" Grid.Column="1" SelectedIndex="{x:Bind ViewModel.Sort, Mode=TwoWay}" Header="{x:Bind ViewModel.SortLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfSort" HorizontalAlignment="Stretch" />
+   </Grid>
+   <TextBox Text="{x:Bind ViewModel.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="{x:Bind ViewModel.SearchLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfSearch" />
+   <TextBlock Text="{x:Bind ViewModel.ProcessState, Mode=OneWay}" AutomationProperties.AutomationId="PerfProcessState" />
+   <Grid ColumnDefinitions="3*,*,*,2*" ColumnSpacing="12" Padding="12,0">
+    <TextBlock Text="{x:Bind ViewModel.NameLabel, Mode=OneWay}" /><TextBlock Grid.Column="1" Text="{x:Bind ViewModel.PidLabel, Mode=OneWay}" />
+    <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.CpuTitle, Mode=OneWay}" /><TextBlock Grid.Column="3" Text="{x:Bind ViewModel.WorkingSetLabel, Mode=OneWay}" />
+   </Grid>
+   <ListView ItemsSource="{x:Bind ViewModel.Processes}" Height="360" SelectionMode="None" AutomationProperties.AutomationId="PerfProcesses" AutomationProperties.Name="{x:Bind ViewModel.ProcessTitle, Mode=OneWay}">
+     <ListView.ItemContainerStyle><Style TargetType="ListViewItem" BasedOn="{StaticResource F1ListItemStyle}"/></ListView.ItemContainerStyle>
+    <ListView.ItemTemplate><DataTemplate x:DataType="perf:ProcessRowViewModel">
+     <Grid ColumnDefinitions="3*,*,*,2*" ColumnSpacing="12" Padding="0,6">
+      <TextBlock Text="{x:Bind Name, Mode=OneWay}" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight" />
+      <TextBlock Grid.Column="1" Text="{x:Bind Pid}" FlowDirection="LeftToRight" />
+      <TextBlock Grid.Column="2" Text="{x:Bind Cpu, Mode=OneWay}" FlowDirection="LeftToRight" />
+      <TextBlock Grid.Column="3" Text="{x:Bind Memory, Mode=OneWay}" FlowDirection="LeftToRight" />
+     </Grid>
+    </DataTemplate></ListView.ItemTemplate>
+    </ListView>
+    </StackPanel></Border>
+  </StackPanel>
+ </ScrollViewer>
+</UserControl>

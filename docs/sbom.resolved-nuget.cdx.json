@@ -1,0 +1,227 @@
+﻿{
+    "components":  [
+                       {
+                           "version":  "1.0.3719.77",
+                           "name":  "Microsoft.Web.WebView2",
+                           "bom-ref":  "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77",
+                           "purl":  "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77",
+                           "properties":  [
+                                              {
+                                                  "value":  "LICENSE.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "b7eb9cc8ac39353c0c8ec52b0c5e91f4b938d25a5c2900f5fc7832185c65e3db5d03887d74a96c8fa15818498346914d7e74e910db93ca931c75bae592a05d0c"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "10.0.26100.9169",
+                           "name":  "Microsoft.Windows.SDK.BuildTools",
+                           "bom-ref":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools@10.0.26100.9169",
+                           "purl":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools@10.0.26100.9169",
+                           "properties":  [
+                                              {
+                                                  "value":  "https://aka.ms/WinSDKLicenseURL",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "685808cffd56c8c5537dd6e45923e219bfcc4e2537ca7354802203bc95dd565a22994726d3ae31b24ae05ea7448d8df21d082bd98ad6eff5dddfaa6f0fc4feba"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "1.7.251221100",
+                           "name":  "Microsoft.Windows.SDK.BuildTools.MSIX",
+                           "bom-ref":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools.MSIX@1.7.251221100",
+                           "purl":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools.MSIX@1.7.251221100",
+                           "properties":  [
+                                              {
+                                                  "value":  "sdk_license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "7f8688649d0d52d876e34de8c6ba51fbdaf157365523a75a6ea076d6ef2772793c78900a0acf66efb138898027bcfd58c2b45ee1ac73ddff3ec9472db4d49f10"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "2.0.4",
+                           "name":  "Microsoft.WindowsAppSDK.Base",
+                           "bom-ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4",
+                           "purl":  "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4",
+                           "properties":  [
+                                              {
+                                                  "value":  "license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "4174b2da5957dbf071f5d61619412c6f5d05e34abde198839cf333a9adbfa919931b8cbd117c46a7ab872136fb7346f81426bee8a14196087a0f9dccd1010c12"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "2.3.12",
+                           "name":  "Microsoft.WindowsAppSDK.Foundation",
+                           "bom-ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Foundation@2.3.12",
+                           "purl":  "pkg:nuget/Microsoft.WindowsAppSDK.Foundation@2.3.12",
+                           "properties":  [
+                                              {
+                                                  "value":  "license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "51f96b35b5e86661cfb7c94b183938810fb2a067d09421dddd3553cbb63008c67f6951960222c3a860848ed5a636c23cc92cba8a6c776657a729f776fd530f12"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "2.1.9",
+                           "name":  "Microsoft.WindowsAppSDK.InteractiveExperiences",
+                           "bom-ref":  "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9",
+                           "purl":  "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9",
+                           "properties":  [
+                                              {
+                                                  "value":  "license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "e7d9ef6f7a5062c0534c6ae86de1e40786e4c40487b6968e44997bafa66f83c3d22030aea446533caac88675249c70c67c0b6e06c9ce46382f462d965c669184"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "2.5.1",
+                           "name":  "Microsoft.WindowsAppSDK.Runtime",
+                           "bom-ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Runtime@2.5.1",
+                           "purl":  "pkg:nuget/Microsoft.WindowsAppSDK.Runtime@2.5.1",
+                           "properties":  [
+                                              {
+                                                  "value":  "license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "103cc67fa4eaf678cd7cdb137ea29d8b0992cc517f71a1c8b6e0daf7d5134223af2d7c0e8c22f593be7f3cc2d2a076c2a3571294787fb12a9956cb09fd9d0dcc"
+                                          }
+                                      ]
+                       },
+                       {
+                           "version":  "2.3.9",
+                           "name":  "Microsoft.WindowsAppSDK.WinUI",
+                           "bom-ref":  "pkg:nuget/Microsoft.WindowsAppSDK.WinUI@2.3.9",
+                           "purl":  "pkg:nuget/Microsoft.WindowsAppSDK.WinUI@2.3.9",
+                           "properties":  [
+                                              {
+                                                  "value":  "license.txt",
+                                                  "name":  "systemcore:license-metadata"
+                                              }
+                                          ],
+                           "type":  "library",
+                           "hashes":  [
+                                          {
+                                              "alg":  "SHA-512",
+                                              "content":  "1a2b98510a8c603e65c9c4fe5f60065f5ae56c753fcdff31a0f79935765b263e2665c4abe124ecc5e4543319d35102c09a68e341a3eb4c84639fbf2f6cf840be"
+                                          }
+                                      ]
+                       }
+                   ],
+    "version":  1,
+    "dependencies":  [
+                         {
+                             "ref":  "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77",
+                             "dependsOn":  [
+
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools@10.0.26100.9169",
+                             "dependsOn":  [
+
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.Windows.SDK.BuildTools.MSIX@1.7.251221100",
+                             "dependsOn":  [
+
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4",
+                             "dependsOn":  [
+                                               "pkg:nuget/Microsoft.Windows.SDK.BuildTools@10.0.26100.9169",
+                                               "pkg:nuget/Microsoft.Windows.SDK.BuildTools.MSIX@1.7.251221100"
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Foundation@2.3.12",
+                             "dependsOn":  [
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4",
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9"
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9",
+                             "dependsOn":  [
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4"
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.WindowsAppSDK.Runtime@2.5.1",
+                             "dependsOn":  [
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4"
+                                           ]
+                         },
+                         {
+                             "ref":  "pkg:nuget/Microsoft.WindowsAppSDK.WinUI@2.3.9",
+                             "dependsOn":  [
+                                               "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77",
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.Base@2.0.4",
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.Foundation@2.3.12",
+                                               "pkg:nuget/Microsoft.WindowsAppSDK.InteractiveExperiences@2.1.9"
+                                           ]
+                         }
+                     ],
+    "bomFormat":  "CycloneDX",
+    "metadata":  {
+                     "properties":  [
+                                        {
+                                            "value":  "Resolved NuGet lock graph only. SDK reference/runtime packs and embedded native component closure require separate review. Not release-certified.",
+                                            "name":  "systemcore:inventory-scope"
+                                        }
+                                    ],
+                     "component":  {
+                                       "name":  "SystemCore phase-0 probe",
+                                       "version":  "0.0.1",
+                                       "type":  "application"
+                                   }
+                 },
+    "specVersion":  "1.6"
+}

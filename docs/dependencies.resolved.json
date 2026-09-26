@@ -1,0 +1,66 @@
+﻿[
+    {
+        "Name":  "Microsoft.Web.WebView2",
+        "Version":  "1.0.3719.77",
+        "Source":  "https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.3719.77",
+        "LicenseMetadata":  "LICENSE.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "t+ucyKw5NTwMjsUrDF6R9Lk40lpcKQD1/HgyGFxl49tdA4h9dKlsj6FYGEmDRpFNfnTpENuTypMcdbrlkqBdDA=="
+    },
+    {
+        "Name":  "Microsoft.Windows.SDK.BuildTools",
+        "Version":  "10.0.26100.9169",
+        "Source":  "https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools/10.0.26100.9169",
+        "LicenseMetadata":  "https://aka.ms/WinSDKLicenseURL",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "aFgIz/1WyMVTfdbkWSPiGb/MTiU3ynNUgCIDvJXdVloimUcm064xskrgXqdEjY3yHQgr2YrW7/Xd36pvD8T+ug=="
+    },
+    {
+        "Name":  "Microsoft.Windows.SDK.BuildTools.MSIX",
+        "Version":  "1.7.251221100",
+        "Source":  "https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools.MSIX/1.7.251221100",
+        "LicenseMetadata":  "sdk_license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "f4aIZJ0NUth2403oxrpR+9rxVzZVI6dabqB21u8ncnk8eJAKCs9m77E4iYAnvP1YwrRe4axz3f8+yUcttNSfEA=="
+    },
+    {
+        "Name":  "Microsoft.WindowsAppSDK.Base",
+        "Version":  "2.0.4",
+        "Source":  "https://www.nuget.org/packages/Microsoft.WindowsAppSDK.Base/2.0.4",
+        "LicenseMetadata":  "license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "QXSy2llX2/Bx9dYWGUEsb10F40q94ZiDnPMzqa2/qRmTG4y9EXxGp6uHITb7c0b4FCa+6KFBlgh6D53M0QEMEg=="
+    },
+    {
+        "Name":  "Microsoft.WindowsAppSDK.Foundation",
+        "Version":  "2.3.12",
+        "Source":  "https://www.nuget.org/packages/Microsoft.WindowsAppSDK.Foundation/2.3.12",
+        "LicenseMetadata":  "license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "UflrNbXoZmHPt8lLGDk4gQ+yoGfQlCHd3TVTy7YwCMZ/aVGWAiLDqGCEjtWmNsI8ySy6imx3ZlenKfd2/VMPEg=="
+    },
+    {
+        "Name":  "Microsoft.WindowsAppSDK.InteractiveExperiences",
+        "Version":  "2.1.9",
+        "Source":  "https://www.nuget.org/packages/Microsoft.WindowsAppSDK.InteractiveExperiences/2.1.9",
+        "LicenseMetadata":  "license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "59nvb3pQYsBTTGrobeHkB4bkxASHtpaORJl7r6Zvg8PSIDCupEZTPKrIhnUknHDGfAtuBsnORjgvRi2WXGaRhA=="
+    },
+    {
+        "Name":  "Microsoft.WindowsAppSDK.Runtime",
+        "Version":  "2.5.1",
+        "Source":  "https://www.nuget.org/packages/Microsoft.WindowsAppSDK.Runtime/2.5.1",
+        "LicenseMetadata":  "license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "EDzGf6Tq9njNfNsTfqKdiwmSzFF/caHItuDa99UTQiOvLXwOjCL1k75/PMLSoHbCo1cSlHh/sSqZVssJ/Z0NzA=="
+    },
+    {
+        "Name":  "Microsoft.WindowsAppSDK.WinUI",
+        "Version":  "2.3.9",
+        "Source":  "https://www.nuget.org/packages/Microsoft.WindowsAppSDK.WinUI/2.3.9",
+        "LicenseMetadata":  "license.txt",
+        "LicenseReview":  "Pending full distribution review",
+        "NuGetSHA512":  "GiuYUQqMYD5lycT+X2AGX1rlbHU/zf8xoPeZNXZbJj4mZcSr4STsxeRUMxnTUQLAmmjjQaPrTIRjn78vbPhAvg=="
+    }
+]

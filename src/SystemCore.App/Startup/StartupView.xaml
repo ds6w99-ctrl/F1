@@ -1,0 +1,17 @@
+<UserControl x:Class="SystemCore.App.Startup.StartupView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:f1="using:SystemCore.App.DesignSystem">
+ <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled"><StackPanel Padding="{StaticResource F1PagePadding}" Spacing="16">
+  <TextBlock x:Name="Title" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle"/>
+  <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12">
+   <TextBox x:Name="Search" TextChanged="OnSearch" AutomationProperties.AutomationId="StartSearch"/>
+   <Grid ColumnDefinitions="*,*" ColumnSpacing="12"><ComboBox x:Name="Filter" HorizontalAlignment="Stretch" SelectionChanged="OnFilter" AutomationProperties.AutomationId="StartFilter"/><ComboBox x:Name="Sort" Grid.Column="1" HorizontalAlignment="Stretch" SelectionChanged="OnSort" AutomationProperties.AutomationId="StartSort"/></Grid>
+   <f1:F1WrapPanel><Button x:Name="Refresh" Click="OnRefresh" Style="{StaticResource F1PrimaryButtonStyle}" AutomationProperties.AutomationId="StartRefresh"/><Button x:Name="Cancel" Click="OnCancel" AutomationProperties.AutomationId="StartCancel"/></f1:F1WrapPanel>
+   <TextBlock x:Name="Status" TextWrapping="Wrap" AutomationProperties.AutomationId="StartStatus"/>
+  </StackPanel></Border>
+  <ListView x:Name="Items" Height="320" SelectionMode="Single" SelectionChanged="OnSelection" AutomationProperties.AutomationId="StartItems"/>
+  <StackPanel Orientation="Horizontal" Spacing="12"><Button x:Name="Previous" Click="OnPrevious"/><TextBlock x:Name="Page" VerticalAlignment="Center"/><Button x:Name="Next" Click="OnNext"/></StackPanel>
+  <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="16">
+   <ScrollViewer MaxHeight="220"><StackPanel Spacing="8"><TextBlock x:Name="Details" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.AutomationId="StartDetails"/><TextBlock x:Name="Technical" FlowDirection="LeftToRight" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.AutomationId="StartTechnical"/></StackPanel></ScrollViewer>
+   <f1:F1WrapPanel><Button x:Name="Disable" IsEnabled="False" Click="OnDisable" Style="{StaticResource DangerButtonStyle}" AutomationProperties.AutomationId="StartDisable"/><Button x:Name="Enable" IsEnabled="False" Click="OnEnable" AutomationProperties.AutomationId="StartEnable"/><Button x:Name="OpenLocation" Click="OnOpenLocation" AutomationProperties.AutomationId="StartOpenLocation"/></f1:F1WrapPanel>
+  </StackPanel></Border>
+ </StackPanel></ScrollViewer>
+</UserControl>

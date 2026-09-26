@@ -1,0 +1,28 @@
+<UserControl x:Class="SystemCore.App.Cleaner.CleanerView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:clean="using:SystemCore.App.Cleaner" xmlns:f1="using:SystemCore.App.DesignSystem">
+ <ScrollViewer HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
+   <StackPanel x:Name="ContentPanel" Padding="{StaticResource F1PagePadding}" Spacing="16">
+    <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" Style="{StaticResource F1PageTitleStyle}" AutomationProperties.AutomationId="PageTitle" />
+   <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}" TextWrapping="Wrap" />
+    <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="16"><f1:F1WrapPanel>
+      <Button Content="{x:Bind ViewModel.ScanLabel, Mode=OneWay}" Command="{x:Bind ViewModel.ScanCommand}" Style="{StaticResource F1PrimaryButtonStyle}" AutomationProperties.AutomationId="CleanerScan" />
+    <Button Content="{x:Bind ViewModel.CancelLabel, Mode=OneWay}" Command="{x:Bind ViewModel.CancelCommand}" AutomationProperties.AutomationId="CleanerCancel" />
+     <Button Content="{x:Bind ViewModel.CleanLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.CanClean, Mode=OneWay}" Click="ConfirmClean" Style="{StaticResource DangerButtonStyle}" AutomationProperties.AutomationId="CleanerClean" />
+    <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" Width="24" Height="24" AutomationProperties.Name="{x:Bind ViewModel.Summary, Mode=OneWay}" />
+   </f1:F1WrapPanel>
+   <TextBlock Text="{x:Bind ViewModel.SafetyNotice, Mode=OneWay}" TextWrapping="Wrap" />
+   <TextBlock Text="{x:Bind ViewModel.Summary, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="CleanerSummary" />
+    <TextBlock Text="{x:Bind ViewModel.OutcomeDetails, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="CleanerOutcomes" />
+    </StackPanel></Border>
+   <ListView x:Name="CategoryList" SelectedIndex="{x:Bind ViewModel.SelectedCategory, Mode=TwoWay}" Height="300" AutomationProperties.AutomationId="CleanerCategories" AutomationProperties.Name="{x:Bind ViewModel.Title, Mode=OneWay}" />
+    <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12"><TextBlock Text="{x:Bind ViewModel.PreviewLabel, Mode=OneWay}" TextWrapping="Wrap" FontSize="20" />
+   <StackPanel Orientation="Horizontal" Spacing="12">
+    <Button Content="{x:Bind ViewModel.PreviousLabel, Mode=OneWay}" Command="{x:Bind ViewModel.PreviousCommand}" AutomationProperties.AutomationId="CleanerPrevious" />
+    <Button Content="{x:Bind ViewModel.NextLabel, Mode=OneWay}" Command="{x:Bind ViewModel.NextCommand}" AutomationProperties.AutomationId="CleanerNext" />
+   </StackPanel>
+    <ListView x:Name="PreviewList" Height="240" SelectionMode="None" AutomationProperties.AutomationId="CleanerPreview" AutomationProperties.Name="{x:Bind ViewModel.PreviewLabel, Mode=OneWay}" />
+    </StackPanel></Border>
+  </StackPanel>
+ </ScrollViewer>
+</UserControl>

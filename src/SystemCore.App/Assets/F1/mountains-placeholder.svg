@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+ <defs>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#030b15"/><stop offset=".42" stop-color="#102c51"/><stop offset=".7" stop-color="#282244"/><stop offset="1" stop-color="#030b15"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#7548a8" stop-opacity=".6"/><stop offset="1" stop-color="#16223c" stop-opacity="0"/></radialGradient>
+  <linearGradient id="near" x2="0" y2="1"><stop stop-color="#0a2542"/><stop offset="1" stop-color="#020812"/></linearGradient>
+ </defs>
+ <path fill="url(#sky)" d="M0 0h1600v1100H0z"/>
+ <ellipse fill="url(#glow)" cx="1040" cy="240" rx="530" ry="300"/>
+ <g fill="#8eb9db" opacity=".36"><circle cx="870" cy="68" r="1"/><circle cx="720" cy="112" r="1"/><circle cx="1120" cy="95" r="1.4"/><circle cx="1200" cy="43" r="1"/><circle cx="640" cy="39" r="1"/><circle cx="1020" cy="139" r="1"/></g>
+ <path fill="#182f4a" d="m0 535 154-220 100 86 124-142 63 104 122-70 147 159 62-27 99-99 67 65 140-204 83 126 107-90 79 191 73-44 80 205v565H0Z"/>
+ <path fill="#264461" opacity=".65" d="m378 259 63 104 122-70-93 123-77-71-74 42Zm399 210 194-143 67 65 140-204-76 211-73-32-47 75-50-67Zm402-282 83 126-87-65-35 58Z"/>
+ <path fill="#0c2037" d="m0 296 103-106 49-164 93 129 46-35 74 225 120 113 74 166 139 142 97-30 149-216 64-27 129-255 84 140 78-202 74 48 100-211 132 138v850H0Z"/>
+ <path fill="#173550" d="m152 26-4 228-48 101 15-96-54 94 42-163Zm93 129 46-35-17 119 58 93-77-67 20 105-79-68 33-43-56-32Zm892 63 84 140-72-75-66 219-43 68 48-215Zm235-225-106 446-44 110 49-237-21-94 45-68Z"/>
+ <path fill="url(#near)" d="m0 489 97-148 81 92 52-64 112 215 80 59 77 167 149 290H0Zm1600-327-109 106-71 224-81-67-134 276-90 28-119 371h604Z"/>
+ <g fill="none" stroke="#194767" opacity=".52"><path d="m97 341-21 192 66 80-39 155 119 146M230 369l-29 227 53 35-21 122 185 250M1491 268l-101 350 43 44-153 300M1339 425l-127 346-85 164"/><path d="m76 533-76 110m142-30 113 18m-34 170-128 72m1340-211 109-39m-212 287 198-77"/></g>
+ <path fill="#030b15" opacity=".55" d="M0 840q320-94 590 14t590-13 420-74v333H0Z"/>
+</svg>

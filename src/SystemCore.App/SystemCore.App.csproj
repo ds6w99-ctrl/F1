@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>F1</AssemblyName>
+    <RootNamespace>SystemCore.App</RootNamespace>
+    <Product>F1</Product>
+    <Title>F1</Title>
+    <ApplicationIcon>Assets/Brand/F1.ico</ApplicationIcon>
+    <Description>F1 — Windows system tools. Made By Falcone.</Description>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.22631.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>10.0.22631.0</TargetPlatformMinVersion>
+    <WindowsSdkPackageVersion>10.0.26100.87</WindowsSdkPackageVersion>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CleanerValidation)' == 'true'">
+    <DefineConstants>$(DefineConstants);CLEANER_VALIDATION</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MemoryValidation)' == 'true'">
+    <DefineConstants>$(DefineConstants);MEMORY_VALIDATION</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ReliabilityAudit)' == 'true'">
+    <DefineConstants>$(DefineConstants);RELIABILITY_AUDIT</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Assets/F1/*.svg" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Assets/Brand/F1_Logo.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Assets/Brand/F1.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="../../THIRD-PARTY-NOTICES" LogicalName="Notices.Overview" />
+    <EmbeddedResource Include="../../docs/licenses/**/*.txt;../../docs/licenses/**/*.md" LogicalName="Notices.%(RecursiveDir)%(Filename)%(Extension)" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.InteractiveExperiences" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" PrivateAssets="all" />
+    <ProjectReference Include="../SystemCore.Core/SystemCore.Core.csproj" />
+    <ProjectReference Include="../SystemCore.Infrastructure/SystemCore.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

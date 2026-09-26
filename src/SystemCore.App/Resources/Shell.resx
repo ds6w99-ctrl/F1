@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="NavDashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="NavCleaner" xml:space="preserve"><value>Cleaner</value></data>
+  <data name="NavUninstaller" xml:space="preserve"><value>Uninstaller</value></data>
+  <data name="NavPerformance" xml:space="preserve"><value>Performance</value></data>
+  <data name="NavSystemInfo" xml:space="preserve"><value>System Information</value></data>
+  <data name="NavStartup" xml:space="preserve"><value>Startup</value></data>
+  <data name="NavTools" xml:space="preserve"><value>Tools</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>About</value></data>
+  <data name="Navigation" xml:space="preserve"><value>Main navigation</value></data>
+  <data name="Offline" xml:space="preserve"><value>Local device overview</value></data>
+  <data name="DashboardDescription" xml:space="preserve"><value>A clear view of your device, with live local readings.</value></data>
+  <data name="Cpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="Disk" xml:space="preserve"><value>System drive</value></data>
+  <data name="FreeSpace" xml:space="preserve"><value>System drive free space</value></data>
+  <data name="InstalledApps" xml:space="preserve"><value>Installed apps</value></data>
+  <data name="StartupApps" xml:space="preserve"><value>Startup entries</value></data>
+  <data name="CpuDetail" xml:space="preserve"><value>Current utilization · sampled about once a second</value></data>
+  <data name="MemoryDetail" xml:space="preserve"><value>In use / usable physical memory</value></data>
+  <data name="DiskDetail" xml:space="preserve"><value>{0} · used / total capacity</value></data>
+  <data name="DiskCapacity" xml:space="preserve"><value>System volume capacity</value></data>
+  <data name="FreeSpaceDetail" xml:space="preserve"><value>Available to the current user</value></data>
+  <data name="InstalledAppsDetail" xml:space="preserve"><value>Registered desktop apps and current-user packages</value></data>
+  <data name="StartupAppsDetail" xml:space="preserve"><value>Run registrations and Startup folder entries</value></data>
+  <data name="SystemTitle" xml:space="preserve"><value>System</value></data>
+  <data name="DeviceName" xml:space="preserve"><value>Device name</value></data>
+  <data name="Uptime" xml:space="preserve"><value>System uptime</value></data>
+  <data name="JunkFiles" xml:space="preserve"><value>Junk files found</value></data>
+  <data name="NotScanned" xml:space="preserve"><value>Not scanned</value></data>
+  <data name="ScannerLater" xml:space="preserve"><value>A real scanner will be available in a later development phase.</value></data>
+  <data name="InventoryCoverage" xml:space="preserve"><value>App inventory covers current-user and machine desktop registrations plus current-user MSIX packages, excluding frameworks and resource packages. Portable apps and other users are not covered. Startup counts use the shared Startup inventory, including supported scheduled and packaged startup tasks; source state is distinct from Task Manager approval.</value></data>
+  <data name="Percent" xml:space="preserve"><value>{0:N1}%</value></data>
+  <data name="UsedTotal" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="AtLeast" xml:space="preserve"><value>At least {0:N0}</value></data>
+  <data name="UptimeValue" xml:space="preserve"><value>{0}d {1:00}h {2:00}m {3:00}s</value></data>
+  <data name="Updated" xml:space="preserve"><value>Last sample: {0}</value></data>
+  <data name="Collecting" xml:space="preserve"><value>Collecting readings…</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>Not available</value></data>
+  <data name="Unsupported" xml:space="preserve"><value>Not supported</value></data>
+  <data name="PartialData" xml:space="preserve"><value>Some sources are unavailable or incomplete. Available readings are shown without estimating missing data.</value></data>
+  <data name="ReadError" xml:space="preserve"><value>Live readings are temporarily unavailable.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Settings</value></data>
+  <data name="SettingsDescription" xml:space="preserve"><value>Choose your language and appearance, review local privacy and safety policies, and manage diagnostics.</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="Arabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="SessionSettings" xml:space="preserve"><value>Language and theme apply immediately and are saved locally for your next launch.</value></data>
+  <data name="LaterPhase" xml:space="preserve"><value>Coming in a later development phase</value></data>
+  <data name="PlaceholderDescription" xml:space="preserve"><value>This page is a navigation placeholder. No scan, maintenance action or result is available here yet.</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>Development build. Local system information, performance analysis and manually reviewed maintenance tools. Release / Production validation is pending.</value></data>
+  <data name="Version" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="InfoTitle" xml:space="preserve"><value>System Information</value></data>
+  <data name="InfoDescription" xml:space="preserve"><value>Read-only Windows hardware inventory. Refresh reloads static data; live readings use the shared monitor. Select text to copy. Missing values are not estimated.</value></data>
+  <data name="InfoRefresh" xml:space="preserve"><value>Refresh system information</value></data>
+  <data name="InfoLoading" xml:space="preserve"><value>Reading system information…</value></data>
+  <data name="InfoLive" xml:space="preserve"><value>Live system overview</value></data>
+  <data name="InfoLiveMemory" xml:space="preserve"><value>RAM: {0} total · {1} used · {2} available · {3}</value></data>
+  <data name="InfoLiveDisk" xml:space="preserve"><value>{0} · {1} / {2} used · {3} available to user</value></data>
+  <data name="InfoUnavailable" xml:space="preserve"><value>Not available</value></data>
+  <data name="InfoEmpty" xml:space="preserve"><value>No supported information was returned by Windows.</value></data>
+  <data name="InfoFailed" xml:space="preserve"><value>This information could not be retrieved. Other sections remain available.</value></data>
+  <data name="InfoTimeout" xml:space="preserve"><value>The source did not respond in time. Try Refresh.</value></data>
+  <data name="InfoPermission" xml:space="preserve"><value>Unavailable without additional access.</value></data>
+  <data name="InfoOverview" xml:space="preserve"><value>Device overview</value></data>
+  <data name="InfoDevice" xml:space="preserve"><value>Device name</value></data>
+  <data name="InfoEdition" xml:space="preserve"><value>Windows edition</value></data>
+  <data name="InfoVersion" xml:space="preserve"><value>Version</value></data>
+  <data name="InfoBuild" xml:space="preserve"><value>Windows build</value></data>
+  <data name="InfoCpuModel" xml:space="preserve"><value>CPU model</value></data>
+  <data name="InfoGpu" xml:space="preserve"><value>GPU</value></data>
+  <data name="InfoSystemDrive" xml:space="preserve"><value>System drive</value></data>
+  <data name="InfoBoard" xml:space="preserve"><value>Motherboard</value></data>
+  <data name="InfoOs" xml:space="preserve"><value>Operating system</value></data>
+  <data name="InfoName" xml:space="preserve"><value>Name</value></data>
+  <data name="InfoArchitecture" xml:space="preserve"><value>Architecture</value></data>
+  <data name="InfoInstalled" xml:space="preserve"><value>Windows installation date (reported)</value></data>
+  <data name="InfoLocale" xml:space="preserve"><value>System locale</value></data>
+  <data name="InfoUiLanguage" xml:space="preserve"><value>Windows UI language</value></data>
+  <data name="InfoCpu" xml:space="preserve"><value>CPU</value></data>
+  <data name="InfoModel" xml:space="preserve"><value>Model</value></data>
+  <data name="InfoManufacturer" xml:space="preserve"><value>Manufacturer</value></data>
+  <data name="InfoCores" xml:space="preserve"><value>Physical cores</value></data>
+  <data name="InfoThreads" xml:space="preserve"><value>Logical processors</value></data>
+  <data name="InfoBaseClock" xml:space="preserve"><value>Base clock (Hz)</value></data>
+  <data name="InfoMemoryModules" xml:space="preserve"><value>Physical memory module</value></data>
+  <data name="InfoLocator" xml:space="preserve"><value>Slot / device locator</value></data>
+  <data name="InfoCapacity" xml:space="preserve"><value>Capacity</value></data>
+  <data name="InfoConfiguredSpeed" xml:space="preserve"><value>Configured clock (MHz, firmware-reported)</value></data>
+  <data name="InfoReportedSpeed" xml:space="preserve"><value>Reported speed (MHz, WMI)</value></data>
+  <data name="InfoMemoryType" xml:space="preserve"><value>Memory type</value></data>
+  <data name="InfoBank" xml:space="preserve"><value>Bank label</value></data>
+  <data name="InfoPartNumber" xml:space="preserve"><value>Part number</value></data>
+  <data name="InfoVideoProcessor" xml:space="preserve"><value>Video processor (reported)</value></data>
+  <data name="InfoDriver" xml:space="preserve"><value>Driver version</value></data>
+  <data name="InfoDriverDate" xml:space="preserve"><value>Driver date</value></data>
+  <data name="InfoVram" xml:space="preserve"><value>Dedicated VRAM</value></data>
+  <data name="InfoBios" xml:space="preserve"><value>BIOS</value></data>
+  <data name="InfoReleaseDate" xml:space="preserve"><value>Release date</value></data>
+  <data name="InfoSmbios" xml:space="preserve"><value>SMBIOS version</value></data>
+  <data name="InfoStorage" xml:space="preserve"><value>Storage</value></data>
+  <data name="InfoPhysicalDisks" xml:space="preserve"><value>Physical drive</value></data>
+  <data name="InfoBus" xml:space="preserve"><value>Bus type</value></data>
+  <data name="InfoMedia" xml:space="preserve"><value>Media type</value></data>
+  <data name="InfoHealth" xml:space="preserve"><value>Windows-reported health</value></data>
+  <data name="InfoVolumes" xml:space="preserve"><value>Logical volume (snapshot)</value></data>
+  <data name="InfoDrive" xml:space="preserve"><value>Drive letter</value></data>
+  <data name="InfoLabel" xml:space="preserve"><value>Volume label</value></data>
+  <data name="InfoFileSystem" xml:space="preserve"><value>File system</value></data>
+  <data name="InfoUsed" xml:space="preserve"><value>Used space</value></data>
+  <data name="InfoFree" xml:space="preserve"><value>Free space</value></data>
+  <data name="InfoUsage" xml:space="preserve"><value>Usage</value></data>
+  <data name="InfoNetwork" xml:space="preserve"><value>Network adapter</value></data>
+  <data name="InfoActive" xml:space="preserve"><value>Active</value></data>
+  <data name="InfoDisconnected" xml:space="preserve"><value>Not active</value></data>
+  <data name="InfoDescriptionLabel" xml:space="preserve"><value>Description</value></data>
+  <data name="InfoInterfaceType" xml:space="preserve"><value>Interface type (Windows)</value></data>
+  <data name="InfoStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="InfoAdapterClass" xml:space="preserve"><value>Adapter classification</value></data>
+  <data name="InfoPhysical" xml:space="preserve"><value>Physical</value></data>
+  <data name="InfoVirtual" xml:space="preserve"><value>Virtual / software</value></data>
+  <data name="InfoLinkSpeed" xml:space="preserve"><value>Link speed</value></data>
+  <data name="InfoMbps" xml:space="preserve"><value>{0:N1} Mbit/s</value></data>
+  <data name="InfoIpv4" xml:space="preserve"><value>IPv4</value></data>
+  <data name="InfoIpv6" xml:space="preserve"><value>IPv6</value></data>
+  <data name="InfoGateway" xml:space="preserve"><value>Default gateway</value></data>
+  <data name="InfoDns" xml:space="preserve"><value>DNS servers</value></data>
+  <data name="InfoBus1" xml:space="preserve"><value>SCSI</value></data>
+  <data name="InfoBus2" xml:space="preserve"><value>ATAPI</value></data>
+  <data name="InfoBus3" xml:space="preserve"><value>ATA</value></data>
+  <data name="InfoBus7" xml:space="preserve"><value>USB</value></data>
+  <data name="InfoBus8" xml:space="preserve"><value>RAID</value></data>
+  <data name="InfoBus9" xml:space="preserve"><value>iSCSI</value></data>
+  <data name="InfoBus10" xml:space="preserve"><value>SAS</value></data>
+  <data name="InfoBus11" xml:space="preserve"><value>SATA</value></data>
+  <data name="InfoBus12" xml:space="preserve"><value>SD</value></data>
+  <data name="InfoBus14" xml:space="preserve"><value>Virtual</value></data>
+  <data name="InfoBus15" xml:space="preserve"><value>File-backed virtual</value></data>
+  <data name="InfoBus16" xml:space="preserve"><value>Storage Spaces</value></data>
+  <data name="InfoBus17" xml:space="preserve"><value>NVMe</value></data>
+  <data name="InfoBus18" xml:space="preserve"><value>SCM</value></data>
+  <data name="InfoMedia3" xml:space="preserve"><value>HDD</value></data>
+  <data name="InfoMedia4" xml:space="preserve"><value>SSD</value></data>
+  <data name="InfoMedia5" xml:space="preserve"><value>SCM</value></data>
+  <data name="InfoHealth0" xml:space="preserve"><value>Healthy (Windows-reported)</value></data>
+  <data name="InfoHealth1" xml:space="preserve"><value>Warning (Windows-reported)</value></data>
+  <data name="InfoHealth2" xml:space="preserve"><value>Unhealthy (Windows-reported)</value></data>
+  <data name="InfoNetUp" xml:space="preserve"><value>Up</value></data>
+  <data name="InfoNetDown" xml:space="preserve"><value>Down</value></data>
+  <data name="InfoNetTesting" xml:space="preserve"><value>Testing</value></data>
+  <data name="InfoNetDormant" xml:space="preserve"><value>Dormant</value></data>
+  <data name="InfoNetNotPresent" xml:space="preserve"><value>Not present</value></data>
+  <data name="InfoNetLowerLayerDown" xml:space="preserve"><value>Lower layer down</value></data>
+  <data name="PerfDescription" xml:space="preserve"><value>Live local performance. One shared sampler; readings pause when minimized or away from a live page.</value></data>
+  <data name="PerfDisk" xml:space="preserve"><value>Disk activity</value></data>
+  <data name="PerfNetwork" xml:space="preserve"><value>Network activity</value></data>
+  <data name="PerfAvailable" xml:space="preserve"><value>{0} available · {1} used</value></data>
+  <data name="PerfCpuDetail" xml:space="preserve"><value>{0} logical processors · total utilization</value></data>
+  <data name="PerfReadWrite" xml:space="preserve"><value>Read {0} · Write {1}</value></data>
+  <data name="PerfDiskScope" xml:space="preserve"><value>All physical disks combined. Activity, not capacity usage.</value></data>
+  <data name="PerfDownUp" xml:space="preserve"><value>↓ {0}   ↑ {1}</value></data>
+  <data name="PerfNoNetwork" xml:space="preserve"><value>No active IP-bound network adapter.</value></data>
+  <data name="PerfNetworkScope" xml:space="preserve"><value>Total active IP-adapter traffic; VPN/virtual layers can count the same traffic more than once. Loopback and unbound filters excluded.</value></data>
+  <data name="PerfProcesses" xml:space="preserve"><value>Processes</value></data>
+  <data name="PerfProcessNotice" xml:space="preserve"><value>Read-only · sampled about every 2 seconds. Memory is working set; shared pages may appear in several processes. CPU is normalized across logical processors. Unavailable fields are not estimated.</value></data>
+  <data name="PerfProcessCount" xml:space="preserve"><value>{0} processes shown</value></data>
+  <data name="PerfTopCpu" xml:space="preserve"><value>Top CPU — 10</value></data>
+  <data name="PerfTopMemory" xml:space="preserve"><value>Top memory — 10</value></data>
+  <data name="PerfAll" xml:space="preserve"><value>All processes</value></data>
+  <data name="PerfSearch" xml:space="preserve"><value>Search process name</value></data>
+  <data name="PerfSort" xml:space="preserve"><value>Sort all processes by</value></data>
+  <data name="PerfMode" xml:space="preserve"><value>Process view</value></data>
+  <data name="PerfPid" xml:space="preserve"><value>PID</value></data>
+  <data name="PerfWorkingSet" xml:space="preserve"><value>Working set</value></data>
+  <data name="PerfChart" xml:space="preserve"><value>Last 60 seconds, oldest to newest left-to-right. CPU/memory: 0–100%. Disk/network: total throughput, auto-scaled. Gaps indicate missing samples. History resets after a pause.</value></data>
+  <data name="PerfHistoryCount" xml:space="preserve"><value>{0} samples · bounded to 60 seconds</value></data>
+  <data name="CleanDescription" xml:space="preserve"><value>Conservative, local-only scan. Files newer than 24 hours, locked files, links and uncertain targets are skipped.</value></data>
+  <data name="CleanScan" xml:space="preserve"><value>Scan</value></data>
+  <data name="CleanCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CleanAction" xml:space="preserve"><value>Clean selected items</value></data>
+  <data name="CleanReady" xml:space="preserve"><value>Ready to scan</value></data>
+  <data name="CleanScanning" xml:space="preserve"><value>Scanning…</value></data>
+  <data name="CleanScannerOnly" xml:space="preserve"><value>Phase 4A: preview only. Cleaning is disabled until the scanner safety gate and executor validation pass. No files are deleted.</value></data>
+  <data name="CleanPreview" xml:space="preserve"><value>Select a category row to review files, 100 per page. Uncheck individual files to exclude them. A separate confirmation is required before deletion.</value></data>
+  <data name="CleanSummary" xml:space="preserve"><value>Potentially reclaimable: {1} · {0} eligible files. Check category status for unavailable or incomplete scans.</value></data>
+  <data name="CleanCategoryDetail" xml:space="preserve"><value>{0} eligible · {1} · {2} skipped · {3} · {4} · {5}</value></data>
+  <data name="CleanLow" xml:space="preserve"><value>Low risk</value></data>
+  <data name="CleanReview" xml:space="preserve"><value>Review / diagnostic data</value></data>
+  <data name="CleanElevation" xml:space="preserve"><value>Requires administrator confirmation for cleaning</value></data>
+  <data name="CleanUserAccess" xml:space="preserve"><value>Current-user access</value></data>
+  <data name="CleanStatusComplete" xml:space="preserve"><value>Complete</value></data>
+  <data name="CleanStatusUnavailable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="CleanStatusIncomplete" xml:space="preserve"><value>Incomplete — not eligible for cleaning</value></data>
+  <data name="CleanStatusCancelled" xml:space="preserve"><value>Cancelled — not eligible for cleaning</value></data>
+  <data name="CleanUserTemp" xml:space="preserve"><value>User temporary files</value></data>
+  <data name="CleanWindowsTemp" xml:space="preserve"><value>Windows temporary files</value></data>
+  <data name="CleanShaderCache" xml:space="preserve"><value>DirectX shader cache</value></data>
+  <data name="CleanEdgeCache" xml:space="preserve"><value>Microsoft Edge cache — unsupported in V1</value></data>
+  <data name="CleanChromeCache" xml:space="preserve"><value>Google Chrome cache — unsupported in V1</value></data>
+  <data name="CleanFirefoxCache" xml:space="preserve"><value>Firefox cache — unsupported in V1</value></data>
+  <data name="CleanCrashDumps" xml:space="preserve"><value>User crash dumps</value></data>
+  <data name="CleanUserWer" xml:space="preserve"><value>User Windows Error Reporting — unsupported in V1</value></data>
+  <data name="CleanThumbnails" xml:space="preserve"><value>Thumbnail cache</value></data>
+  <data name="CleanRecycleBin" xml:space="preserve"><value>Recycle Bin — entire current contents</value></data>
+  <data name="CleanDashboardInitial" xml:space="preserve"><value>Run a manual scan from Cleaner to see real results.</value></data>
+  <data name="CleanPotential" xml:space="preserve"><value>Potentially reclaimable in the last completed scan; files may have changed.</value></data>
+  <data name="CleanSafety" xml:space="preserve"><value>Manual cleaning permanently removes selected files. Locked, changed or uncertain files are skipped. Cancel stops future file operations; it cannot restore files already removed or interrupt an active Recycle Bin Shell operation. Browser caches and WER are unsupported in V1.</value></data>
+  <data name="CleanPrevious" xml:space="preserve"><value>Previous 100</value></data>
+  <data name="CleanNext" xml:space="preserve"><value>Next 100</value></data>
+  <data name="CleanFailure" xml:space="preserve"><value>The operation could not finish. Scan again before cleaning.</value></data>
+  <data name="CleanCleaning" xml:space="preserve"><value>Cleaning selected items…</value></data>
+  <data name="CleanResult" xml:space="preserve"><value>Actually removed: {1} · {0} files · {2} not removed. {3}</value></data>
+  <data name="CleanRescan" xml:space="preserve"><value>Scan again to refresh results.</value></data>
+  <data name="CleanRejected" xml:space="preserve"><value>The selection or session was rejected. Scan again.</value></data>
+  <data name="CleanConfirmTitle" xml:space="preserve"><value>Clean selected items?</value></data>
+  <data name="CleanConfirmText" xml:space="preserve"><value>Selected: {0}
+{1} files · Estimated {2}
+
+This permanently removes the selected files. Locked or changed files will be skipped. Cancellation cannot restore files already removed.</value></data>
+  <data name="CleanPartial" xml:space="preserve"><value>Partial scan</value></data>
+  <data name="CleanFinalResult" xml:space="preserve"><value>Deleted files: {0} · Skipped: {1} · Failed/unconfirmed: {2} · Confirmed actual bytes removed: {3}. {4}</value></data>
+  <data name="CleanUnknownResult" xml:space="preserve"><value>The helper result is incomplete. Total bytes removed are unknown; only confirmed results are included above. Rescan before another operation.</value></data>
+  <data name="CleanBinConfirm" xml:space="preserve"><value>Also permanently empty the entire current Recycle Bin, including files you previously deleted. Shell empties current contents, not individual scanned items. Contents can change after scanning. This cannot be undone or cancelled once Shell starts.</value></data>
+  <data name="CleanElevationConfirm" xml:space="preserve"><value>Windows Temp requires a separate administrator prompt after this confirmation. Up to 2,000 selected Windows Temp files per request; larger selections are rejected without elevation.</value></data>
+  <data name="CleanBinCompleted" xml:space="preserve"><value>Recycle Bin: Shell reported success. Removed item/byte counts are not supplied by Shell and are not included in the file totals.</value></data>
+  <data name="CleanBinChanged" xml:space="preserve"><value>Recycle Bin: reported contents changed since scan; skipped. Scan again.</value></data>
+  <data name="CleanBinCancelled" xml:space="preserve"><value>Recycle Bin: cancelled before Shell started.</value></data>
+  <data name="CleanBinUnavailable" xml:space="preserve"><value>Recycle Bin: unavailable; skipped.</value></data>
+  <data name="CleanBinFailed" xml:space="preserve"><value>Recycle Bin: Shell operation failed; removed size unknown. Scan again.</value></data>
+  <data name="CleanOutcomeDeleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="CleanOutcomeChanged" xml:space="preserve"><value>Changed since scan</value></data>
+  <data name="CleanOutcomeInUse" xml:space="preserve"><value>In use</value></data>
+  <data name="CleanOutcomeAccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="CleanOutcomeAlreadyGone" xml:space="preserve"><value>Already gone</value></data>
+  <data name="CleanOutcomeSafetyRejected" xml:space="preserve"><value>Safety rejected</value></data>
+  <data name="CleanOutcomeFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="CleanOutcomeCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="CleanOutcomeUnknown" xml:space="preserve"><value>Unknown result</value></data>
+  <data name="CleanPartialDescription" xml:space="preserve"><value>The scan is incomplete. Review partial estimates in Cleaner; incomplete categories cannot be cleaned.</value></data>
+  <data name="UnSearch" xml:space="preserve"><value>Search name or publisher</value></data>
+  <data name="UnRefresh" xml:space="preserve"><value>Refresh applications</value></data>
+  <data name="UnUninstall" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="UnPrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="UnNext" xml:space="preserve"><value>Next</value></data>
+  <data name="UnAll" xml:space="preserve"><value>All applications</value></data>
+  <data name="UnWin32" xml:space="preserve"><value>Win32</value></data>
+  <data name="UnMsi" xml:space="preserve"><value>MSI</value></data>
+  <data name="UnMsix" xml:space="preserve"><value>Microsoft Store / MSIX</value></data>
+  <data name="UnRecent" xml:space="preserve"><value>Last 30 days</value></data>
+  <data name="UnLarge" xml:space="preserve"><value>At least {0}</value></data>
+  <data name="UnName" xml:space="preserve"><value>Name</value></data>
+  <data name="UnPublisher" xml:space="preserve"><value>Publisher</value></data>
+  <data name="UnDate" xml:space="preserve"><value>Install date</value></data>
+  <data name="UnSize" xml:space="preserve"><value>Reported size</value></data>
+  <data name="UnUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="UnUnavailable" xml:space="preserve"><value>Native uninstall unavailable or protected registration.</value></data>
+  <data name="UnPartial" xml:space="preserve"><value>Some inventory sources could not be read.</value></data>
+  <data name="UnCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="UnConfirm" xml:space="preserve"><value>Start this application's original uninstall flow? It may request Windows elevation. No leftovers will be scanned or deleted automatically.</value></data>
+  <data name="UnStateReady" xml:space="preserve"><value>Ready — refresh to load applications.</value></data>
+  <data name="UnStateLaunching" xml:space="preserve"><value>Launching original uninstaller…</value></data>
+  <data name="UnStateWaitingForUninstaller" xml:space="preserve"><value>Waiting for original uninstaller…</value></data>
+  <data name="UnStateUninstallerExited" xml:space="preserve"><value>Uninstaller exited.</value></data>
+  <data name="UnStateVerifying" xml:space="preserve"><value>Verifying original application identity…</value></data>
+  <data name="UnStateRemoved" xml:space="preserve"><value>Application removal verified.</value></data>
+  <data name="UnStateStillInstalled" xml:space="preserve"><value>Still installed. A child installer may still be running; refresh to check again.</value></data>
+  <data name="UnStateCancelled" xml:space="preserve"><value>Cancelled. Any running native installer was not terminated.</value></data>
+  <data name="UnStateFailed" xml:space="preserve"><value>Unable to complete the operation. Refresh and verify the selection.</value></data>
+  <data name="UnStateUnknown" xml:space="preserve"><value>Uninstall completion could not be verified.</value></data>
+  <data name="UnLoading" xml:space="preserve"><value>Loading applications…</value></data>
+  <data name="UnLoaded" xml:space="preserve"><value>Applications loaded. Select an application to review its details.</value></data>
+  <data name="UnScanLeftovers" xml:space="preserve"><value>Scan for leftovers</value></data>
+  <data name="UnScanComplete" xml:space="preserve"><value>Read-only leftover scan complete</value></data>
+  <data name="UnStateScanningLeftovers" xml:space="preserve"><value>Scanning verified application leftovers…</value></data>
+  <data name="UnStateLeftoversReady" xml:space="preserve"><value>Leftovers ready for review. No deletion has occurred.</value></data>
+  <data name="UnDeleteLeftovers" xml:space="preserve"><value>Delete selected leftovers</value></data>
+  <data name="UnDeleteConfirm" xml:space="preserve"><value>Delete only these explicitly selected leftovers? Each item will be checked again. Changed, shared, protected or inaccessible items will be skipped.</value></data>
+  <data name="UnRegistryWarning" xml:space="preserve"><value>Registry keys are selected. A verified typed backup is required before deletion. Automatic restoration is not guaranteed.</value></data>
+  <data name="UnCleanupComplete" xml:space="preserve"><value>Cleanup results</value></data>
+  <data name="UnDeleteDeleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="UnDeleteSkipped" xml:space="preserve"><value>Skipped</value></data>
+  <data name="UnDeleteChanged" xml:space="preserve"><value>Changed since scan</value></data>
+  <data name="UnDeleteSafetyRejected" xml:space="preserve"><value>Safety rejected</value></data>
+  <data name="UnDeleteAccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="UnDeleteInUse" xml:space="preserve"><value>In use</value></data>
+  <data name="UnDeleteAlreadyGone" xml:space="preserve"><value>Already gone</value></data>
+  <data name="UnDeleteBackupFailed" xml:space="preserve"><value>Registry backup failed</value></data>
+  <data name="UnDeleteFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="UnDeleteCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="UnBackupSaved" xml:space="preserve"><value>Registry backup saved</value></data>
+  <data name="UnStateCleaningLeftovers" xml:space="preserve"><value>Cleaning selected leftovers…</value></data>
+  <data name="UnStateCleanupComplete" xml:space="preserve"><value>Cleanup complete. Review the results for each item.</value></data>
+  <data name="UnTypeFile" xml:space="preserve"><value>File</value></data>
+  <data name="UnTypeDirectory" xml:space="preserve"><value>Directory</value></data>
+  <data name="UnTypeRegistryKey" xml:space="preserve"><value>Registry key</value></data>
+  <data name="UnTypeShortcut" xml:space="preserve"><value>Shortcut</value></data>
+  <data name="UnConfidenceSafe" xml:space="preserve"><value>High-confidence ownership</value></data>
+  <data name="UnConfidenceReview" xml:space="preserve"><value>Review</value></data>
+  <data name="UnConfidenceIgnore" xml:space="preserve"><value>Ignore</value></data>
+  <data name="UnEvidenceInstall" xml:space="preserve"><value>Registered install directory contained the validated original uninstaller before removal.</value></data>
+  <data name="UnEvidenceData" xml:space="preserve"><value>Exact data path from an application key with matching publisher and product or installation identity.</value></data>
+  <data name="UnEvidenceRegistry" xml:space="preserve"><value>Unchanged pre-uninstall registry snapshot with matching publisher and application identity.</value></data>
+  <data name="UnEvidenceReparse" xml:space="preserve"><value>Reparse point rejected; target was not followed.</value></data>
+  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>Unsupported attributes or hard links; excluded from deletion.</value></data>
+  <data name="UnOwnedRisk" xml:space="preserve"><value>Application-owned data. Deletion is permanent.</value></data>
+  <data name="UnElevationScope" xml:space="preserve"><value>Machine-wide item: current-user permissions apply; access-denied items are skipped.</value></data>
+  <data name="StartReady" xml:space="preserve"><value>Refresh to read startup sources. Commands are never executed here.</value></data>
+  <data name="StartLoading" xml:space="preserve"><value>Loading startup inventory…</value></data>
+  <data name="StartLoaded" xml:space="preserve"><value>Inventory loaded. Source status is shown; Windows startup approval settings are not interpreted.</value></data>
+  <data name="StartPartial" xml:space="preserve"><value>Some startup sources could not be read. Available entries are shown.</value></data>
+  <data name="StartCancelled" xml:space="preserve"><value>Operation cancelled.</value></data>
+  <data name="StartFailed" xml:space="preserve"><value>Startup operation could not be completed. Refresh to verify.</value></data>
+  <data name="StartSearch" xml:space="preserve"><value>Search name, publisher, executable or source</value></data>
+  <data name="StartRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="StartUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="StartDisable" xml:space="preserve"><value>Disable</value></data>
+  <data name="StartEnable" xml:space="preserve"><value>Enable</value></data>
+  <data name="StartOpenLocation" xml:space="preserve"><value>Open file location</value></data>
+  <data name="StartImpact" xml:space="preserve"><value>Startup impact</value></data>
+  <data name="StartNotMeasured" xml:space="preserve"><value>Not measured</value></data>
+  <data name="StartProtection" xml:space="preserve"><value>Protection</value></data>
+  <data name="StartElevation" xml:space="preserve"><value>Requires elevation</value></data>
+  <data name="StartYes" xml:space="preserve"><value>Yes</value></data>
+  <data name="StartNo" xml:space="preserve"><value>No</value></data>
+  <data name="StartStatusEnabled" xml:space="preserve"><value>Enabled at source</value></data>
+  <data name="StartStatusDisabledBySystemCore" xml:space="preserve"><value>Disabled by {Brand}</value></data>
+  <data name="StartStatusDisabledByWindowsOrSource" xml:space="preserve"><value>Disabled by Windows/source</value></data>
+  <data name="StartStatusProtected" xml:space="preserve"><value>Protected / read-only</value></data>
+  <data name="StartStatusUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="StartStatusRecoveryRequired" xml:space="preserve"><value>Recovery required</value></data>
+  <data name="StartScopeCurrentUser" xml:space="preserve"><value>Current user</value></data>
+  <data name="StartScopeAllUsers" xml:space="preserve"><value>All users</value></data>
+  <data name="StartScopeSystem" xml:space="preserve"><value>System</value></data>
+  <data name="StartSourceRegistryRun" xml:space="preserve"><value>Registry Run</value></data>
+  <data name="StartSourceRegistryRunOnce" xml:space="preserve"><value>Registry RunOnce (one-time)</value></data>
+  <data name="StartSourceStartupFolderUser" xml:space="preserve"><value>User Startup folder</value></data>
+  <data name="StartSourceStartupFolderCommon" xml:space="preserve"><value>Common Startup folder</value></data>
+  <data name="StartSourceScheduledTaskLogon" xml:space="preserve"><value>Scheduled task — logon</value></data>
+  <data name="StartSourceScheduledTaskBoot" xml:space="preserve"><value>Scheduled task — boot</value></data>
+  <data name="StartProtectionNone" xml:space="preserve"><value>No restriction identified</value></data>
+  <data name="StartProtectionUnknownCommand" xml:space="preserve"><value>Unknown or unavailable executable</value></data>
+  <data name="StartProtectionUnsafePath" xml:space="preserve"><value>Unsafe, changed or inaccessible path</value></data>
+  <data name="StartProtectionSystemComponent" xml:space="preserve"><value>Windows/system component</value></data>
+  <data name="StartProtectionSecurityOrDriver" xml:space="preserve"><value>Security or driver component</value></data>
+  <data name="StartProtectionUnsupportedSource" xml:space="preserve"><value>Unsupported source format</value></data>
+  <data name="StartProtectionSystemTask" xml:space="preserve"><value>Protected system task path</value></data>
+  <data name="StartProtectionAmbiguousTask" xml:space="preserve"><value>Task principal, actions or triggers require read-only handling</value></data>
+  <data name="StartRunOnceWarning" xml:space="preserve"><value>This is a one-time startup entry. Disabling it may prevent an installer or application from completing a pending action. Disabling is not recommended.</value></data>
+  <data name="StartFilterAll" xml:space="preserve"><value>All</value></data>
+  <data name="StartFilterEnabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="StartFilterDisabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="StartFilterCurrentUser" xml:space="preserve"><value>Current user</value></data>
+  <data name="StartFilterAllUsers" xml:space="preserve"><value>All users</value></data>
+  <data name="StartFilterRegistry" xml:space="preserve"><value>Registry</value></data>
+  <data name="StartFilterFolder" xml:space="preserve"><value>Startup folders</value></data>
+  <data name="StartFilterTasks" xml:space="preserve"><value>Scheduled tasks</value></data>
+  <data name="StartFilterProtected" xml:space="preserve"><value>Protected</value></data>
+  <data name="StartSortName" xml:space="preserve"><value>Name</value></data>
+  <data name="StartSortPublisher" xml:space="preserve"><value>Publisher</value></data>
+  <data name="StartSortStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="StartSortSource" xml:space="preserve"><value>Source</value></data>
+  <data name="StartSortScope" xml:space="preserve"><value>Scope</value></data>
+  <data name="StartConfirmDisable" xml:space="preserve"><value>Disable this startup item? {Brand} will save recovery state before changing the source. You can enable it again later.</value></data>
+  <data name="StartConfirmEnable" xml:space="preserve"><value>Enable this startup item? {Brand} will verify its saved identity and refuse to overwrite any conflicting entry.</value></data>
+  <data name="StartConfirmElevation" xml:space="preserve"><value>Windows will request permission for this protected source. Only this operation uses the elevated helper.</value></data>
+  <data name="StartOutcomeSuccess" xml:space="preserve"><value>Startup change verified. Inventory refreshed.</value></data>
+  <data name="StartOutcomeCancelled" xml:space="preserve"><value>Startup change cancelled before dispatch.</value></data>
+  <data name="StartOutcomeRefreshRequired" xml:space="preserve"><value>The item or inventory changed. Review the refreshed item before trying again.</value></data>
+  <data name="StartOutcomeProtected" xml:space="preserve"><value>This item is protected and cannot be changed.</value></data>
+  <data name="StartOutcomeConflict" xml:space="preserve"><value>Cannot restore because the startup entry changed. The recovery state has been retained.</value></data>
+  <data name="StartOutcomeAccessDenied" xml:space="preserve"><value>Permission was denied. The source was not changed by this operation.</value></data>
+  <data name="StartOutcomeStateInvalid" xml:space="preserve"><value>The source or recovery state could not be safely validated. No startup change was made.</value></data>
+  <data name="StartOutcomeRecoveryRequired" xml:space="preserve"><value>The operation could not be fully verified. Recovery data has been retained where prepared; refresh and review the item before retrying.</value></data>
+  <data name="StartOutcomeFailed" xml:space="preserve"><value>The helper could not complete this request. Refresh to verify the current source state.</value></data>
+  <data name="NavMemoryTools" xml:space="preserve"><value>Memory</value></data>
+  <data name="MemReady" xml:space="preserve"><value>Live data uses the shared performance monitor.</value></data>
+  <data name="MemAnalyze" xml:space="preserve"><value>Analyze</value></data>
+  <data name="MemAnalyzed" xml:space="preserve"><value>Analysis updated from the shared measurements.</value></data>
+  <data name="MemEducation" xml:space="preserve"><value>Windows may use RAM for caching. High memory usage alone does not prove a performance problem.</value></data>
+  <data name="MemPhysicalValues" xml:space="preserve"><value>{0} / {1} RAM · {2} used&#10;{3} available</value></data>
+  <data name="MemCommitValues" xml:space="preserve"><value>Commit: {0} / {1} · {2}</value></data>
+  <data name="MemCommitTip" xml:space="preserve"><value>Committed memory is memory Windows has promised, backed by RAM or the page file. It is not the same as physical RAM usage.</value></data>
+  <data name="MemCache" xml:space="preserve"><value>System cache</value></data>
+  <data name="MemCacheTip" xml:space="preserve"><value>Windows system cache from GetPerformanceInfo. Cache is not wasted memory; do not add it to Used or Available as a separate physical allocation.</value></data>
+  <data name="MemPageFile" xml:space="preserve"><value>Page file configured / current usage</value></data>
+  <data name="MemUsageHistory" xml:space="preserve"><value>Memory usage — last 60 seconds (%)</value></data>
+  <data name="MemAvailableHistory" xml:space="preserve"><value>Available memory — last 60 seconds</value></data>
+  <data name="MemConsumers" xml:space="preserve"><value>Top consumers</value></data>
+  <data name="MemConsumersCount" xml:space="preserve"><value>{0} accessible consumers shown. Working sets can share physical pages; do not sum them as unique RAM use.</value></data>
+  <data name="MemPrivate" xml:space="preserve"><value>Private bytes</value></data>
+  <data name="MemDetailsReadOnly" xml:space="preserve"><value>Read-only process details. Identity is checked again before opening its file location.</value></data>
+  <data name="MemUnknownPublisher" xml:space="preserve"><value>Publisher not available</value></data>
+  <data name="MemProcessChanged" xml:space="preserve"><value>The process or executable is no longer accessible. Select a current process again.</value></data>
+  <data name="MemUpdated" xml:space="preserve"><value>Measured at {0}</value></data>
+  <data name="MemDiskUnavailable" xml:space="preserve"><value>Per-process disk activity is not available in this version.</value></data>
+  <data name="MemNetworkUnavailable" xml:space="preserve"><value>Per-process network activity is not available in this version.</value></data>
+  <data name="MemSystemDisk" xml:space="preserve"><value>All physical disks (system-wide): {0}</value></data>
+  <data name="MemSystemNetwork" xml:space="preserve"><value>Active adapters (system-wide): ↓ {0} · ↑ {1}</value></data>
+  <data name="MemPressureUnknown" xml:space="preserve"><value>Memory pressure: Not available</value></data>
+  <data name="MemPressureObserving" xml:space="preserve"><value>Memory pressure: Observing</value></data>
+  <data name="MemPressureNormal" xml:space="preserve"><value>Memory pressure: Normal</value></data>
+  <data name="MemPressureElevated" xml:space="preserve"><value>Memory pressure: Elevated</value></data>
+  <data name="MemPressureHigh" xml:space="preserve"><value>Memory pressure: High</value></data>
+  <data name="MemReasonUnavailable" xml:space="preserve"><value>Reliable available-memory and commit measurements are required.</value></data>
+  <data name="MemReasonStale" xml:space="preserve"><value>Waiting for fresh shared measurements.</value></data>
+  <data name="MemReasonWarmingUp" xml:space="preserve"><value>Collecting a continuous observation window.</value></data>
+  <data name="MemReasonWithinRange" xml:space="preserve"><value>Current measurements do not show sustained memory pressure.</value></data>
+  <data name="MemReasonSustainedReducedAvailable" xml:space="preserve"><value>Available memory is reduced and commit utilization is elevated. Windows continues to manage memory.</value></data>
+  <data name="MemReasonSustainedPressure" xml:space="preserve"><value>Low available memory and high commit utilization are sustained. Closing applications you are not using may help.</value></data>
+  <data name="MemReasonRecoveryObservation" xml:space="preserve"><value>Measurements are improving; observing recovery before changing the assessment.</value></data>
+  <data name="MemOptimize" xml:space="preserve"><value>Optimize Memory</value></data>
+  <data name="MemOptimizing" xml:space="preserve"><value>Checking safe {Brand}-owned actions…</value></data>
+  <data name="MemOptimizationFinished" xml:space="preserve"><value>Memory decision complete. See measurements below.</value></data>
+  <data name="MemOptimizationCancelled" xml:space="preserve"><value>Memory decision cancelled.</value></data>
+  <data name="MemOptimizationFailed" xml:space="preserve"><value>The memory decision could not be completed.</value></data>
+  <data name="MemOutcomeNoAction" xml:space="preserve"><value>No memory action was performed.</value></data>
+  <data name="MemOutcomeCompleted" xml:space="preserve"><value>{Brand} cache actions completed.</value></data>
+  <data name="MemOutcomePartial" xml:space="preserve"><value>Some {Brand} cache actions completed; others were skipped.</value></data>
+  <data name="MemOutcomeFailed" xml:space="preserve"><value>No planned cache action completed.</value></data>
+  <data name="MemOutcomeCancelled" xml:space="preserve"><value>Planned cache actions were cancelled.</value></data>
+  <data name="MemPlanNormal" xml:space="preserve"><value>No optimization is currently required. Windows is managing memory normally.</value></data>
+  <data name="MemPlanNoSafeAction" xml:space="preserve"><value>No safe automatic action is available. Closing applications you are not using may free memory.</value></data>
+  <data name="MemPlanMeasurementsUnavailable" xml:space="preserve"><value>Fresh, sustained measurements are required before deciding on an action.</value></data>
+  <data name="MemPlanSafeOwnedCache" xml:space="preserve"><value>Only inactive, stale, exclusively {Brand}-owned cache data is eligible.</value></data>
+  <data name="MemPlanOwnerUnavailable" xml:space="preserve"><value>Cache ownership could not be verified. No automatic action is available.</value></data>
+  <data name="MemReleased" xml:space="preserve"><value>Released from {Brand} caches: {0} · Executed: {1} · Skipped: {2} · {3:N2} s</value></data>
+  <data name="MemBefore" xml:space="preserve"><value>Before</value></data>
+  <data name="MemAfter" xml:space="preserve"><value>After</value></data>
+  <data name="MemMeasurement" xml:space="preserve"><value>{0} — measured {1}&#10;Available RAM: {2} · Used RAM: {3} · Commit: {6}&#10;{Brand} working set: {4} · Private bytes: {5} · Known owned cache: {7}</value></data>
+  <data name="MemMeasurementNotice" xml:space="preserve"><value>These are shared-monitor observations. A no-action result may use the same sample twice. Cache bytes describe references released by their owner, not an immediate physical RAM reduction. Windows and other applications can change these measurements; no speed improvement is inferred.</value></data>
+  <data name="ActionRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="ToolsDescription" xml:space="preserve"><value>Open official Windows tools. Windows manages their permissions and may request administrator approval. Organization policy can restrict some pages.</value></data>
+  <data name="ToolsReady" xml:space="preserve"><value>Select a Windows tool to open.</value></data>
+  <data name="ToolsLoading" xml:space="preserve"><value>Checking Windows tool availability…</value></data>
+  <data name="ToolsOpening" xml:space="preserve"><value>Opening the selected Windows tool…</value></data>
+  <data name="ToolsFailure" xml:space="preserve"><value>Windows tools could not be checked. Select Refresh to try again.</value></data>
+  <data name="ToolResult" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="ToolResultLaunched" xml:space="preserve"><value>Windows accepted the open request. Switch to the Windows tool to continue.</value></data>
+  <data name="ToolResultUnavailable" xml:space="preserve"><value>Unavailable. Refresh availability or check your Windows configuration.</value></data>
+  <data name="ToolResultAccessDenied" xml:space="preserve"><value>Access denied. Check account permissions or contact your administrator.</value></data>
+  <data name="ToolResultFailed" xml:space="preserve"><value>Could not open the tool. Try again or open it from Windows.</value></data>
+  <data name="ToolResultCancelled" xml:space="preserve"><value>Opening was cancelled. You can try again when ready.</value></data>
+  <data name="ToolAvailabilityChecking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="ToolAvailabilityAvailable" xml:space="preserve"><value>Available</value></data>
+  <data name="ToolAvailabilityUnavailable" xml:space="preserve"><value>Unavailable</value></data>
+  <data name="ToolAdministrative" xml:space="preserve"><value>Administrative tool</value></data>
+  <data name="ToolGroupSystem" xml:space="preserve"><value>System</value></data>
+  <data name="ToolGroupStorage" xml:space="preserve"><value>Storage</value></data>
+  <data name="ToolGroupNetwork" xml:space="preserve"><value>Network</value></data>
+  <data name="ToolGroupApps" xml:space="preserve"><value>Apps</value></data>
+  <data name="ToolGroupSecurity" xml:space="preserve"><value>Security</value></data>
+  <data name="ToolGroupRecovery" xml:space="preserve"><value>Recovery</value></data>
+  <data name="ToolTaskManager" xml:space="preserve"><value>Task Manager</value></data>
+  <data name="ToolTaskManagerDescription" xml:space="preserve"><value>Inspect running applications and resource use in Windows.</value></data>
+  <data name="ToolDeviceManager" xml:space="preserve"><value>Device Manager</value></data>
+  <data name="ToolDeviceManagerDescription" xml:space="preserve"><value>View hardware devices and their Windows status.</value></data>
+  <data name="ToolDiskManagement" xml:space="preserve"><value>Disk Management</value></data>
+  <data name="ToolDiskManagementDescription" xml:space="preserve"><value>Open the Windows disk and volume management console.</value></data>
+  <data name="ToolSystemInformation" xml:space="preserve"><value>System Information</value></data>
+  <data name="ToolSystemInformationDescription" xml:space="preserve"><value>Open the built-in Windows system information utility.</value></data>
+  <data name="ToolServices" xml:space="preserve"><value>Services</value></data>
+  <data name="ToolServicesDescription" xml:space="preserve"><value>Inspect services in the official Windows console.</value></data>
+  <data name="ToolEventViewer" xml:space="preserve"><value>Event Viewer</value></data>
+  <data name="ToolEventViewerDescription" xml:space="preserve"><value>Browse Windows application and system events.</value></data>
+  <data name="ToolWindowsUpdate" xml:space="preserve"><value>Windows Update</value></data>
+  <data name="ToolWindowsUpdateDescription" xml:space="preserve"><value>Open the Windows Update settings page.</value></data>
+  <data name="ToolNetworkConnections" xml:space="preserve"><value>Network Connections</value></data>
+  <data name="ToolNetworkConnectionsDescription" xml:space="preserve"><value>View network adapters in Windows Control Panel.</value></data>
+  <data name="ToolInstalledApps" xml:space="preserve"><value>Installed Apps</value></data>
+  <data name="ToolInstalledAppsDescription" xml:space="preserve"><value>Open the Windows installed-apps settings page.</value></data>
+  <data name="ToolStorageSettings" xml:space="preserve"><value>Storage Settings</value></data>
+  <data name="ToolStorageSettingsDescription" xml:space="preserve"><value>Review storage usage and Windows storage settings.</value></data>
+  <data name="ToolSystemRestore" xml:space="preserve"><value>System Restore</value></data>
+  <data name="ToolSystemRestoreDescription" xml:space="preserve"><value>Open the Windows recovery wizard. No restore is started by {Brand}.</value></data>
+  <data name="ToolWindowsSecurity" xml:space="preserve"><value>Windows Security</value></data>
+  <data name="ToolWindowsSecurityDescription" xml:space="preserve"><value>Open the Windows protection and security dashboard.</value></data>
+  <data name="ToolPowerOptions" xml:space="preserve"><value>Power Options</value></data>
+  <data name="ToolPowerOptionsDescription" xml:space="preserve"><value>Review Windows power plans and related settings.</value></data>
+  <data name="ToolOptionalFeatures" xml:space="preserve"><value>Optional Features</value></data>
+  <data name="ToolOptionalFeaturesDescription" xml:space="preserve"><value>Open the Windows optional-features settings page.</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="SettingsGeneralNotice" xml:space="preserve"><value>{Brand} opens on Dashboard. Scans and maintenance start only when requested. This version does not register itself at startup or check for updates automatically.</value></data>
+  <data name="SettingsBehavior" xml:space="preserve"><value>Behavior and confirmations</value></data>
+  <data name="SettingsSafetyNotice" xml:space="preserve"><value>Mandatory safety confirmations are always on for Cleaner cleanup, uninstall, leftover deletion (including Registry leftovers) and startup changes. They cannot be disabled.</value></data>
+  <data name="SettingsCleanerNotice" xml:space="preserve"><value>File-cleanup categories use a minimum age of 24 hours. Protected paths, links and locked files retain their safety rules. These policies are not user-adjustable in this version.</value></data>
+  <data name="SettingsPrivacy" xml:space="preserve"><value>Privacy</value></data>
+  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>No account, cloud, analytics or telemetry. System data stays on this device. Diagnostic export is manual and never uploads automatically.</value></data>
+  <data name="SettingsAppearance" xml:space="preserve"><value>Appearance and language</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Settings saved locally.</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>The change applies to this session, but could not be saved. Check access to the application data folder and try again.</value></data>
+  <data name="DiagnosticsTitle" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="DiagnosticsDescription" xml:space="preserve"><value>Local logs contain operation/event codes and timestamps. Export includes app/Windows versions, architecture, feature availability and redacted recent logs. It excludes private paths, addresses, command arguments and identifiers.</value></data>
+  <data name="DiagnosticsRetention" xml:space="preserve"><value>Logs: up to 10 files, 2 MB each / 20 MB total. Clear Old Logs preserves the active log. Up to 5 manual exports are retained; remove an older export in its folder before creating more.</value></data>
+  <data name="DiagnosticsStorage" xml:space="preserve"><value>{0} log files · {1} · {2} records not written</value></data>
+  <data name="DiagnosticsReady" xml:space="preserve"><value>Diagnostics stay local. Choose an action when needed.</value></data>
+  <data name="DiagnosticsWorking" xml:space="preserve"><value>Working with local diagnostics…</value></data>
+  <data name="DiagnosticsFailure" xml:space="preserve"><value>Local diagnostics are unavailable. Check folder access and try again.</value></data>
+  <data name="DiagnosticsOpenLogs" xml:space="preserve"><value>Open Logs Folder</value></data>
+  <data name="DiagnosticsExport" xml:space="preserve"><value>Export Diagnostic Log</value></data>
+  <data name="DiagnosticsClear" xml:space="preserve"><value>Clear Old Logs</value></data>
+  <data name="DiagnosticsOpenExports" xml:space="preserve"><value>Open Exports Folder</value></data>
+  <data name="DiagnosticsOpenData" xml:space="preserve"><value>Open Application Data</value></data>
+  <data name="DiagnosticsExported" xml:space="preserve"><value>Diagnostic package saved locally. Use Open Exports Folder to review or share it yourself. Nothing was uploaded.</value></data>
+  <data name="DiagnosticsExportFailed" xml:space="preserve"><value>Export could not be completed. Check folder access and available space; remove an older export if five already exist, then retry.</value></data>
+  <data name="DiagnosticsCleared" xml:space="preserve"><value>Old {Brand} logs cleared. The active log was retained.</value></data>
+  <data name="DiagnosticsClearFailed" xml:space="preserve"><value>Some old logs could not be cleared. Close other {Brand} windows or check access, then retry.</value></data>
+  <data name="DiagnosticsFolderOpened" xml:space="preserve"><value>Windows accepted the folder-open request.</value></data>
+  <data name="DiagnosticsOpenFailed" xml:space="preserve"><value>The folder could not be opened. Check access and try again.</value></data>
+  <data name="DiagnosticsClearConfirm" xml:space="preserve"><value>Delete closed {Brand} diagnostic logs? The active log, exports, preferences, backups and recovery state are kept.</value></data>
+  <data name="AboutArchitecture" xml:space="preserve"><value>Architecture: {0}</value></data>
+  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · Home, Pro, Enterprise and Education. Technical minimum: build 22631. Release certification is pending.</value></data>
+  <data name="AboutCopyright" xml:space="preserve"><value>Third-party components are copyrighted by their respective owners. Product publisher is not yet assigned. See the original license notices below.</value></data>
+  <data name="AboutCopyVersion" xml:space="preserve"><value>Copy App Version</value></data>
+  <data name="AboutLicenses" xml:space="preserve"><value>Third-party license notices (original language)</value></data>
+  <data name="VersionCopied" xml:space="preserve"><value>App version copied.</value></data>
+  <data name="VersionCopyFailed" xml:space="preserve"><value>Could not copy the version. Try again when the clipboard is available.</value></data>
+  <data name="ProductNoMatches" xml:space="preserve"><value>No matching items. Change the search or filters.</value></data>
+  <data name="StartEmpty" xml:space="preserve"><value>No startup items found.</value></data>
+  <data name="UnEmpty" xml:space="preserve"><value>No installed applications found in the supported sources.</value></data>
+  <data name="UnLeftoversEmpty" xml:space="preserve"><value>No leftovers found in the supported locations.</value></data>
+  <data name="F1Welcome" xml:space="preserve"><value>Welcome back</value></data>
+  <data name="F1Intro" xml:space="preserve"><value>Everything you need to manage your system in one place</value></data>
+  <data name="F1Scan" xml:space="preserve"><value>Start scan</value></data>
+  <data name="F1ScanDetail" xml:space="preserve"><value>Scan temporary and cleanable files</value></data>
+  <data name="F1Ready" xml:space="preserve"><value>Ready to use</value></data>
+  <data name="F1Search" xml:space="preserve"><value>Search pages</value></data>
+  <data name="F1SearchPlaceholder" xml:space="preserve"><value>Find a page…</value></data>
+  <data name="F1About" xml:space="preserve"><value>About {Brand}</value></data>
+  <data name="F1Premium" xml:space="preserve"><value>{Brand} Premium</value></data>
+  <data name="F1PremiumFeatures" xml:space="preserve"><value>System information&#10;Program management&#10;Windows tools</value></data>
+  <data name="F1Processors" xml:space="preserve"><value>{0} logical processors</value></data>
+  <data name="F1PhysicalMemory" xml:space="preserve"><value>Physical memory · used / total</value></data>
+  <data name="F1Capacity" xml:space="preserve"><value>System drive · capacity used</value></data>
+  <data name="F1History" xml:space="preserve"><value>Measured history · up to 60 seconds</value></data>
+  <data name="F1CleanupTitle" xml:space="preserve"><value>System cleanup</value></data>
+  <data name="F1CleanupBody" xml:space="preserve"><value>Review temporary files before selecting what to remove.</value></data>
+  <data name="F1UninstallBody" xml:space="preserve"><value>Review installed programs and their original uninstall options.</value></data>
+  <data name="F1StartupBody" xml:space="preserve"><value>Review startup entries and reversible changes.</value></data>
+  <data name="F1ManagePrograms" xml:space="preserve"><value>Manage programs</value></data>
+  <data name="F1OpenManager" xml:space="preserve"><value>Open manager</value></data>
+  <data name="F1LastScan" xml:space="preserve"><value>Last scan</value></data>
+  <data name="UnRemovableEmpty" xml:space="preserve"><value>No removable applications found.</value></data>
+  <data name="UnSelectDetails" xml:space="preserve"><value>Select an application to view details.</value></data>
+</root>

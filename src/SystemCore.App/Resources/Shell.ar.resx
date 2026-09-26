@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="NavDashboard" xml:space="preserve"><value>الرئيسية</value></data>
+  <data name="NavCleaner" xml:space="preserve"><value>التنظيف</value></data>
+  <data name="NavUninstaller" xml:space="preserve"><value>إزالة البرامج</value></data>
+  <data name="NavPerformance" xml:space="preserve"><value>المراقبة والأداء</value></data>
+  <data name="NavSystemInfo" xml:space="preserve"><value>معلومات النظام</value></data>
+  <data name="NavStartup" xml:space="preserve"><value>إدارة بدء التشغيل</value></data>
+  <data name="NavTools" xml:space="preserve"><value>الأدوات</value></data>
+  <data name="NavSettings" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="NavAbout" xml:space="preserve"><value>حول التطبيق</value></data>
+  <data name="Navigation" xml:space="preserve"><value>التنقل الرئيسي</value></data>
+  <data name="Offline" xml:space="preserve"><value>نظرة عامة محلية على الجهاز</value></data>
+  <data name="DashboardDescription" xml:space="preserve"><value>نظرة واضحة على جهازك، بقراءات محلية مباشرة.</value></data>
+  <data name="Cpu" xml:space="preserve"><value>المعالج</value></data>
+  <data name="Memory" xml:space="preserve"><value>الذاكرة</value></data>
+  <data name="Disk" xml:space="preserve"><value>قرص النظام</value></data>
+  <data name="FreeSpace" xml:space="preserve"><value>المساحة الحرة لقرص النظام</value></data>
+  <data name="InstalledApps" xml:space="preserve"><value>البرامج المثبتة</value></data>
+  <data name="StartupApps" xml:space="preserve"><value>عناصر بدء التشغيل</value></data>
+  <data name="CpuDetail" xml:space="preserve"><value>الاستخدام الحالي · تُجمع قراءة كل ثانية تقريبًا</value></data>
+  <data name="MemoryDetail" xml:space="preserve"><value>المستخدمة / الذاكرة الفعلية المتاحة للنظام</value></data>
+  <data name="DiskDetail" xml:space="preserve"><value>{0} · السعة المستخدمة / الإجمالية</value></data>
+  <data name="DiskCapacity" xml:space="preserve"><value>سعة وحدة تخزين النظام</value></data>
+  <data name="FreeSpaceDetail" xml:space="preserve"><value>المساحة المتاحة للمستخدم الحالي</value></data>
+  <data name="InstalledAppsDetail" xml:space="preserve"><value>برامج سطح المكتب المسجلة وحزم المستخدم الحالي</value></data>
+  <data name="StartupAppsDetail" xml:space="preserve"><value>إدخالات Run وعناصر مجلدات Startup</value></data>
+  <data name="SystemTitle" xml:space="preserve"><value>النظام</value></data>
+  <data name="DeviceName" xml:space="preserve"><value>اسم الجهاز</value></data>
+  <data name="Uptime" xml:space="preserve"><value>مدة تشغيل النظام</value></data>
+  <data name="JunkFiles" xml:space="preserve"><value>ملفات التنظيف المكتشفة</value></data>
+  <data name="NotScanned" xml:space="preserve"><value>لم يُفحص بعد</value></data>
+  <data name="ScannerLater" xml:space="preserve"><value>سيتوفر فاحص فعلي في مرحلة تطوير لاحقة.</value></data>
+  <data name="InventoryCoverage" xml:space="preserve"><value>يشمل جرد التطبيقات تسجيلات برامج سطح المكتب للمستخدم والجهاز وحزم MSIX للمستخدم الحالي، باستثناء حزم الأطر والموارد. لا يشمل البرامج المحمولة أو المستخدمين الآخرين. يستخدم عدد عناصر بدء التشغيل الجرد المشترك، بما فيه مهام بدء التشغيل المجدولة ومهام الحزم المدعومة؛ حالة المصدر منفصلة عن موافقة إدارة المهام.</value></data>
+  <data name="Percent" xml:space="preserve"><value>{0:N1}٪</value></data>
+  <data name="UsedTotal" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="AtLeast" xml:space="preserve"><value>{0:N0} على الأقل</value></data>
+  <data name="UptimeValue" xml:space="preserve"><value>{0} يوم {1:00} س {2:00} د {3:00} ث</value></data>
+  <data name="Updated" xml:space="preserve"><value>آخر قراءة: {0}</value></data>
+  <data name="Collecting" xml:space="preserve"><value>جارٍ جمع القراءات…</value></data>
+  <data name="Loading" xml:space="preserve"><value>جارٍ التحميل…</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>غير متاح</value></data>
+  <data name="Unsupported" xml:space="preserve"><value>غير مدعوم</value></data>
+  <data name="PartialData" xml:space="preserve"><value>بعض المصادر غير متاحة أو غير مكتملة. تُعرض القراءات المتوفرة دون تقدير البيانات المفقودة.</value></data>
+  <data name="ReadError" xml:space="preserve"><value>القراءات المباشرة غير متاحة مؤقتًا.</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>الإعدادات</value></data>
+  <data name="SettingsDescription" xml:space="preserve"><value>اختر اللغة والمظهر، وراجع سياسات الخصوصية والسلامة المحلية، وأدر التشخيصات.</value></data>
+  <data name="Language" xml:space="preserve"><value>اللغة</value></data>
+  <data name="Theme" xml:space="preserve"><value>المظهر</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="Arabic" xml:space="preserve"><value>العربية</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>النظام</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>فاتح</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
+  <data name="SessionSettings" xml:space="preserve"><value>تُطبّق اللغة والمظهر فورًا ويُحفظ الاختيار محليًا للتشغيل القادم.</value></data>
+  <data name="LaterPhase" xml:space="preserve"><value>سيتوفر في مرحلة تطوير لاحقة</value></data>
+  <data name="PlaceholderDescription" xml:space="preserve"><value>هذه صفحة مبدئية للتنقل. لا يتوفر هنا فحص أو إجراء صيانة أو نتائج حتى الآن.</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>نسخة تطوير. معلومات نظام محلية وتحليل للأداء وأدوات صيانة تُراجع يدويًا. التحقق النهائي للإصدار والإنتاج قيد الانتظار.</value></data>
+  <data name="Version" xml:space="preserve"><value>الإصدار {0}</value></data>
+  <data name="InfoTitle" xml:space="preserve"><value>معلومات النظام</value></data>
+  <data name="InfoDescription" xml:space="preserve"><value>معلومات عتاد Windows للقراءة فقط. التحديث يعيد جمع البيانات الثابتة، والقراءات الحية تستخدم المراقبة المشتركة. حدد النص لنسخه. لا تُقدّر البيانات المفقودة.</value></data>
+  <data name="InfoRefresh" xml:space="preserve"><value>تحديث معلومات الجهاز</value></data>
+  <data name="InfoLoading" xml:space="preserve"><value>جارٍ قراءة معلومات الجهاز…</value></data>
+  <data name="InfoLive" xml:space="preserve"><value>نظرة مباشرة على النظام</value></data>
+  <data name="InfoLiveMemory" xml:space="preserve"><value>الذاكرة: {0} إجمالي · {1} مستخدم · {2} متاح · {3}</value></data>
+  <data name="InfoLiveDisk" xml:space="preserve"><value>{0} · {1} / {2} مستخدم · {3} متاح للمستخدم</value></data>
+  <data name="InfoUnavailable" xml:space="preserve"><value>غير متاح</value></data>
+  <data name="InfoEmpty" xml:space="preserve"><value>لم يُرجع Windows معلومات مدعومة لهذا القسم.</value></data>
+  <data name="InfoFailed" xml:space="preserve"><value>تعذر استرداد هذه المعلومات. تبقى الأقسام الأخرى متاحة.</value></data>
+  <data name="InfoTimeout" xml:space="preserve"><value>لم يستجب المصدر في الوقت المحدد. حاول التحديث.</value></data>
+  <data name="InfoPermission" xml:space="preserve"><value>غير متاح دون صلاحيات إضافية.</value></data>
+  <data name="InfoOverview" xml:space="preserve"><value>ملخص الجهاز</value></data>
+  <data name="InfoDevice" xml:space="preserve"><value>اسم الجهاز</value></data>
+  <data name="InfoEdition" xml:space="preserve"><value>نسخة Windows</value></data>
+  <data name="InfoVersion" xml:space="preserve"><value>الإصدار</value></data>
+  <data name="InfoBuild" xml:space="preserve"><value>بنية Windows</value></data>
+  <data name="InfoCpuModel" xml:space="preserve"><value>طراز المعالج</value></data>
+  <data name="InfoGpu" xml:space="preserve"><value>معالج الرسوميات</value></data>
+  <data name="InfoSystemDrive" xml:space="preserve"><value>قرص النظام</value></data>
+  <data name="InfoBoard" xml:space="preserve"><value>اللوحة الأم</value></data>
+  <data name="InfoOs" xml:space="preserve"><value>نظام التشغيل</value></data>
+  <data name="InfoName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="InfoArchitecture" xml:space="preserve"><value>المعمارية</value></data>
+  <data name="InfoInstalled" xml:space="preserve"><value>تاريخ تثبيت Windows المُبلّغ</value></data>
+  <data name="InfoLocale" xml:space="preserve"><value>الإعدادات المحلية للنظام</value></data>
+  <data name="InfoUiLanguage" xml:space="preserve"><value>لغة واجهة Windows</value></data>
+  <data name="InfoCpu" xml:space="preserve"><value>المعالج</value></data>
+  <data name="InfoModel" xml:space="preserve"><value>الطراز</value></data>
+  <data name="InfoManufacturer" xml:space="preserve"><value>الشركة المصنعة</value></data>
+  <data name="InfoCores" xml:space="preserve"><value>الأنوية الفعلية</value></data>
+  <data name="InfoThreads" xml:space="preserve"><value>المعالجات المنطقية</value></data>
+  <data name="InfoBaseClock" xml:space="preserve"><value>التردد الأساسي (Hz)</value></data>
+  <data name="InfoMemoryModules" xml:space="preserve"><value>وحدة الذاكرة الفعلية</value></data>
+  <data name="InfoLocator" xml:space="preserve"><value>المنفذ / موضع الوحدة</value></data>
+  <data name="InfoCapacity" xml:space="preserve"><value>السعة</value></data>
+  <data name="InfoConfiguredSpeed" xml:space="preserve"><value>التردد المضبوط (MHz، كما أبلغ البرنامج الثابت)</value></data>
+  <data name="InfoReportedSpeed" xml:space="preserve"><value>السرعة المُبلّغة (MHz، WMI)</value></data>
+  <data name="InfoMemoryType" xml:space="preserve"><value>نوع الذاكرة</value></data>
+  <data name="InfoBank" xml:space="preserve"><value>تسمية البنك</value></data>
+  <data name="InfoPartNumber" xml:space="preserve"><value>رقم القطعة</value></data>
+  <data name="InfoVideoProcessor" xml:space="preserve"><value>معالج الفيديو المُبلّغ</value></data>
+  <data name="InfoDriver" xml:space="preserve"><value>إصدار التعريف</value></data>
+  <data name="InfoDriverDate" xml:space="preserve"><value>تاريخ التعريف</value></data>
+  <data name="InfoVram" xml:space="preserve"><value>ذاكرة الرسوميات المخصصة</value></data>
+  <data name="InfoBios" xml:space="preserve"><value>BIOS</value></data>
+  <data name="InfoReleaseDate" xml:space="preserve"><value>تاريخ الإصدار</value></data>
+  <data name="InfoSmbios" xml:space="preserve"><value>إصدار SMBIOS</value></data>
+  <data name="InfoStorage" xml:space="preserve"><value>التخزين</value></data>
+  <data name="InfoPhysicalDisks" xml:space="preserve"><value>قرص فعلي</value></data>
+  <data name="InfoBus" xml:space="preserve"><value>نوع الناقل</value></data>
+  <data name="InfoMedia" xml:space="preserve"><value>نوع الوسيط</value></data>
+  <data name="InfoHealth" xml:space="preserve"><value>الحالة كما أبلغ Windows</value></data>
+  <data name="InfoVolumes" xml:space="preserve"><value>وحدة تخزين منطقية (لقطة)</value></data>
+  <data name="InfoDrive" xml:space="preserve"><value>حرف القرص</value></data>
+  <data name="InfoLabel" xml:space="preserve"><value>اسم وحدة التخزين</value></data>
+  <data name="InfoFileSystem" xml:space="preserve"><value>نظام الملفات</value></data>
+  <data name="InfoUsed" xml:space="preserve"><value>المساحة المستخدمة</value></data>
+  <data name="InfoFree" xml:space="preserve"><value>المساحة الحرة</value></data>
+  <data name="InfoUsage" xml:space="preserve"><value>الاستخدام</value></data>
+  <data name="InfoNetwork" xml:space="preserve"><value>محول الشبكة</value></data>
+  <data name="InfoActive" xml:space="preserve"><value>نشط</value></data>
+  <data name="InfoDisconnected" xml:space="preserve"><value>غير نشط</value></data>
+  <data name="InfoDescriptionLabel" xml:space="preserve"><value>الوصف</value></data>
+  <data name="InfoInterfaceType" xml:space="preserve"><value>نوع الواجهة (Windows)</value></data>
+  <data name="InfoStatus" xml:space="preserve"><value>الحالة</value></data>
+  <data name="InfoAdapterClass" xml:space="preserve"><value>تصنيف المحول</value></data>
+  <data name="InfoPhysical" xml:space="preserve"><value>فعلي</value></data>
+  <data name="InfoVirtual" xml:space="preserve"><value>افتراضي / برمجي</value></data>
+  <data name="InfoLinkSpeed" xml:space="preserve"><value>سرعة الارتباط</value></data>
+  <data name="InfoMbps" xml:space="preserve"><value>{0:N1} Mbit/s</value></data>
+  <data name="InfoIpv4" xml:space="preserve"><value>IPv4</value></data>
+  <data name="InfoIpv6" xml:space="preserve"><value>IPv6</value></data>
+  <data name="InfoGateway" xml:space="preserve"><value>البوابة الافتراضية</value></data>
+  <data name="InfoDns" xml:space="preserve"><value>خوادم DNS</value></data>
+  <data name="InfoBus1" xml:space="preserve"><value>SCSI</value></data>
+  <data name="InfoBus2" xml:space="preserve"><value>ATAPI</value></data>
+  <data name="InfoBus3" xml:space="preserve"><value>ATA</value></data>
+  <data name="InfoBus7" xml:space="preserve"><value>USB</value></data>
+  <data name="InfoBus8" xml:space="preserve"><value>RAID</value></data>
+  <data name="InfoBus9" xml:space="preserve"><value>iSCSI</value></data>
+  <data name="InfoBus10" xml:space="preserve"><value>SAS</value></data>
+  <data name="InfoBus11" xml:space="preserve"><value>SATA</value></data>
+  <data name="InfoBus12" xml:space="preserve"><value>SD</value></data>
+  <data name="InfoBus14" xml:space="preserve"><value>افتراضي</value></data>
+  <data name="InfoBus15" xml:space="preserve"><value>افتراضي قائم على ملف</value></data>
+  <data name="InfoBus16" xml:space="preserve"><value>Storage Spaces</value></data>
+  <data name="InfoBus17" xml:space="preserve"><value>NVMe</value></data>
+  <data name="InfoBus18" xml:space="preserve"><value>SCM</value></data>
+  <data name="InfoMedia3" xml:space="preserve"><value>HDD</value></data>
+  <data name="InfoMedia4" xml:space="preserve"><value>SSD</value></data>
+  <data name="InfoMedia5" xml:space="preserve"><value>SCM</value></data>
+  <data name="InfoHealth0" xml:space="preserve"><value>سليم (كما أبلغ Windows)</value></data>
+  <data name="InfoHealth1" xml:space="preserve"><value>تحذير (كما أبلغ Windows)</value></data>
+  <data name="InfoHealth2" xml:space="preserve"><value>غير سليم (كما أبلغ Windows)</value></data>
+  <data name="InfoNetUp" xml:space="preserve"><value>متصل</value></data>
+  <data name="InfoNetDown" xml:space="preserve"><value>غير متصل</value></data>
+  <data name="InfoNetTesting" xml:space="preserve"><value>قيد الاختبار</value></data>
+  <data name="InfoNetDormant" xml:space="preserve"><value>خامل</value></data>
+  <data name="InfoNetNotPresent" xml:space="preserve"><value>غير موجود حاليًا</value></data>
+  <data name="InfoNetLowerLayerDown" xml:space="preserve"><value>الطبقة الأدنى غير متصلة</value></data>
+  <data name="PerfDescription" xml:space="preserve"><value>أداء محلي مباشر من مصدر مراقبة مشترك. تتوقف القراءات عند التصغير أو مغادرة الصفحات الحية.</value></data>
+  <data name="PerfDisk" xml:space="preserve"><value>نشاط الأقراص</value></data>
+  <data name="PerfNetwork" xml:space="preserve"><value>نشاط الشبكة</value></data>
+  <data name="PerfAvailable" xml:space="preserve"><value>{0} متاح · {1} مستخدم</value></data>
+  <data name="PerfCpuDetail" xml:space="preserve"><value>{0} معالج منطقي · الاستخدام الإجمالي</value></data>
+  <data name="PerfReadWrite" xml:space="preserve"><value>قراءة {0} · كتابة {1}</value></data>
+  <data name="PerfDiskScope" xml:space="preserve"><value>مجموع الأقراص الفعلية. نشاط الإدخال والإخراج وليس استخدام السعة.</value></data>
+  <data name="PerfDownUp" xml:space="preserve"><value>↓ {0}   ↑ {1}</value></data>
+  <data name="PerfNoNetwork" xml:space="preserve"><value>لا يوجد محول شبكة نشط مرتبط بعنوان IP.</value></data>
+  <data name="PerfNetworkScope" xml:space="preserve"><value>مجموع حركة محولات IP النشطة؛ قد تحتسب طبقات VPN والمحولات الافتراضية الحركة نفسها أكثر من مرة. تُستثنى الواجهة المحلية والمرشحات غير المرتبطة.</value></data>
+  <data name="PerfProcesses" xml:space="preserve"><value>العمليات</value></data>
+  <data name="PerfProcessNotice" xml:space="preserve"><value>للقراءة فقط · تحديث كل ثانيتين تقريبًا. الذاكرة هي مجموعة العمل وقد تتكرر الصفحات المشتركة بين العمليات. استخدام المعالج محسوب نسبةً لكل المعالجات المنطقية. لا تُقدّر الحقول غير المتاحة.</value></data>
+  <data name="PerfProcessCount" xml:space="preserve"><value>عدد العمليات المعروضة: {0}</value></data>
+  <data name="PerfTopCpu" xml:space="preserve"><value>أعلى 10 في استخدام المعالج</value></data>
+  <data name="PerfTopMemory" xml:space="preserve"><value>أعلى 10 في استخدام الذاكرة</value></data>
+  <data name="PerfAll" xml:space="preserve"><value>جميع العمليات</value></data>
+  <data name="PerfSearch" xml:space="preserve"><value>البحث باسم العملية</value></data>
+  <data name="PerfSort" xml:space="preserve"><value>ترتيب جميع العمليات حسب</value></data>
+  <data name="PerfMode" xml:space="preserve"><value>عرض العمليات</value></data>
+  <data name="PerfPid" xml:space="preserve"><value>PID</value></data>
+  <data name="PerfWorkingSet" xml:space="preserve"><value>مجموعة العمل</value></data>
+  <data name="PerfChart" xml:space="preserve"><value>آخر 60 ثانية من الأقدم إلى الأحدث يسارًا إلى يمين. المعالج والذاكرة: 0–100٪. الأقراص والشبكة: إجمالي النقل بمقياس تلقائي. الفراغات تعني عينات مفقودة. يُعاد بدء السجل بعد الإيقاف المؤقت.</value></data>
+  <data name="PerfHistoryCount" xml:space="preserve"><value>{0} عينة · السجل محدود بآخر 60 ثانية</value></data>
+  <data name="CleanDescription" xml:space="preserve"><value>فحص محلي محافظ. تُتجاوز الملفات الأحدث من 24 ساعة والملفات المقفلة والروابط والأهداف غير المؤكدة.</value></data>
+  <data name="CleanScan" xml:space="preserve"><value>فحص</value></data>
+  <data name="CleanCancel" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="CleanAction" xml:space="preserve"><value>تنظيف العناصر المحددة</value></data>
+  <data name="CleanReady" xml:space="preserve"><value>جاهز للفحص</value></data>
+  <data name="CleanScanning" xml:space="preserve"><value>جارٍ الفحص…</value></data>
+  <data name="CleanScannerOnly" xml:space="preserve"><value>المرحلة 4A: معاينة فقط. التنظيف معطل حتى اجتياز بوابة أمان الفاحص والتحقق من المنفّذ. لا تُحذف ملفات.</value></data>
+  <data name="CleanPreview" xml:space="preserve"><value>حدد صف فئة لمراجعة الملفات، 100 في كل صفحة. ألغِ تحديد أي ملف لاستبعاده. يلزم تأكيد منفصل قبل الحذف.</value></data>
+  <data name="CleanSummary" xml:space="preserve"><value>المساحة المحتملة للاسترداد: {1} · {0} ملف مؤهل. راجع حالة الفئات للفحوص غير المتاحة أو غير المكتملة.</value></data>
+  <data name="CleanCategoryDetail" xml:space="preserve"><value>{0} مؤهل · {1} · {2} متجاوز · {3} · {4} · {5}</value></data>
+  <data name="CleanLow" xml:space="preserve"><value>مخاطر منخفضة</value></data>
+  <data name="CleanReview" xml:space="preserve"><value>تحتاج مراجعة / بيانات تشخيص</value></data>
+  <data name="CleanElevation" xml:space="preserve"><value>يتطلب التنظيف تأكيد المسؤول</value></data>
+  <data name="CleanUserAccess" xml:space="preserve"><value>صلاحيات المستخدم الحالي</value></data>
+  <data name="CleanStatusComplete" xml:space="preserve"><value>مكتمل</value></data>
+  <data name="CleanStatusUnavailable" xml:space="preserve"><value>غير متاح</value></data>
+  <data name="CleanStatusIncomplete" xml:space="preserve"><value>غير مكتمل — غير مؤهل للتنظيف</value></data>
+  <data name="CleanStatusCancelled" xml:space="preserve"><value>ملغى — غير مؤهل للتنظيف</value></data>
+  <data name="CleanUserTemp" xml:space="preserve"><value>ملفات المستخدم المؤقتة</value></data>
+  <data name="CleanWindowsTemp" xml:space="preserve"><value>ملفات Windows المؤقتة</value></data>
+  <data name="CleanShaderCache" xml:space="preserve"><value>ذاكرة DirectX المؤقتة</value></data>
+  <data name="CleanEdgeCache" xml:space="preserve"><value>ذاكرة Edge المؤقتة — غير مدعومة في V1</value></data>
+  <data name="CleanChromeCache" xml:space="preserve"><value>ذاكرة Chrome المؤقتة — غير مدعومة في V1</value></data>
+  <data name="CleanFirefoxCache" xml:space="preserve"><value>ذاكرة Firefox المؤقتة — غير مدعومة في V1</value></data>
+  <data name="CleanCrashDumps" xml:space="preserve"><value>ملفات أعطال المستخدم</value></data>
+  <data name="CleanUserWer" xml:space="preserve"><value>تقارير أخطاء Windows للمستخدم — غير مدعومة في V1</value></data>
+  <data name="CleanThumbnails" xml:space="preserve"><value>ذاكرة الصور المصغرة المؤقتة</value></data>
+  <data name="CleanRecycleBin" xml:space="preserve"><value>سلة المحذوفات — جميع المحتويات الحالية</value></data>
+  <data name="CleanDashboardInitial" xml:space="preserve"><value>ابدأ فحصًا يدويًا من صفحة التنظيف لعرض نتائج حقيقية.</value></data>
+  <data name="CleanPotential" xml:space="preserve"><value>المساحة المحتملة وفق آخر فحص مكتمل؛ قد تكون الملفات تغيرت منذ ذلك الحين.</value></data>
+  <data name="CleanSafety" xml:space="preserve"><value>يحذف التنظيف اليدوي الملفات المحددة نهائيًا. تُتجاوز الملفات المقفلة أو المتغيرة أو غير المؤكدة. يوقف الإلغاء عمليات الملفات اللاحقة؛ لا يستعيد المحذوفات ولا يوقف عملية إفراغ سلة بدأت في Shell. ذاكرة المتصفحات وWER غير مدعومتين في V1.</value></data>
+  <data name="CleanPrevious" xml:space="preserve"><value>الـ100 السابقة</value></data>
+  <data name="CleanNext" xml:space="preserve"><value>الـ100 التالية</value></data>
+  <data name="CleanFailure" xml:space="preserve"><value>تعذر إكمال العملية. أعد الفحص قبل التنظيف.</value></data>
+  <data name="CleanCleaning" xml:space="preserve"><value>جارٍ تنظيف العناصر المحددة…</value></data>
+  <data name="CleanResult" xml:space="preserve"><value>المحذوف فعليًا: {1} · {0} ملف · لم يُحذف {2}. {3}</value></data>
+  <data name="CleanRescan" xml:space="preserve"><value>أعد الفحص لتحديث النتائج.</value></data>
+  <data name="CleanRejected" xml:space="preserve"><value>رُفض التحديد أو جلسة الفحص. أعد الفحص.</value></data>
+  <data name="CleanConfirmTitle" xml:space="preserve"><value>تنظيف العناصر المحددة؟</value></data>
+  <data name="CleanConfirmText" xml:space="preserve"><value>المحدد: {0}
+{1} ملف · الحجم التقديري {2}
+
+ستُحذف الملفات المحددة نهائيًا. تُتجاوز الملفات المقفلة أو المتغيرة. لا يستعيد الإلغاء الملفات المحذوفة.</value></data>
+  <data name="CleanPartial" xml:space="preserve"><value>فحص جزئي</value></data>
+  <data name="CleanFinalResult" xml:space="preserve"><value>الملفات المحذوفة: {0} · المتجاوزة: {1} · الفاشلة أو غير المؤكدة: {2} · الحجم المحذوف فعليًا والمؤكد: {3}. {4}</value></data>
+  <data name="CleanUnknownResult" xml:space="preserve"><value>نتيجة المساعد غير مكتملة. إجمالي الحجم المحذوف غير معروف؛ يظهر أعلاه المؤكد فقط. أعد الفحص قبل عملية أخرى.</value></data>
+  <data name="CleanBinConfirm" xml:space="preserve"><value>إفراغ جميع محتويات سلة المحذوفات الحالية نهائيًا، بما فيها الملفات التي حذفتها سابقًا. يفرغ Shell المحتويات الحالية لا عناصر محددة من الفحص. قد تتغير المحتويات بعد الفحص. لا يمكن التراجع أو الإلغاء بعد بدء Shell.</value></data>
+  <data name="CleanElevationConfirm" xml:space="preserve"><value>تتطلب ملفات Windows المؤقتة مطالبة منفصلة بصلاحيات المسؤول بعد هذا التأكيد. الحد 2000 ملف محدد لكل طلب؛ يُرفض التحديد الأكبر دون طلب صلاحيات.</value></data>
+  <data name="CleanBinCompleted" xml:space="preserve"><value>سلة المحذوفات: أبلغ Shell بالنجاح. لا يوفر عدد العناصر أو الحجم المحذوف؛ لا يدخلان في إجماليات الملفات.</value></data>
+  <data name="CleanBinChanged" xml:space="preserve"><value>سلة المحذوفات: تغيرت البيانات المبلغ عنها منذ الفحص؛ تم التجاوز. أعد الفحص.</value></data>
+  <data name="CleanBinCancelled" xml:space="preserve"><value>سلة المحذوفات: أُلغيت العملية قبل بدء Shell.</value></data>
+  <data name="CleanBinUnavailable" xml:space="preserve"><value>سلة المحذوفات: غير متاحة؛ تم التجاوز.</value></data>
+  <data name="CleanBinFailed" xml:space="preserve"><value>سلة المحذوفات: فشلت عملية Shell؛ الحجم المحذوف غير معروف. أعد الفحص.</value></data>
+  <data name="CleanOutcomeDeleted" xml:space="preserve"><value>محذوف</value></data>
+  <data name="CleanOutcomeChanged" xml:space="preserve"><value>تغير منذ الفحص</value></data>
+  <data name="CleanOutcomeInUse" xml:space="preserve"><value>قيد الاستخدام</value></data>
+  <data name="CleanOutcomeAccessDenied" xml:space="preserve"><value>الوصول مرفوض</value></data>
+  <data name="CleanOutcomeAlreadyGone" xml:space="preserve"><value>غير موجود مسبقًا</value></data>
+  <data name="CleanOutcomeSafetyRejected" xml:space="preserve"><value>مرفوض للأمان</value></data>
+  <data name="CleanOutcomeFailed" xml:space="preserve"><value>فشل</value></data>
+  <data name="CleanOutcomeCancelled" xml:space="preserve"><value>ملغى</value></data>
+  <data name="CleanOutcomeUnknown" xml:space="preserve"><value>نتيجة غير معروفة</value></data>
+  <data name="CleanPartialDescription" xml:space="preserve"><value>الفحص غير مكتمل. راجع التقديرات الجزئية في صفحة التنظيف؛ لا يمكن تنظيف الفئات غير المكتملة.</value></data>
+  <data name="UnSearch" xml:space="preserve"><value>البحث بالاسم أو الناشر</value></data>
+  <data name="UnRefresh" xml:space="preserve"><value>تحديث التطبيقات</value></data>
+  <data name="UnUninstall" xml:space="preserve"><value>إلغاء التثبيت</value></data>
+  <data name="UnPrevious" xml:space="preserve"><value>السابق</value></data>
+  <data name="UnNext" xml:space="preserve"><value>التالي</value></data>
+  <data name="UnAll" xml:space="preserve"><value>جميع التطبيقات</value></data>
+  <data name="UnWin32" xml:space="preserve"><value>Win32</value></data>
+  <data name="UnMsi" xml:space="preserve"><value>MSI</value></data>
+  <data name="UnMsix" xml:space="preserve"><value>متجر Microsoft / MSIX</value></data>
+  <data name="UnRecent" xml:space="preserve"><value>آخر 30 يومًا</value></data>
+  <data name="UnLarge" xml:space="preserve"><value>{0} على الأقل</value></data>
+  <data name="UnName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="UnPublisher" xml:space="preserve"><value>الناشر</value></data>
+  <data name="UnDate" xml:space="preserve"><value>تاريخ التثبيت</value></data>
+  <data name="UnSize" xml:space="preserve"><value>الحجم المُبلغ عنه</value></data>
+  <data name="UnUnknown" xml:space="preserve"><value>غير معروف</value></data>
+  <data name="UnUnavailable" xml:space="preserve"><value>الإزالة الأصلية غير متاحة أو التسجيل محمي.</value></data>
+  <data name="UnPartial" xml:space="preserve"><value>تعذرت قراءة بعض مصادر الجرد.</value></data>
+  <data name="UnCancel" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="UnConfirm" xml:space="preserve"><value>هل تريد بدء الإزالة الأصلية لهذا التطبيق؟ قد يطلب Windows رفع الصلاحيات. لن تُفحص البقايا أو تُحذف تلقائيًا.</value></data>
+  <data name="UnStateReady" xml:space="preserve"><value>جاهز — حدّث لتحميل التطبيقات.</value></data>
+  <data name="UnStateLaunching" xml:space="preserve"><value>جارٍ تشغيل أداة الإزالة الأصلية…</value></data>
+  <data name="UnStateWaitingForUninstaller" xml:space="preserve"><value>بانتظار أداة الإزالة الأصلية…</value></data>
+  <data name="UnStateUninstallerExited" xml:space="preserve"><value>انتهت أداة الإزالة.</value></data>
+  <data name="UnStateVerifying" xml:space="preserve"><value>جارٍ التحقق من هوية التطبيق الأصلية…</value></data>
+  <data name="UnStateRemoved" xml:space="preserve"><value>تم التحقق من إزالة التطبيق.</value></data>
+  <data name="UnStateStillInstalled" xml:space="preserve"><value>لا يزال مثبتًا. قد تكون عملية تثبيت فرعية قيد التشغيل؛ حدّث للتحقق مجددًا.</value></data>
+  <data name="UnStateCancelled" xml:space="preserve"><value>أُلغي الانتظار. لم تُنهَ أي أداة إزالة أصلية قيد التشغيل.</value></data>
+  <data name="UnStateFailed" xml:space="preserve"><value>تعذر إكمال العملية. حدّث القائمة وتحقق من الاختيار.</value></data>
+  <data name="UnStateUnknown" xml:space="preserve"><value>تعذر التحقق من اكتمال الإزالة.</value></data>
+  <data name="UnLoading" xml:space="preserve"><value>جارٍ تحميل التطبيقات…</value></data>
+  <data name="UnLoaded" xml:space="preserve"><value>تم تحميل التطبيقات. اختر تطبيقًا لمراجعة تفاصيله.</value></data>
+  <data name="UnScanLeftovers" xml:space="preserve"><value>فحص البقايا</value></data>
+  <data name="UnScanComplete" xml:space="preserve"><value>اكتمل فحص البقايا للقراءة فقط</value></data>
+  <data name="UnStateScanningLeftovers" xml:space="preserve"><value>جارٍ فحص بقايا التطبيق الموثقة…</value></data>
+  <data name="UnStateLeftoversReady" xml:space="preserve"><value>البقايا جاهزة للمراجعة. لم يحدث أي حذف.</value></data>
+  <data name="UnDeleteLeftovers" xml:space="preserve"><value>حذف البقايا المحددة</value></data>
+  <data name="UnDeleteConfirm" xml:space="preserve"><value>هل تريد حذف هذه البقايا المحددة فقط؟ سيُعاد التحقق من كل عنصر. ستُتجاوز العناصر المتغيرة أو المشتركة أو المحمية أو التي يتعذر الوصول إليها.</value></data>
+  <data name="UnRegistryWarning" xml:space="preserve"><value>توجد مفاتيح Registry محددة. يلزم حفظ نسخة احتياطية موثقة قبل الحذف. الاستعادة التلقائية غير مضمونة.</value></data>
+  <data name="UnCleanupComplete" xml:space="preserve"><value>نتائج التنظيف</value></data>
+  <data name="UnDeleteDeleted" xml:space="preserve"><value>حُذف</value></data>
+  <data name="UnDeleteSkipped" xml:space="preserve"><value>تم التجاوز</value></data>
+  <data name="UnDeleteChanged" xml:space="preserve"><value>تغيّر منذ الفحص</value></data>
+  <data name="UnDeleteSafetyRejected" xml:space="preserve"><value>رُفض لأسباب الأمان</value></data>
+  <data name="UnDeleteAccessDenied" xml:space="preserve"><value>رُفض الوصول</value></data>
+  <data name="UnDeleteInUse" xml:space="preserve"><value>قيد الاستخدام</value></data>
+  <data name="UnDeleteAlreadyGone" xml:space="preserve"><value>لم يعد موجودًا</value></data>
+  <data name="UnDeleteBackupFailed" xml:space="preserve"><value>فشل النسخ الاحتياطي لـRegistry</value></data>
+  <data name="UnDeleteFailed" xml:space="preserve"><value>فشل</value></data>
+  <data name="UnDeleteCancelled" xml:space="preserve"><value>أُلغي</value></data>
+  <data name="UnBackupSaved" xml:space="preserve"><value>حُفظت نسخة Registry الاحتياطية</value></data>
+  <data name="UnStateCleaningLeftovers" xml:space="preserve"><value>جارٍ تنظيف البقايا المحددة…</value></data>
+  <data name="UnStateCleanupComplete" xml:space="preserve"><value>اكتمل التنظيف. راجع نتيجة كل عنصر.</value></data>
+  <data name="UnTypeFile" xml:space="preserve"><value>ملف</value></data>
+  <data name="UnTypeDirectory" xml:space="preserve"><value>مجلد</value></data>
+  <data name="UnTypeRegistryKey" xml:space="preserve"><value>مفتاح Registry</value></data>
+  <data name="UnTypeShortcut" xml:space="preserve"><value>اختصار</value></data>
+  <data name="UnConfidenceSafe" xml:space="preserve"><value>ملكية عالية الثقة</value></data>
+  <data name="UnConfidenceReview" xml:space="preserve"><value>مراجعة</value></data>
+  <data name="UnConfidenceIgnore" xml:space="preserve"><value>تجاهل</value></data>
+  <data name="UnEvidenceInstall" xml:space="preserve"><value>احتوى مجلد التثبيت المسجل أداة الإزالة الأصلية الموثقة قبل إزالة التطبيق.</value></data>
+  <data name="UnEvidenceData" xml:space="preserve"><value>مسار بيانات محدد من مفتاح تطبيق يطابق الناشر وهوية المنتج أو التثبيت.</value></data>
+  <data name="UnEvidenceRegistry" xml:space="preserve"><value>لقطة Registry لم تتغير منذ ما قبل الإزالة وتطابق الناشر وهوية التطبيق.</value></data>
+  <data name="UnEvidenceReparse" xml:space="preserve"><value>رُفضت نقطة إعادة التحليل ولم يُتبع هدفها.</value></data>
+  <data name="UnEvidenceUnsupported" xml:space="preserve"><value>سمات غير مدعومة أو روابط صلبة؛ مستبعدة من الحذف.</value></data>
+  <data name="UnOwnedRisk" xml:space="preserve"><value>بيانات مملوكة للتطبيق. الحذف دائم.</value></data>
+  <data name="UnElevationScope" xml:space="preserve"><value>عنصر على مستوى الجهاز: تُستخدم صلاحيات المستخدم الحالي ويُتجاوز العنصر عند رفض الوصول.</value></data>
+  <data name="StartReady" xml:space="preserve"><value>حدّث لقراءة مصادر بدء التشغيل. لا تُنفذ الأوامر من هذه الصفحة.</value></data>
+  <data name="StartLoading" xml:space="preserve"><value>جارٍ تحميل عناصر بدء التشغيل…</value></data>
+  <data name="StartLoaded" xml:space="preserve"><value>اكتمل الجرد. تُعرض حالة المصدر؛ لا تُفسّر إعدادات موافقة بدء التشغيل في Windows.</value></data>
+  <data name="StartPartial" xml:space="preserve"><value>تعذرت قراءة بعض المصادر. تُعرض العناصر المتاحة.</value></data>
+  <data name="StartCancelled" xml:space="preserve"><value>أُلغيت العملية.</value></data>
+  <data name="StartFailed" xml:space="preserve"><value>تعذر إكمال العملية. حدّث للتحقق.</value></data>
+  <data name="StartSearch" xml:space="preserve"><value>ابحث بالاسم أو الناشر أو الملف أو المصدر</value></data>
+  <data name="StartRefresh" xml:space="preserve"><value>تحديث</value></data>
+  <data name="StartUnknown" xml:space="preserve"><value>غير معروف</value></data>
+  <data name="StartDisable" xml:space="preserve"><value>تعطيل</value></data>
+  <data name="StartEnable" xml:space="preserve"><value>تمكين</value></data>
+  <data name="StartOpenLocation" xml:space="preserve"><value>فتح موقع الملف</value></data>
+  <data name="StartImpact" xml:space="preserve"><value>تأثير بدء التشغيل</value></data>
+  <data name="StartNotMeasured" xml:space="preserve"><value>لم يُقَس</value></data>
+  <data name="StartProtection" xml:space="preserve"><value>الحماية</value></data>
+  <data name="StartElevation" xml:space="preserve"><value>يتطلب رفع الصلاحيات</value></data>
+  <data name="StartYes" xml:space="preserve"><value>نعم</value></data>
+  <data name="StartNo" xml:space="preserve"><value>لا</value></data>
+  <data name="StartStatusEnabled" xml:space="preserve"><value>مفعّل في المصدر</value></data>
+  <data name="StartStatusDisabledBySystemCore" xml:space="preserve"><value>معطّل بواسطة {Brand}</value></data>
+  <data name="StartStatusDisabledByWindowsOrSource" xml:space="preserve"><value>معطّل بواسطة Windows أو المصدر</value></data>
+  <data name="StartStatusProtected" xml:space="preserve"><value>محمي / للقراءة فقط</value></data>
+  <data name="StartStatusUnknown" xml:space="preserve"><value>غير معروف</value></data>
+  <data name="StartStatusRecoveryRequired" xml:space="preserve"><value>تتطلب الحالة استعادة</value></data>
+  <data name="StartScopeCurrentUser" xml:space="preserve"><value>المستخدم الحالي</value></data>
+  <data name="StartScopeAllUsers" xml:space="preserve"><value>جميع المستخدمين</value></data>
+  <data name="StartScopeSystem" xml:space="preserve"><value>النظام</value></data>
+  <data name="StartSourceRegistryRun" xml:space="preserve"><value>Registry Run</value></data>
+  <data name="StartSourceRegistryRunOnce" xml:space="preserve"><value>Registry RunOnce (مرة واحدة)</value></data>
+  <data name="StartSourceStartupFolderUser" xml:space="preserve"><value>مجلد بدء التشغيل للمستخدم</value></data>
+  <data name="StartSourceStartupFolderCommon" xml:space="preserve"><value>مجلد بدء التشغيل المشترك</value></data>
+  <data name="StartSourceScheduledTaskLogon" xml:space="preserve"><value>مهمة مجدولة — تسجيل الدخول</value></data>
+  <data name="StartSourceScheduledTaskBoot" xml:space="preserve"><value>مهمة مجدولة — الإقلاع</value></data>
+  <data name="StartProtectionNone" xml:space="preserve"><value>لم يُحدد قيد</value></data>
+  <data name="StartProtectionUnknownCommand" xml:space="preserve"><value>ملف تنفيذي غير معروف أو غير متاح</value></data>
+  <data name="StartProtectionUnsafePath" xml:space="preserve"><value>مسار غير آمن أو متغير أو يتعذر الوصول إليه</value></data>
+  <data name="StartProtectionSystemComponent" xml:space="preserve"><value>مكوّن Windows أو النظام</value></data>
+  <data name="StartProtectionSecurityOrDriver" xml:space="preserve"><value>مكوّن أمني أو برنامج تشغيل</value></data>
+  <data name="StartProtectionUnsupportedSource" xml:space="preserve"><value>تنسيق مصدر غير مدعوم</value></data>
+  <data name="StartProtectionSystemTask" xml:space="preserve"><value>مسار مهمة نظام محمية</value></data>
+  <data name="StartProtectionAmbiguousTask" xml:space="preserve"><value>هوية المهمة أو إجراءاتها أو محفزاتها تتطلب القراءة فقط</value></data>
+  <data name="StartRunOnceWarning" xml:space="preserve"><value>هذا عنصر بدء تشغيل لمرة واحدة. تعطيله قد يمنع المثبّت أو التطبيق من إكمال إجراء معلّق. التعطيل غير مستحسن.</value></data>
+  <data name="StartFilterAll" xml:space="preserve"><value>الكل</value></data>
+  <data name="StartFilterEnabled" xml:space="preserve"><value>مفعّل</value></data>
+  <data name="StartFilterDisabled" xml:space="preserve"><value>معطّل</value></data>
+  <data name="StartFilterCurrentUser" xml:space="preserve"><value>المستخدم الحالي</value></data>
+  <data name="StartFilterAllUsers" xml:space="preserve"><value>جميع المستخدمين</value></data>
+  <data name="StartFilterRegistry" xml:space="preserve"><value>Registry</value></data>
+  <data name="StartFilterFolder" xml:space="preserve"><value>مجلدات بدء التشغيل</value></data>
+  <data name="StartFilterTasks" xml:space="preserve"><value>المهام المجدولة</value></data>
+  <data name="StartFilterProtected" xml:space="preserve"><value>محمي</value></data>
+  <data name="StartSortName" xml:space="preserve"><value>الاسم</value></data>
+  <data name="StartSortPublisher" xml:space="preserve"><value>الناشر</value></data>
+  <data name="StartSortStatus" xml:space="preserve"><value>الحالة</value></data>
+  <data name="StartSortSource" xml:space="preserve"><value>المصدر</value></data>
+  <data name="StartSortScope" xml:space="preserve"><value>النطاق</value></data>
+  <data name="StartConfirmDisable" xml:space="preserve"><value>هل تريد تعطيل عنصر بدء التشغيل؟ سيحفظ {Brand} بيانات الاستعادة قبل تغيير المصدر. يمكنك تمكينه لاحقًا.</value></data>
+  <data name="StartConfirmEnable" xml:space="preserve"><value>هل تريد تمكين عنصر بدء التشغيل؟ سيتحقق {Brand} من الهوية المحفوظة ولن يستبدل أي عنصر متعارض.</value></data>
+  <data name="StartConfirmElevation" xml:space="preserve"><value>سيطلب Windows الإذن لتعديل هذا المصدر. تُرفع صلاحيات العملية المحددة فقط عبر البرنامج المساعد.</value></data>
+  <data name="StartOutcomeSuccess" xml:space="preserve"><value>تم التحقق من التغيير وتحديث الجرد.</value></data>
+  <data name="StartOutcomeCancelled" xml:space="preserve"><value>أُلغي التغيير قبل إرسال الطلب.</value></data>
+  <data name="StartOutcomeRefreshRequired" xml:space="preserve"><value>تغيّر العنصر أو الجرد. راجع العنصر المحدّث قبل إعادة المحاولة.</value></data>
+  <data name="StartOutcomeProtected" xml:space="preserve"><value>هذا العنصر محمي ولا يمكن تغييره.</value></data>
+  <data name="StartOutcomeConflict" xml:space="preserve"><value>تعذرت الاستعادة لأن عنصر بدء التشغيل تغيّر. تم الاحتفاظ ببيانات الاستعادة.</value></data>
+  <data name="StartOutcomeAccessDenied" xml:space="preserve"><value>رُفض الإذن. لم تغيّر هذه العملية المصدر.</value></data>
+  <data name="StartOutcomeStateInvalid" xml:space="preserve"><value>تعذر التحقق الآمن من المصدر أو بيانات الاستعادة. لم يُجرَ تغيير لبدء التشغيل.</value></data>
+  <data name="StartOutcomeRecoveryRequired" xml:space="preserve"><value>تعذر التحقق الكامل من العملية. تم الاحتفاظ ببيانات الاستعادة التي جرى تجهيزها؛ حدّث وراجع العنصر قبل إعادة المحاولة.</value></data>
+  <data name="StartOutcomeFailed" xml:space="preserve"><value>تعذر على البرنامج المساعد إكمال الطلب. حدّث للتحقق من حالة المصدر.</value></data>
+  <data name="NavMemoryTools" xml:space="preserve"><value>الذاكرة</value></data>
+  <data name="MemReady" xml:space="preserve"><value>تستخدم البيانات الحية خدمة مراقبة الأداء المشتركة.</value></data>
+  <data name="MemAnalyze" xml:space="preserve"><value>تحليل</value></data>
+  <data name="MemAnalyzed" xml:space="preserve"><value>حُدّث التحليل من القياسات المشتركة.</value></data>
+  <data name="MemEducation" xml:space="preserve"><value>قد يستخدم Windows الذاكرة للتخزين المؤقت. ارتفاع استخدام الذاكرة وحده لا يثبت وجود مشكلة أداء.</value></data>
+  <data name="MemPhysicalValues" xml:space="preserve"><value>{0} / {1} RAM · المستخدم {2}&#10;المتاح {3}</value></data>
+  <data name="MemCommitValues" xml:space="preserve"><value>الذاكرة الملتزم بها: {0} / {1} · {2}</value></data>
+  <data name="MemCommitTip" xml:space="preserve"><value>الذاكرة الملتزم بها هي ذاكرة وعد Windows بتوفيرها، وتدعمها RAM أو ملف ترحيل الصفحات. تختلف عن استخدام الذاكرة الفعلية.</value></data>
+  <data name="MemCache" xml:space="preserve"><value>ذاكرة النظام المؤقتة</value></data>
+  <data name="MemCacheTip" xml:space="preserve"><value>ذاكرة النظام المؤقتة من GetPerformanceInfo. ليست ذاكرة مهدرة؛ لا تجمعها مع المستخدم أو المتاح كأنها تخصيص مستقل.</value></data>
+  <data name="MemPageFile" xml:space="preserve"><value>ملف ترحيل الصفحات: السعة المهيأة / الاستخدام الحالي</value></data>
+  <data name="MemUsageHistory" xml:space="preserve"><value>استخدام الذاكرة — آخر 60 ثانية (%)</value></data>
+  <data name="MemAvailableHistory" xml:space="preserve"><value>الذاكرة المتاحة — آخر 60 ثانية</value></data>
+  <data name="MemConsumers" xml:space="preserve"><value>أكبر المستهلكين</value></data>
+  <data name="MemConsumersCount" xml:space="preserve"><value>يُعرض {0} من المستهلكين المتاحين. قد تشترك مجموعات العمل في صفحات فعلية؛ لا تجمعها كاستهلاك RAM فريد.</value></data>
+  <data name="MemPrivate" xml:space="preserve"><value>البايتات الخاصة</value></data>
+  <data name="MemDetailsReadOnly" xml:space="preserve"><value>تفاصيل عملية للقراءة فقط. تُراجع هويتها مجددًا قبل فتح موقع ملفها.</value></data>
+  <data name="MemUnknownPublisher" xml:space="preserve"><value>الناشر غير متاح</value></data>
+  <data name="MemProcessChanged" xml:space="preserve"><value>لم تعد العملية أو ملفها متاحين. حدد عملية حالية مجددًا.</value></data>
+  <data name="MemUpdated" xml:space="preserve"><value>وقت القياس {0}</value></data>
+  <data name="MemDiskUnavailable" xml:space="preserve"><value>نشاط القرص لكل عملية غير متاح في هذا الإصدار.</value></data>
+  <data name="MemNetworkUnavailable" xml:space="preserve"><value>نشاط الشبكة لكل عملية غير متاح في هذا الإصدار.</value></data>
+  <data name="MemSystemDisk" xml:space="preserve"><value>جميع الأقراص الفعلية على مستوى النظام: {0}</value></data>
+  <data name="MemSystemNetwork" xml:space="preserve"><value>المحوّلات النشطة على مستوى النظام: ↓ {0} · ↑ {1}</value></data>
+  <data name="MemPressureUnknown" xml:space="preserve"><value>ضغط الذاكرة: غير متاح</value></data>
+  <data name="MemPressureObserving" xml:space="preserve"><value>ضغط الذاكرة: قيد الملاحظة</value></data>
+  <data name="MemPressureNormal" xml:space="preserve"><value>ضغط الذاكرة: طبيعي</value></data>
+  <data name="MemPressureElevated" xml:space="preserve"><value>ضغط الذاكرة: متزايد</value></data>
+  <data name="MemPressureHigh" xml:space="preserve"><value>ضغط الذاكرة: مرتفع</value></data>
+  <data name="MemReasonUnavailable" xml:space="preserve"><value>يلزم قياس موثوق للذاكرة المتاحة والذاكرة الملتزم بها.</value></data>
+  <data name="MemReasonStale" xml:space="preserve"><value>بانتظار قياسات مشتركة حديثة.</value></data>
+  <data name="MemReasonWarmingUp" xml:space="preserve"><value>جارٍ جمع فترة ملاحظة متصلة.</value></data>
+  <data name="MemReasonWithinRange" xml:space="preserve"><value>لا تُظهر القياسات الحالية ضغطًا مستمرًا على الذاكرة.</value></data>
+  <data name="MemReasonSustainedReducedAvailable" xml:space="preserve"><value>انخفضت الذاكرة المتاحة وارتفع استخدام الذاكرة الملتزم بها. يستمر Windows في إدارة الذاكرة.</value></data>
+  <data name="MemReasonSustainedPressure" xml:space="preserve"><value>يستمر انخفاض المتاح وارتفاع الالتزام بالذاكرة. قد يساعد إغلاق التطبيقات التي لا تستخدمها.</value></data>
+  <data name="MemReasonRecoveryObservation" xml:space="preserve"><value>تتحسن القياسات؛ نراقب التعافي قبل تغيير التقييم.</value></data>
+  <data name="MemOptimize" xml:space="preserve"><value>تحسين الذاكرة</value></data>
+  <data name="MemOptimizing" xml:space="preserve"><value>جارٍ التحقق من الإجراءات الآمنة التي يملكها {Brand}…</value></data>
+  <data name="MemOptimizationFinished" xml:space="preserve"><value>اكتمل قرار الذاكرة. راجع القياسات أدناه.</value></data>
+  <data name="MemOptimizationCancelled" xml:space="preserve"><value>أُلغي قرار الذاكرة.</value></data>
+  <data name="MemOptimizationFailed" xml:space="preserve"><value>تعذّر إكمال قرار الذاكرة.</value></data>
+  <data name="MemOutcomeNoAction" xml:space="preserve"><value>لم يُنفذ أي إجراء على الذاكرة.</value></data>
+  <data name="MemOutcomeCompleted" xml:space="preserve"><value>اكتملت إجراءات ذاكرة {Brand} المؤقتة.</value></data>
+  <data name="MemOutcomePartial" xml:space="preserve"><value>اكتملت بعض إجراءات ذاكرة {Brand} المؤقتة وتُخطي الباقي.</value></data>
+  <data name="MemOutcomeFailed" xml:space="preserve"><value>لم يكتمل أي إجراء مخطط للذاكرة المؤقتة.</value></data>
+  <data name="MemOutcomeCancelled" xml:space="preserve"><value>أُلغيت الإجراءات المخططة للذاكرة المؤقتة.</value></data>
+  <data name="MemPlanNormal" xml:space="preserve"><value>لا توجد حاجة لتحسين الذاكرة حاليًا. Windows يدير الذاكرة بشكل طبيعي.</value></data>
+  <data name="MemPlanNoSafeAction" xml:space="preserve"><value>لا يوجد إجراء تلقائي آمن متاح. قد يساعد إغلاق التطبيقات التي لا تستخدمها في توفير الذاكرة.</value></data>
+  <data name="MemPlanMeasurementsUnavailable" xml:space="preserve"><value>يلزم توفر قياسات حديثة ومستمرة قبل اتخاذ قرار بإجراء.</value></data>
+  <data name="MemPlanSafeOwnedCache" xml:space="preserve"><value>تقتصر الأهلية على بيانات مؤقتة قديمة وغير نشطة ومملوكة حصريًا لـ{Brand}.</value></data>
+  <data name="MemPlanOwnerUnavailable" xml:space="preserve"><value>تعذّر التحقق من ملكية الذاكرة المؤقتة. لا يوجد إجراء تلقائي متاح.</value></data>
+  <data name="MemReleased" xml:space="preserve"><value>المحرر من ذاكرة {Brand} المؤقتة: {0} · المنفذ: {1} · المتخطى: {2} · {3:N2} ث</value></data>
+  <data name="MemBefore" xml:space="preserve"><value>قبل</value></data>
+  <data name="MemAfter" xml:space="preserve"><value>بعد</value></data>
+  <data name="MemMeasurement" xml:space="preserve"><value>{0} — وقت القياس {1}&#10;RAM المتاحة: {2} · RAM المستخدمة: {3} · الالتزام: {6}&#10;مجموعة عمل {Brand}: {4} · البايتات الخاصة: {5} · الذاكرة المؤقتة المملوكة المعروفة: {7}</value></data>
+  <data name="MemMeasurementNotice" xml:space="preserve"><value>هذه ملاحظات من المراقبة المشتركة. قد تستخدم نتيجة عدم التنفيذ العينة نفسها مرتين. يصف حجم الذاكرة المؤقتة المراجع التي حررها مالكها، وليس انخفاضًا فوريًا في RAM الفعلية. قد يغيّر Windows والتطبيقات الأخرى القياسات؛ لا يُستنتج تحسن في السرعة.</value></data>
+  <data name="ActionRefresh" xml:space="preserve"><value>تحديث</value></data>
+  <data name="ActionOpen" xml:space="preserve"><value>فتح</value></data>
+  <data name="ToolsDescription" xml:space="preserve"><value>افتح أدوات Windows الرسمية. يدير Windows صلاحياتها وقد يطلب موافقة المسؤول. قد تقيّد سياسة المؤسسة بعض الصفحات.</value></data>
+  <data name="ToolsReady" xml:space="preserve"><value>اختر أداة Windows لفتحها.</value></data>
+  <data name="ToolsLoading" xml:space="preserve"><value>جارٍ التحقق من توفر أدوات Windows…</value></data>
+  <data name="ToolsOpening" xml:space="preserve"><value>جارٍ فتح أداة Windows المحددة…</value></data>
+  <data name="ToolsFailure" xml:space="preserve"><value>تعذّر التحقق من أدوات Windows. اختر تحديث للمحاولة مجددًا.</value></data>
+  <data name="ToolResult" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="ToolResultLaunched" xml:space="preserve"><value>قبل Windows طلب الفتح. انتقل إلى أداة Windows للمتابعة.</value></data>
+  <data name="ToolResultUnavailable" xml:space="preserve"><value>غير متاح. حدّث حالة التوفر أو راجع إعداد Windows.</value></data>
+  <data name="ToolResultAccessDenied" xml:space="preserve"><value>رُفض الوصول. راجع صلاحيات الحساب أو تواصل مع المسؤول.</value></data>
+  <data name="ToolResultFailed" xml:space="preserve"><value>تعذّر فتح الأداة. حاول مجددًا أو افتحها من Windows.</value></data>
+  <data name="ToolResultCancelled" xml:space="preserve"><value>أُلغي الفتح. يمكنك المحاولة مجددًا عندما تكون جاهزًا.</value></data>
+  <data name="ToolAvailabilityChecking" xml:space="preserve"><value>جارٍ التحقق…</value></data>
+  <data name="ToolAvailabilityAvailable" xml:space="preserve"><value>متاح</value></data>
+  <data name="ToolAvailabilityUnavailable" xml:space="preserve"><value>غير متاح</value></data>
+  <data name="ToolAdministrative" xml:space="preserve"><value>أداة إدارية</value></data>
+  <data name="ToolGroupSystem" xml:space="preserve"><value>النظام</value></data>
+  <data name="ToolGroupStorage" xml:space="preserve"><value>التخزين</value></data>
+  <data name="ToolGroupNetwork" xml:space="preserve"><value>الشبكة</value></data>
+  <data name="ToolGroupApps" xml:space="preserve"><value>التطبيقات</value></data>
+  <data name="ToolGroupSecurity" xml:space="preserve"><value>الأمان</value></data>
+  <data name="ToolGroupRecovery" xml:space="preserve"><value>الاسترداد</value></data>
+  <data name="ToolTaskManager" xml:space="preserve"><value>إدارة المهام</value></data>
+  <data name="ToolTaskManagerDescription" xml:space="preserve"><value>راجع التطبيقات قيد التشغيل واستخدام الموارد في Windows.</value></data>
+  <data name="ToolDeviceManager" xml:space="preserve"><value>إدارة الأجهزة</value></data>
+  <data name="ToolDeviceManagerDescription" xml:space="preserve"><value>اعرض الأجهزة وحالتها في Windows.</value></data>
+  <data name="ToolDiskManagement" xml:space="preserve"><value>إدارة الأقراص</value></data>
+  <data name="ToolDiskManagementDescription" xml:space="preserve"><value>افتح وحدة Windows لإدارة الأقراص ووحدات التخزين.</value></data>
+  <data name="ToolSystemInformation" xml:space="preserve"><value>معلومات النظام</value></data>
+  <data name="ToolSystemInformationDescription" xml:space="preserve"><value>افتح أداة معلومات النظام المضمّنة في Windows.</value></data>
+  <data name="ToolServices" xml:space="preserve"><value>الخدمات</value></data>
+  <data name="ToolServicesDescription" xml:space="preserve"><value>راجع الخدمات في وحدة Windows الرسمية.</value></data>
+  <data name="ToolEventViewer" xml:space="preserve"><value>عارض الأحداث</value></data>
+  <data name="ToolEventViewerDescription" xml:space="preserve"><value>تصفّح أحداث التطبيقات والنظام في Windows.</value></data>
+  <data name="ToolWindowsUpdate" xml:space="preserve"><value>تحديث Windows</value></data>
+  <data name="ToolWindowsUpdateDescription" xml:space="preserve"><value>افتح صفحة إعدادات تحديث Windows.</value></data>
+  <data name="ToolNetworkConnections" xml:space="preserve"><value>اتصالات الشبكة</value></data>
+  <data name="ToolNetworkConnectionsDescription" xml:space="preserve"><value>اعرض محوّلات الشبكة في لوحة تحكم Windows.</value></data>
+  <data name="ToolInstalledApps" xml:space="preserve"><value>التطبيقات المثبتة</value></data>
+  <data name="ToolInstalledAppsDescription" xml:space="preserve"><value>افتح صفحة التطبيقات المثبتة في إعدادات Windows.</value></data>
+  <data name="ToolStorageSettings" xml:space="preserve"><value>إعدادات التخزين</value></data>
+  <data name="ToolStorageSettingsDescription" xml:space="preserve"><value>راجع استخدام التخزين وإعداداته في Windows.</value></data>
+  <data name="ToolSystemRestore" xml:space="preserve"><value>استعادة النظام</value></data>
+  <data name="ToolSystemRestoreDescription" xml:space="preserve"><value>افتح معالج استرداد Windows. لا يبدأ {Brand} أي استعادة.</value></data>
+  <data name="ToolWindowsSecurity" xml:space="preserve"><value>أمان Windows</value></data>
+  <data name="ToolWindowsSecurityDescription" xml:space="preserve"><value>افتح لوحة الحماية والأمان في Windows.</value></data>
+  <data name="ToolPowerOptions" xml:space="preserve"><value>خيارات الطاقة</value></data>
+  <data name="ToolPowerOptionsDescription" xml:space="preserve"><value>راجع خطط الطاقة والإعدادات المرتبطة بها في Windows.</value></data>
+  <data name="ToolOptionalFeatures" xml:space="preserve"><value>الميزات الاختيارية</value></data>
+  <data name="ToolOptionalFeaturesDescription" xml:space="preserve"><value>افتح صفحة الميزات الاختيارية في إعدادات Windows.</value></data>
+  <data name="SettingsGeneral" xml:space="preserve"><value>عام</value></data>
+  <data name="SettingsGeneralNotice" xml:space="preserve"><value>يفتح {Brand} على الرئيسية. لا تبدأ الفحوص والصيانة إلا بطلب منك. لا يسجّل هذا الإصدار نفسه لبدء التشغيل ولا يبحث عن تحديثات تلقائيًا.</value></data>
+  <data name="SettingsBehavior" xml:space="preserve"><value>السلوك والتأكيدات</value></data>
+  <data name="SettingsSafetyNotice" xml:space="preserve"><value>تأكيدات السلامة الإلزامية مفعّلة دائمًا للتنظيف وإلغاء التثبيت وحذف البقايا، بما فيها بقايا Registry، وتغييرات بدء التشغيل. لا يمكن تعطيلها.</value></data>
+  <data name="SettingsCleanerNotice" xml:space="preserve"><value>تستخدم فئات تنظيف الملفات حدًا أدنى للعمر يبلغ 24 ساعة. تبقى قواعد حماية المسارات والروابط والملفات المقفلة نافذة. لا يمكن تعديل هذه السياسات في هذا الإصدار.</value></data>
+  <data name="SettingsPrivacy" xml:space="preserve"><value>الخصوصية</value></data>
+  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>لا حسابات أو خدمات سحابية أو تحليلات أو قياس استخدام. تبقى بيانات النظام على الجهاز. تصدير التشخيصات يدوي ولا يرفع أي بيانات تلقائيًا.</value></data>
+  <data name="SettingsAppearance" xml:space="preserve"><value>المظهر واللغة</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>حُفظت الإعدادات محليًا.</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>طُبق التغيير لهذه الجلسة لكن تعذّر حفظه. راجع صلاحية الوصول إلى مجلد بيانات التطبيق وحاول مجددًا.</value></data>
+  <data name="DiagnosticsTitle" xml:space="preserve"><value>التشخيصات</value></data>
+  <data name="DiagnosticsDescription" xml:space="preserve"><value>تحتوي السجلات المحلية رموز العمليات والأحداث وأوقاتها. يشمل التصدير إصداري التطبيق وWindows والمعمارية وتوفر الميزات والسجلات الحديثة المنقّحة. تُستبعد المسارات الخاصة والعناوين ووسائط الأوامر والمعرّفات.</value></data>
+  <data name="DiagnosticsRetention" xml:space="preserve"><value>السجلات: حتى 10 ملفات، 2 MB لكل ملف و20 MB إجمالًا. يحتفظ مسح السجلات القديمة بالسجل النشط. يُحتفظ بما يصل إلى 5 صادرات يدوية؛ احذف تصديرًا قديمًا من مجلده قبل إنشاء المزيد.</value></data>
+  <data name="DiagnosticsStorage" xml:space="preserve"><value>{0} ملفات سجل · {1} · {2} سجلات لم تُكتب</value></data>
+  <data name="DiagnosticsReady" xml:space="preserve"><value>تبقى التشخيصات محلية. اختر إجراءً عند الحاجة.</value></data>
+  <data name="DiagnosticsWorking" xml:space="preserve"><value>جارٍ التعامل مع التشخيصات المحلية…</value></data>
+  <data name="DiagnosticsFailure" xml:space="preserve"><value>التشخيصات المحلية غير متاحة. راجع صلاحية الوصول إلى المجلد وحاول مجددًا.</value></data>
+  <data name="DiagnosticsOpenLogs" xml:space="preserve"><value>فتح مجلد السجلات</value></data>
+  <data name="DiagnosticsExport" xml:space="preserve"><value>تصدير سجل التشخيص</value></data>
+  <data name="DiagnosticsClear" xml:space="preserve"><value>مسح السجلات القديمة</value></data>
+  <data name="DiagnosticsOpenExports" xml:space="preserve"><value>فتح مجلد الصادرات</value></data>
+  <data name="DiagnosticsOpenData" xml:space="preserve"><value>فتح بيانات التطبيق</value></data>
+  <data name="DiagnosticsExported" xml:space="preserve"><value>حُفظت حزمة التشخيص محليًا. افتح مجلد الصادرات لمراجعتها أو مشاركتها بنفسك. لم تُرفع أي بيانات.</value></data>
+  <data name="DiagnosticsExportFailed" xml:space="preserve"><value>تعذّر إكمال التصدير. راجع صلاحيات المجلد والمساحة المتاحة، واحذف تصديرًا قديمًا إن وُجدت خمسة، ثم أعد المحاولة.</value></data>
+  <data name="DiagnosticsCleared" xml:space="preserve"><value>مُسحت سجلات {Brand} القديمة مع الاحتفاظ بالسجل النشط.</value></data>
+  <data name="DiagnosticsClearFailed" xml:space="preserve"><value>تعذّر مسح بعض السجلات القديمة. أغلق نوافذ {Brand} الأخرى أو راجع الصلاحيات، ثم حاول مجددًا.</value></data>
+  <data name="DiagnosticsFolderOpened" xml:space="preserve"><value>قبل Windows طلب فتح المجلد.</value></data>
+  <data name="DiagnosticsOpenFailed" xml:space="preserve"><value>تعذّر فتح المجلد. راجع الصلاحيات وحاول مجددًا.</value></data>
+  <data name="DiagnosticsClearConfirm" xml:space="preserve"><value>هل تريد حذف سجلات تشخيص {Brand} المغلقة؟ سيُحتفظ بالسجل النشط والصادرات والتفضيلات والنسخ الاحتياطية وحالة الاسترداد.</value></data>
+  <data name="AboutArchitecture" xml:space="preserve"><value>المعمارية: {0}</value></data>
+  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · Home وPro وEnterprise وEducation. الحد التقني: البناء 22631. اعتماد الإصدار النهائي قيد الانتظار.</value></data>
+  <data name="AboutCopyright" xml:space="preserve"><value>حقوق المكونات الخارجية محفوظة لأصحابها. لم يُعيّن ناشر المنتج بعد. راجع إشعارات الترخيص الأصلية أدناه.</value></data>
+  <data name="AboutCopyVersion" xml:space="preserve"><value>نسخ إصدار التطبيق</value></data>
+  <data name="AboutLicenses" xml:space="preserve"><value>إشعارات تراخيص المكونات الخارجية بلغتها الأصلية</value></data>
+  <data name="VersionCopied" xml:space="preserve"><value>نُسخ إصدار التطبيق.</value></data>
+  <data name="VersionCopyFailed" xml:space="preserve"><value>تعذّر نسخ الإصدار. حاول مجددًا عندما تصبح الحافظة متاحة.</value></data>
+  <data name="ProductNoMatches" xml:space="preserve"><value>لا توجد عناصر مطابقة. غيّر البحث أو عوامل التصفية.</value></data>
+  <data name="StartEmpty" xml:space="preserve"><value>لم يُعثر على عناصر بدء تشغيل.</value></data>
+  <data name="UnEmpty" xml:space="preserve"><value>لم يُعثر على تطبيقات مثبتة في المصادر المدعومة.</value></data>
+  <data name="UnLeftoversEmpty" xml:space="preserve"><value>لم يُعثر على بقايا في المواقع المدعومة.</value></data>
+  <data name="F1Welcome" xml:space="preserve"><value>مرحباً بك</value></data>
+  <data name="F1Intro" xml:space="preserve"><value>كل ما تحتاجه لإدارة نظامك من مكان واحد</value></data>
+  <data name="F1Scan" xml:space="preserve"><value>ابدأ الفحص</value></data>
+  <data name="F1ScanDetail" xml:space="preserve"><value>فحص الملفات المؤقتة والقابلة للتنظيف</value></data>
+  <data name="F1Ready" xml:space="preserve"><value>جاهز للاستخدام</value></data>
+  <data name="F1Search" xml:space="preserve"><value>بحث في الصفحات</value></data>
+  <data name="F1SearchPlaceholder" xml:space="preserve"><value>ابحث عن صفحة…</value></data>
+  <data name="F1About" xml:space="preserve"><value>عن {Brand}</value></data>
+  <data name="F1Premium" xml:space="preserve"><value>{Brand} Premium</value></data>
+  <data name="F1PremiumFeatures" xml:space="preserve"><value>معلومات الجهاز&#10;إدارة البرامج&#10;أدوات Windows</value></data>
+  <data name="F1Processors" xml:space="preserve"><value>{0} معالجًا منطقيًا</value></data>
+  <data name="F1PhysicalMemory" xml:space="preserve"><value>الذاكرة الفعلية · المستخدم / الإجمالي</value></data>
+  <data name="F1Capacity" xml:space="preserve"><value>قرص النظام · السعة المستخدمة</value></data>
+  <data name="F1History" xml:space="preserve"><value>سجل القياسات · حتى 60 ثانية</value></data>
+  <data name="F1CleanupTitle" xml:space="preserve"><value>تنظيف النظام</value></data>
+  <data name="F1CleanupBody" xml:space="preserve"><value>راجع الملفات المؤقتة قبل اختيار ما تريد حذفه.</value></data>
+  <data name="F1UninstallBody" xml:space="preserve"><value>راجع البرامج المثبتة وخيارات إزالتها الأصلية.</value></data>
+  <data name="F1StartupBody" xml:space="preserve"><value>راجع عناصر بدء التشغيل والتغييرات القابلة للاستعادة.</value></data>
+  <data name="F1ManagePrograms" xml:space="preserve"><value>إدارة البرامج</value></data>
+  <data name="F1OpenManager" xml:space="preserve"><value>فتح المدير</value></data>
+  <data name="F1LastScan" xml:space="preserve"><value>آخر فحص</value></data>
+  <data name="UnRemovableEmpty" xml:space="preserve"><value>لم يُعثر على تطبيقات قابلة للإزالة.</value></data>
+  <data name="UnSelectDetails" xml:space="preserve"><value>اختر تطبيقًا لعرض تفاصيله.</value></data>
+</root>
