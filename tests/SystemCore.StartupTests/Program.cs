@@ -57,8 +57,13 @@ if (args.Contains("--machine-fixture"))
 if (args.Contains("--inventory"))
 {
     var clock = Stopwatch.StartNew();
-    var service = new StartupInventoryService(new RegistryStartupProvider(), new StartupFolderProvider(), new TaskSchedulerStartupProvider());
+    var service = new StartupInventoryService(new RegistryStartupProvider(), new StartupFolderProvider(), new TaskSchedulerStartupProvider(), new StartupStateService(), new WindowsElevatedStartupClient());
     var inventory = await service.RefreshAsync(default);
+    var visible = inventory.Inventory.Items.Where(ManageableStartupItems.IsVisible).ToArray();
+    Console.WriteLine($"Raw startup inventory: {inventory.Inventory.Items.Count}\nProtected/non-manageable hidden: {inventory.Inventory.Items.Count - visible.Length}\nVisible manageable items: {visible.Length}\nRegistry: {visible.Count(i => i.SourceType is StartupSourceType.RegistryRun or StartupSourceType.RegistryRunOnce)}\nStartup folders: {visible.Count(i => i.SourceType is StartupSourceType.StartupFolderUser or StartupSourceType.StartupFolderCommon)}\nScheduled tasks: {visible.Count(i => i.SourceType is StartupSourceType.ScheduledTaskLogon or StartupSourceType.ScheduledTaskBoot)}");
+    var icons = new StartupIconCache(); var iconSources = new Dictionary<string, int>();
+    foreach (var item in visible) { var icon = await icons.GetAsync(item, default); iconSources[icon.Source] = iconSources.GetValueOrDefault(icon.Source) + 1; }
+    Console.WriteLine(JsonSerializer.Serialize(new { IconSources = iconSources }));
     Console.WriteLine(JsonSerializer.Serialize(new { inventory.Inventory.Complete, Milliseconds = clock.Elapsed.TotalMilliseconds,
         Total = inventory.Inventory.Items.Count, Sources = inventory.Inventory.Items.GroupBy(i => i.SourceType).ToDictionary(g => g.Key.ToString(), g => g.Count()),
         Protected = inventory.Inventory.Items.Count(i => i.IsProtected), Enabled = inventory.Inventory.Items.Count(i => i.Status == StartupStatus.Enabled),
@@ -75,7 +80,8 @@ using (var fixture = new StartupFixture())
     var folder = new StartupFolderProvider(fixture);
     var taskSource = new FixtureTasks(fixture.Executable);
     var tasks = new TaskSchedulerStartupProvider(taskSource);
-    var service = new StartupInventoryService(registry, folder, tasks);
+    var service = new StartupInventoryService(registry, folder, tasks,
+        new StartupStateService(fixture, Path.Combine(fixture.Root, "state"), Path.Combine(fixture.Root, "machine")));
     var snapshot = await service.RefreshAsync(default);
     Check("Complete isolated inventory", snapshot.Inventory.Complete);
     Check("HKCU Run and RunOnce discovered", snapshot.Inventory.Items.Any(i => i.SourceType == StartupSourceType.RegistryRun) && snapshot.Inventory.Items.Any(i => i.SourceType == StartupSourceType.RegistryRunOnce));
@@ -93,7 +99,8 @@ using (var fixture = new StartupFixture())
     Check("Multiple startup triggers produce one task identity", snapshot.Inventory.Items.Count(i => i.Name == "Multiple") == 1);
     Check("Unrelated triggers protect a mixed task", snapshot.Inventory.Items.Single(i => i.Name == "Mixed").IsProtected);
     Check("Impact never fabricated", snapshot.Inventory.Items.All(i => i.Impact == "NotMeasured"));
-    Check("Dashboard summary matches normalized inventory", service.Summary?.Total == snapshot.Inventory.Items.Count);
+    Check("Dashboard summary counts only manageable items", service.Summary?.Total == snapshot.Inventory.Items.Count(ManageableStartupItems.IsVisible));
+    Check("Read-only task provider cannot advertise a mutation path", !snapshot.Inventory.Items.Where(i => i.SourceType is StartupSourceType.ScheduledTaskLogon or StartupSourceType.ScheduledTaskBoot).Any(ManageableStartupItems.IsVisible));
     var refresh = await service.RefreshAsync(default);
     Check("Stable source identities across refresh", snapshot.Inventory.Items.Select(i => i.Id).SequenceEqual(refresh.Inventory.Items.Select(i => i.Id)));
     Check("Refresh creates new session", snapshot.Id != refresh.Id);
@@ -123,7 +130,8 @@ using (var fixture = new StartupFixture())
     try { await service.RefreshAsync(cancel.Token); } catch (OperationCanceledException) { cancelled = true; }
     Check("Inventory cancellation respected", cancelled);
 }
-Console.WriteLine(JsonSerializer.Serialize(new { Checks = checks.Count, Failed = checks.Count(c => !c.Pass), Scope = "Read-only providers; synthetic fixture setup/teardown only" }));
+await Fix2Tests.Run(Check);
+Console.WriteLine(JsonSerializer.Serialize(new { Checks = checks.Count, Failed = checks.Count(c => !c.Pass), Scope = "Real-device inventory is read-only; mutations use isolated synthetic fixtures only" }));
 return checks.All(c => c.Pass) ? 0 : 1;
 
 internal sealed class StartupFixture : IStartupLocations, IDisposable

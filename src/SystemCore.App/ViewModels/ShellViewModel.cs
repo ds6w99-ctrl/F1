@@ -25,8 +25,6 @@ public sealed class ShellViewModel : LocalizedViewModel
     public string Tagline => ProductIdentity.Tagline;
     public string SearchLabel => L["F1Search"];
     public string SearchPlaceholder => L["F1SearchPlaceholder"];
-    public string PremiumTitle => L["F1Premium"];
-    public string PremiumFeatures => L["F1PremiumFeatures"];
     public string AboutAction => L["F1About"];
     public string DashboardLabel => L["NavDashboard"];
     public string CleanerLabel => L["NavCleaner"];

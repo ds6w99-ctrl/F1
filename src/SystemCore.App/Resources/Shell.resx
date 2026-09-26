@@ -538,8 +538,6 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="F1Search" xml:space="preserve"><value>Search pages</value></data>
   <data name="F1SearchPlaceholder" xml:space="preserve"><value>Find a page…</value></data>
   <data name="F1About" xml:space="preserve"><value>About {Brand}</value></data>
-  <data name="F1Premium" xml:space="preserve"><value>{Brand} Premium</value></data>
-  <data name="F1PremiumFeatures" xml:space="preserve"><value>System information&#10;Program management&#10;Windows tools</value></data>
   <data name="F1Processors" xml:space="preserve"><value>{0} logical processors</value></data>
   <data name="F1PhysicalMemory" xml:space="preserve"><value>Physical memory · used / total</value></data>
   <data name="F1Capacity" xml:space="preserve"><value>System drive · capacity used</value></data>

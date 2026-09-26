@@ -7,7 +7,12 @@ public enum StartupProtection { None, UnknownCommand, UnsafePath, SystemComponen
 public sealed record StartupItem(string Id, string Name, string? Publisher, StartupSourceType SourceType, string SourceLocation,
     string CommandDisplay, string? ExecutablePath, string? ArgumentsDisplay, StartupStatus Status, StartupScope Scope,
     bool RequiresElevation, bool IsProtected, StartupProtection ProtectionReason, string Impact, string Identity, string Fingerprint,
-    string? TriggerDescription = null);
+    string? TriggerDescription = null)
+{
+    // Inventory-only capability; never persist it in Phase 6 recovery receipts.
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool CanManage { get; init; }
+}
 public sealed record StartupInventoryResult(IReadOnlyList<StartupItem> Items, bool Complete, IReadOnlyList<string> UnavailableSources);
 public sealed record StartupInventorySession(Guid Id, DateTimeOffset CreatedAt, StartupInventoryResult Inventory);
 public sealed record StartupSummary(int Total, int Enabled, int Disabled, int Protected, bool Complete);

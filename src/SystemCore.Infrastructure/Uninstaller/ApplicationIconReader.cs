@@ -74,6 +74,19 @@ public static class ApplicationIconReader
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or COMException or ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception) { return null; }
     }
 
+    internal static async Task<byte[]?> ReadFileAsync(IconFile file, CancellationToken token)
+    {
+        try
+        {
+            token.ThrowIfCancellationRequested();
+            var pixels = Extract(file);
+            token.ThrowIfCancellationRequested();
+            return pixels is null ? null : await Encode(pixels, 36, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or COMException or ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception) { return null; }
+    }
+
     private static async Task<byte[]> Encode(byte[] pixels, uint size, CancellationToken token)
     {
         using var stream = new InMemoryRandomAccessStream();

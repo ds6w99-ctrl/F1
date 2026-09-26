@@ -58,8 +58,10 @@ public sealed class StartupFolderProvider : IStartupFolderProvider
         }
         return (new(Array.AsReadOnly(items.Select(i => i.Item).ToArray()), errors.Count == 0, errors.Distinct().ToArray()), items);
     }
-    private static string ReadShortcut(string path)
+    internal static string ReadShortcut(string path) => ReadShortcutMetadata(path).Command;
+    internal static (string Command, string Icon, int Index) ReadShortcutMetadata(string path)
     {
+        using var pinned = PinnedCleanerPath.Open(path, false, shareRead: true);
         var link = (IShellLinkW)Activator.CreateInstance(Type.GetTypeFromCLSID(new("00021401-0000-0000-C000-000000000046"))!)!;
         try
         {
@@ -67,7 +69,8 @@ public sealed class StartupFolderProvider : IStartupFolderProvider
             var target = new StringBuilder(512); var arguments = new StringBuilder(32768);
             link.GetPath(target, target.Capacity, IntPtr.Zero, 4); link.GetArguments(arguments, arguments.Capacity);
             // No Resolve call: do not contact remote targets or trigger shortcut repair.
-            return "\"" + target + "\" " + arguments;
+            var icon = new StringBuilder(1024); link.GetIconLocation(icon, icon.Capacity, out var index);
+            return ("\"" + target + "\" " + arguments, icon.ToString(), index);
         }
         finally { Marshal.FinalReleaseComObject(link); }
     }
@@ -79,5 +82,9 @@ public sealed class StartupFolderProvider : IStartupFolderProvider
         void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder text, int count); void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string text);
         void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder text, int count); void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string text);
         void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder text, int count);
+        void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string text);
+        void GetHotkey(out short hotkey); void SetHotkey(short hotkey);
+        void GetShowCmd(out int command); void SetShowCmd(int command);
+        void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder text, int count, out int index);
     }
 }

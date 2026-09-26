@@ -3,7 +3,7 @@ using SystemCore.Core.Startup;
 namespace SystemCore.Infrastructure.Startup;
 
 public sealed class StartupInventoryService(IRegistryStartupProvider registry, IStartupFolderProvider folders, ITaskSchedulerStartupProvider tasks,
-    IStartupStateService? state = null) : IStartupInventoryService
+    IStartupStateService? state = null, IElevatedStartupClient? elevated = null) : IStartupInventoryService
 {
     internal readonly SemaphoreSlim Operation = new(1, 1);
     private StartupInventorySession? session;
@@ -18,10 +18,14 @@ public sealed class StartupInventoryService(IRegistryStartupProvider registry, I
             var sources = await Task.WhenAll(registry.ReadAsync(token), folders.ReadAsync(token), tasks.ReadAsync(token)).ConfigureAwait(false);
             for (var index = 0; index < sources.Length; index++) StartupDiagnostics.Log.InventorySource(index, sources[index].Items.Count, sources[index].Complete);
             if (state is not null) sources = [.. sources, await state.ReadAsync(token).ConfigureAwait(false)];
-            var rows = sources.SelectMany(s => s.Items).GroupBy(i => i.Id, StringComparer.Ordinal).Select(g => g.Last()).OrderBy(i => i.Name, StringComparer.CurrentCultureIgnoreCase).ToArray();
+            var capability = new StartupManageability(registry, folders, tasks, state as StartupStateService, elevated);
+            var rows = await Task.Run(() => sources.SelectMany(s => s.Items).GroupBy(i => i.Id, StringComparer.Ordinal)
+                .Select(g => { token.ThrowIfCancellationRequested(); var item = g.Last(); return item with { CanManage = capability.CanManage(item) }; })
+                .OrderBy(i => i.Name, StringComparer.CurrentCultureIgnoreCase).ToArray(), token).ConfigureAwait(false);
             var result = new StartupInventoryResult(Array.AsReadOnly(rows), sources.All(s => s.Complete), sources.SelectMany(s => s.UnavailableSources).Distinct().ToArray());
             session = new(Guid.NewGuid(), DateTimeOffset.UtcNow, result);
-            Summary = new(rows.Length, rows.Count(i => i.Status == StartupStatus.Enabled), rows.Count(i => i.Status is StartupStatus.DisabledBySystemCore or StartupStatus.DisabledByWindowsOrSource), rows.Count(i => i.IsProtected), result.Complete);
+            var manageable = rows.Where(ManageableStartupItems.IsVisible).ToArray();
+            Summary = new(manageable.Length, manageable.Count(i => i.Status == StartupStatus.Enabled), manageable.Count(i => i.Status is StartupStatus.DisabledBySystemCore or StartupStatus.DisabledByWindowsOrSource), rows.Count(i => i.IsProtected), result.Complete);
             Changed?.Invoke(this, EventArgs.Empty);
             return session;
         }

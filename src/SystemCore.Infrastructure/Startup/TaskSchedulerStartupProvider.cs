@@ -156,7 +156,7 @@ public sealed class TaskSchedulerStartupProvider : ITaskSchedulerStartupProvider
         bool? canWrite = snapshot.SecurityDescriptor is null ? isUser : StartupTaskAccess.CanWrite(snapshot.SecurityDescriptor);
         var elevated = canWrite != true;
         var protection = !SafeTaskPath(snapshot.Path) || snapshot.Path.StartsWith("\\Microsoft\\", StringComparison.OrdinalIgnoreCase)
-            ? StartupProtection.SystemTask : action is null || !isUser || triggers.Length != startup.Length || canWrite is null ? StartupProtection.AmbiguousTask : StartupProtection.None;
+            ? StartupProtection.SystemTask : action is null || !isUser || triggers.Length != startup.Length || canWrite != true ? StartupProtection.AmbiguousTask : StartupProtection.None;
         var identity = "Task:" + snapshot.Path;
         var item = new StartupItem(new StartupIdentityResolver().Resolve(identity), snapshot.Path.Split('\\').Last(), command.Publisher,
             startup.Any(t => t.Name == ns + "LogonTrigger") ? StartupSourceType.ScheduledTaskLogon : StartupSourceType.ScheduledTaskBoot,
