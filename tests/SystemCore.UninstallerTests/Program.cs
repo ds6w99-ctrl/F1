@@ -25,6 +25,18 @@ if (args.Length == 3 && args[0] is "--synthetic-uninstall" or "--synthetic-delay
 }
 
 var identity = new ApplicationIdentityResolver();
+if (args.Contains("--game-inventory"))
+{
+    var environment = new WindowsGameLibraryEnvironment();
+    IGameLibraryProvider[] providers = [new SteamGameLibraryProvider(environment), new EpicGameLibraryProvider(environment), new XboxGameLibraryProvider(),
+        new EaGameLibraryProvider(environment), new UbisoftGameLibraryProvider(environment), new BattleNetGameLibraryProvider(environment)];
+    var inventory = new InstalledApplicationInventory(new RegistryApplicationProvider(identity), new MsiApplicationProvider(identity), new MsixApplicationProvider(identity), providers);
+    var result = await inventory.ReadAsync(default);
+    Console.WriteLine(JsonSerializer.Serialize(new { result.Complete, result.GameDiscovery, result.GameDuplicatesMerged,
+        Games = result.Applications.Count(a => a.ItemKind == ItemKind.Game), Managed = result.Applications.Count(UnifiedLibraryPresentation.IsLauncherManaged) },
+        new JsonSerializerOptions { WriteIndented = true, Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() } }));
+    return 0;
+}
 if (args.Contains("--inventory"))
 {
     var clock = Stopwatch.StartNew();
@@ -95,6 +107,8 @@ foreach (var nativeMode in new[] { "--synthetic-uninstall", "--synthetic-parent-
 }
 await BoundaryTests.Run(Check);
 await InventoryPresentationTests.Run(Check);
+await GameDiscoveryTests.Run(Check);
+Check("Unified library model distinguishes games without replacing native type", typeof(InstalledApplication).GetProperty("ItemKind") is not null && typeof(InstalledApplication).GetProperty("Source") is not null);
 if (args.Contains("--leftover-scan")) await LeftoverScannerTests.Run(Check);
 if (args.Contains("--leftover-delete")) await LeftoverScannerTests.Run(Check, true);
 if (args.Length == 2 && args[0] == "--lifecycle-core")

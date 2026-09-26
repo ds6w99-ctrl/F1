@@ -92,6 +92,14 @@ public partial class App : Application
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IWin32ApplicationProvider, SystemCore.Infrastructure.Uninstaller.RegistryApplicationProvider>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IMsiApplicationProvider, SystemCore.Infrastructure.Uninstaller.MsiApplicationProvider>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IMsixApplicationProvider, SystemCore.Infrastructure.Uninstaller.MsixApplicationProvider>();
+        registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.IGameLibraryEnvironment, SystemCore.Infrastructure.Uninstaller.WindowsGameLibraryEnvironment>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.SteamGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.EpicGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.XboxGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.EaGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.UbisoftGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLibraryProvider, SystemCore.Infrastructure.Uninstaller.BattleNetGameLibraryProvider>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IGameLauncher, SystemCore.Infrastructure.Uninstaller.GameLauncher>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IInstalledApplicationInventory, SystemCore.Infrastructure.Uninstaller.InstalledApplicationInventory>();
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.INativeUninstallRunner, SystemCore.Infrastructure.Uninstaller.NativeUninstallRunner>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IUninstallCompletionDetector, SystemCore.Infrastructure.Uninstaller.UninstallCompletionDetector>();

@@ -18,7 +18,7 @@
 - System Information: native hardware/software data.
 - Performance/Memory: live measurements, bounded histories, shared monitor. Production Memory optimization is an honest no-op: no proven releasable cache owners.
 - Cleaner: safety-first scan, confirmed clean, session/identity/reparse protections. **FIX 3 complete: 78.831 s fresh before / 37.947 s after; live-dataset drift disclosed.** Two bounded category workers; native safety unchanged. Live category/count/bytes progress coalesced at 150 ms, EN/AR. Not centrally auto-scanned (FIX 7 pending).
-- Uninstaller: removable-only main list; real Win32/MSI/MSIX icons and fallback; virtualized 52px rows, 20 items/page; native removal verification and safe leftover review.
+- Uninstaller: unified native-removable applications plus explicitly read-only launcher-managed games; All/Applications/Games filter, source labels, 20 items/page. Managed rows never authorize uninstall or leftovers. Phase 5 native gate is unchanged.
 - Startup: reversible mechanisms/helper retained; **preliminary manageable-list filter added, incomplete full capability verification; real icons still pending**.
 - Tools, Settings, About: existing native functions, System/Light/Dark, localization. Official F1 logo and attribution retained.
 - Sidebar F1 Premium card removed; small About footer access retained.
@@ -26,19 +26,21 @@
 ## Game sources: actual support
 | Source | Current status |
 |---|---|
-| Steam / Epic / EA / Ubisoft / Battle.net | Dedicated discovery providers NOT implemented. Existing ordinary uninstall registrations may appear. |
+| Steam / Epic | Bounded launcher-metadata discovery implemented; device probe 10 / 1, one native duplicate merged. Native uninstall only from existing native registration; otherwise explicitly managed, no invented URI. |
+| EA / Ubisoft / Battle.net | Separate provider seams; metadata formats unsupported/unverified, never fabricated. Registered applications remain in native inventory. |
 | Xbox / Microsoft Store | Existing removable MSIX application inventory; dedicated game classification NOT implemented. |
 
-No separate Games page is allowed. Pending discovery belongs in the existing Uninstaller unified list; use trustworthy manifests/identities, no whole-disk guessing or undocumented destructive commands.
+No separate Games page is allowed. Discovery is inside the existing Uninstaller unified list; trustworthy metadata only, no whole-disk guessing or undocumented destructive commands. FIX 5 remains PARTIAL: see Game Discovery in `PRE-RELEASE-FIXES-01.md` for exact evidence and gaps.
 
 ## Product rules and requested UX
 - Local-only; no telemetry/cloud, fake optimization, automatic destructive actions or tests against real user data.
 - Native uninstall first; fresh identity verification and explicit confirmation for destructive actions.
-- **Requested, NOT yet implemented:** auto leftover scan after verified removal (deletion still confirmed), app-wide startup orchestration/cache/background refresh, Cleaner auto scan/rescan, broad minimal-copy pass, game library integration.
+- **Requested, NOT yet implemented:** auto leftover scan after verified removal (deletion still confirmed), app-wide startup orchestration/cache/background refresh, Cleaner auto scan/rescan, broad minimal-copy pass, remaining game adapters/classification.
 - Therefore current Refresh/Scan/Analyze requirements still exist on some pages. Do not claim the requested no-mandatory-refresh experience is complete.
 - Preserve KB/MB/GB/TB display labels, Arabic/English, safe errors/confirmations/accessibility text, logo, current version, namespaces, helper identities, `%LOCALAPPDATA%\SystemCore`, schemas and recovery paths.
 
 ## Current build and tests
+- FIX 5 partial candidate: final build 0 warnings/errors; 208 Uninstaller engine assertions PASS; Steam/Epic read-only device counts 10/1, one native duplicate merged. `Test-F1UninstallerUi.ps1` was repaired contract-aware, not weakened: it targets a row that actually holds native removal rights and now also asserts a managed game exposes no uninstall, no leftover scan and a separate launcher control (57/57 PASS). Do not grant a managed game destructive rights to satisfy any test. Full counts/gaps: Game Discovery in `PRE-RELEASE-FIXES-01.md`.
 - Latest FIX 3 follow-up: exact candidate build command PASS, Debug/Release 0 warnings/errors; 580 console assertions, 26 native synthetic lifecycle checks and 25 read-only EN/AR progress checks PASS. Memory-engine/isolation modes completed 100 cycles each. Historical read-only scan exit 2 and capture exit 1 are expected fail-closed safety, not defects: depth-limited User Temp stays incomplete and Clean stays disabled for that selection. Same signature exists in phase4a/4b evidence. No screenshot visual review or clean-VM/UAC certification claimed.
 - Run from repository root: `& ".\artifacts\current\F1\F1.exe"`; retain entire F1 folder including ElevatedHost.
 - Cleanup locked restore, Debug, Release, x64 App/helper publication: PASS, zero build warnings/errors.
@@ -48,8 +50,8 @@ No separate Games page is allowed. Pending discovery belongs in the existing Uni
 - Earlier F1 rebrand: 1,739 assertions + 1,000 malformed inputs; historical screenshot/performance evidence archived, not rerun by cleanup.
 
 ## Remaining work / next step
-Resume unfinished pre-release requirements only when instructed. Cleaner FIX 3 is implemented and verified, including throttled live progress; see `PRE-RELEASE-FIXES-01.md` (Cleaner Performance). Historical baseline **53.51s / 75,910 User Temp entries** is not the fresh comparison denominator. Fresh overall **78.831s before / 37.947s after**; dataset changed 91,724 to 98,348 visited entries. Pre-existing depth-limited User Temp remains incomplete, and Clean disabled by design for that selection. This is not an outstanding FIX 3 defect. No screenshot visual review; FIX 4–7 and Phase 10 were not started by this work.
+Resume unfinished pre-release requirements only when instructed. Cleaner FIX 3 is implemented and verified, including throttled live progress; see `PRE-RELEASE-FIXES-01.md` (Cleaner Performance). Historical baseline **53.51s / 75,910 User Temp entries** is not the fresh comparison denominator. Fresh overall **78.831s before / 37.947s after**; dataset changed 91,724 to 98,348 visited entries. Pre-existing depth-limited User Temp remains incomplete, and Clean disabled by design for that selection. This is not an outstanding FIX 3 defect. FIX 5 is now partially implemented; see Game Discovery for evidence and unsupported formats. No screenshot visual review; FIX 4/6/7 and Phase 10 were not started by this work.
 
 Full photographic-reference acceptance still pending (clean reference background missing; authorized temporary SVG used). Higher DPI/full Narrator/high contrast, clean-machine/edition matrices, alternate-credential UAC and broader Release QA remain deferred.
 
-**Do not redo completed phases. Do not start Phase 10 without explicit user approval.** Phase 10 means installer finalization, signing, Release QA and Production build; none is authorized by cleanup. No Git repository/commits exist in this workspace.
+**Do not redo completed phases. Do not start Phase 10 without explicit user approval.** Phase 10 means installer finalization, signing, Release QA and Production build; none is authorized by cleanup. Git branch: `pre-release-fixes`; inspect current status before editing.

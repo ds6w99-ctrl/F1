@@ -10,6 +10,8 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private readonly IUninstallExecutor executor;
     private readonly ILeftoverScanner leftovers;
     private readonly ILeftoverDeletionService deletion;
+    private readonly IGameLauncher launcher;
+    private bool launcherFailed;
     private readonly HashSet<Guid> selectedLeftovers = [];
     private LeftoverDeletionResult? cleanup;
     private RemovalReceipt? receipt;
@@ -25,14 +27,15 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public void CancelOperation() => activeOperation?.Cancel();
     private ApplicationInventorySession? session;
     private string search = "", selectedId = "";
-    private int filter, sort, page;
+    private int filter, sort, page, kindFilter;
     private bool busy;
     private UninstallState state = UninstallState.Ready;
-    public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion) : base(localizer)
+    public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion, IGameLauncher launcher) : base(localizer)
     {
         this.executor = executor;
         this.leftovers = leftovers;
         this.deletion = deletion;
+        this.launcher = launcher;
         RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !Busy);
     }
     public AsyncRelayCommand RefreshCommand { get; }
@@ -46,7 +49,19 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public string Title => L["NavUninstaller"];
     public int RawCount => session?.Inventory.Applications.Count ?? 0;
     public int RemovableCount => session?.Inventory.Applications.Count(RemovableApplications.IsVisible) ?? 0;
-    public int HiddenCount => RawCount - RemovableCount;
+    public int ManagedCount => session?.Inventory.Applications.Count(UnifiedLibraryPresentation.IsLauncherManaged) ?? 0;
+    public int HiddenCount => RawCount - RemovableCount - ManagedCount;
+    public string SourceLabel(InstalledApplication app) => L["UnSource" + app.Source];
+    public string ManagedLabel(InstalledApplication app) => L.Format("UnManagedBy", SourceLabel(app));
+    public bool CanOpenLauncher => !Busy && Selected is { ItemKind: ItemKind.Game } app && launcher.CanOpen(app.Source);
+    public async Task OpenLauncherAsync()
+    {
+        if (!CanOpenLauncher || Selected is not { } app) return;
+        Busy = true;
+        try { launcherFailed = !await launcher.OpenAsync(app.Source, BeginOperation()); }
+        catch (OperationCanceledException) { }
+        finally { EndOperation(); }
+    }
     public IReadOnlyList<InstalledApplication> Inventory => session?.Inventory.Applications ?? [];
     public bool CanScanLeftovers => !Busy && receipt is not null;
     public string LeftoverSummary => leftoverSession is { } scan ? $"{receipt?.DisplayName}: {scan.Items.Count} — {L[scan.Complete ? "UnScanComplete" : "UnPartial"]}" + (scan.Complete && scan.Items.Count == 0 ? "\n" + L["UnLeftoversEmpty"] : "") : "";
@@ -88,15 +103,17 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public bool Busy { get => busy; private set { SetProperty(ref busy, value); RefreshCommand.NotifyCanExecuteChanged(); } }
     public string Search { get => search; set { search = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
     public int Filter { get => filter; set { filter = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
+    public int KindFilter { get => kindFilter; set { kindFilter = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
     public int Sort { get => sort; set { sort = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
     public string SelectedId { get => selectedId; set { selectedId = value; OnPropertyChanged(nameof(Selected)); } }
-    public InstalledApplication? Selected => session?.Inventory.Applications.FirstOrDefault(a => a.Id == selectedId && RemovableApplications.IsVisible(a));
-    public string Status => (state == UninstallState.Ready ? L[Busy ? "UnLoading" : session is not null ? "UnLoaded" : "UnStateReady"] : L["UnState" + state])
+    public InstalledApplication? Selected => session?.Inventory.Applications.FirstOrDefault(a => a.Id == selectedId && UnifiedLibraryPresentation.IsVisible(a));
+    public string Status => (launcherFailed ? L["UnLauncherUnavailable"] : state == UninstallState.Ready ? L[Busy ? "UnLoading" : session is not null ? "UnLoaded" : "UnStateReady"] : L["UnState" + state])
         + (session?.Inventory.Complete == false ? " — " + L["UnPartial"] : "")
-        + (!Busy && !ShowLeftovers && state == UninstallState.Ready && session is { Inventory.Complete: true } && Count == 0 ? "\n" + L[RemovableCount == 0 ? "UnRemovableEmpty" : "ProductNoMatches"] : "");
+        + (!Busy && !ShowLeftovers && state == UninstallState.Ready && session is { Inventory.Complete: true } && Count == 0 ? "\n" + L[RemovableCount + ManagedCount == 0 ? "UnRemovableEmpty" : "ProductNoMatches"] : "");
     private IEnumerable<InstalledApplication> Filtered()
     {
-        var rows = (session?.Inventory.Applications.AsEnumerable() ?? []).Where(RemovableApplications.IsVisible);
+        var rows = (session?.Inventory.Applications.AsEnumerable() ?? []).Where(UnifiedLibraryPresentation.IsVisible);
+        rows = kindFilter switch { 1 => rows.Where(a => a.ItemKind == ItemKind.Application), 2 => rows.Where(a => a.ItemKind == ItemKind.Game), _ => rows };
         rows = rows.Where(a => a.DisplayName.Contains(search, StringComparison.CurrentCultureIgnoreCase) || (a.Publisher?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false));
         rows = filter switch
         {
@@ -119,7 +136,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public async Task RefreshAsync()
     {
         if (Busy) return;
-        selectedId = ""; session = null; state = UninstallState.Ready;
+        selectedId = ""; session = null; state = UninstallState.Ready; launcherFailed = false;
         leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
         Busy = true;
         try { session = await executor.RefreshAsync(BeginOperation()); page = 0; }

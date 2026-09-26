@@ -1,7 +1,165 @@
 # Pre-release fixes 01 — Sidebar / Startup / Cleaner performance
 
-Scope: FIX 1 dead-code cleanup, FIX 2 and FIX 3 scan performance. Version remains `0.9.0-dev`.
+Scope: FIX 1 dead-code cleanup, FIX 2, FIX 3 scan performance, and partial FIX 5 game discovery. Version remains `0.9.0-dev`.
 No Phase 10, signing, installer finalization, deployment, or real startup mutation.
+
+## Uninstaller
+
+### Game Discovery
+
+FIX 5 is **PARTIAL**, not six-launcher acceptance. No Phase 10 or FIX 4/6/7 work.
+
+Read-only device evidence: `artifacts/current/fix5-tests/game-inventory.json`, exit 0.
+
+| Source | Launcher detected | Games from verified metadata | Unsupported/unverified |
+|---|---:|---:|---|
+| Steam | Yes | 10 | 0 |
+| Epic | Yes | 1 | 0 |
+| Xbox / Store | Not established | 0 classified games | 1 classification gap; existing official MSIX inventory retained |
+| EA | No verified registration found | 0 | Adapter intentionally unsupported when installed |
+| Ubisoft | No verified registration found | 0 | Adapter intentionally unsupported when installed |
+| Battle.net | No verified registration found | 0 | Adapter intentionally unsupported when installed |
+
+**Duplicates merged: 1**. Unified inventory contains 11 game-labelled rows, 10
+launcher-managed (no native uninstall), with native inventory Complete=true.
+These are discovery measurements, not tests of real uninstall or launcher launch.
+No real game, save, launcher configuration or install folder was modified.
+
+Architecture and safety decisions:
+
+- Added `IGameLibraryProvider` and six independent DI providers. Steam resolves its
+  registered installation, reads `steamapps/libraryfolders.vdf`, and only enumerates
+  top-level `appmanifest_*.acf` in the declared libraries (including other drives).
+  Epic reads its known/registered manifest directory and `.item` records. Installed
+  state and existing manifest-declared install directory are required. Stale,
+  incomplete, malformed, oversized and unsafe records are rejected, not guessed.
+- Reads are bounded to 1 MiB/manifest, 4,096 manifests/provider, 64 Steam libraries;
+  KeyValues and JSON nesting are bounded. Local fixed-drive paths only in the native
+  environment, reparse ancestry rejection and leased file reads. `WindowsApps` is
+  rejected before filesystem probing. No drive traversal, recursive game-size scans,
+  folder-name discovery, game execution, invented URI or uninstall command.
+- `InstalledApplication` keeps its positional constructor and native type intact.
+  Optional init-only ItemKind/Source/game metadata extend presentation; separate
+  GameInstallLocation never replaces a native registration's ownership path.
+- `RemovableApplications.IsVisible` is **unchanged**: presentation eligibility is a
+  subset of native authorization, never a grant. `UnifiedLibraryPresentation` adds
+  a distinct **read-only launcher-managed** category to the *same* existing list.
+  Such selections say `Managed by ...`, hide the native uninstall button, and expose
+  a separate Open launcher button only when a fresh registered executable is safe.
+  Opening passes no arguments and constructs no protocol URI. Unknown action is
+  disabled with a localized explanation. No real launcher was opened during tests.
+- All prior AutomationIds and the status/type/size filter remain. Added compact
+  `UnKindFilter` All / Applications / Games and source text in the existing row
+  metadata slot; no page, sidebar entry or games section. Search/sort/paging remain
+  shared. New copy is paired in English/Arabic resources.
+- Dedup uses exact launcher identity, exact Steam registered AppId, or a unique
+  exact local install-path match, never names. Ambiguous/conflicting identities are
+  retained separately or quarantined with diagnostics rather than guessed. Native
+  ID, command, restrictions and permission are preserved; merge cannot grant rights.
+- Native completeness retains its Phase 5 meaning; optional source diagnostics are
+  separate. Game completion additionally requires a verified, still-detected launcher,
+  no matching discovered game, and no unverified source status. Game discovery does not establish save/shared-data
+  ownership: it issues **no leftover cleanup receipt for games**, including merged
+  games, and invalidates earlier native evidence for a newly game-classified identity.
+  Existing application evidence/scanner/deletion behavior is unchanged.
+- Icons reuse the bounded resource-only ApplicationIconReader/cache: registered
+  icon, trusted Epic manifest executable, registered launcher fallback, existing F1
+  fallback. No verified standalone manifest-logo adapter was added. Reliable manifest
+  size is displayed; unknown remains Unknown.
+
+Unsupported scope is explicit, not a synthetic claim of support: EA/Ubisoft/Battle.net
+fixtures assert that plausible but unverified formats are rejected. These providers
+detect known registrations only, and do not claim configured-library/manifest parsing.
+Xbox game classification is not inferred from package names: PackageManager,
+AppListEntry and deployment authorization remain in the existing MSIX provider;
+protected/framework/resource packages stay hidden. A verified game-specific metadata
+source is still required for an Xbox badge/game filter. Launcher-specific fallback
+assets and verified Steam/Epic native launcher-uninstall mechanisms remain gaps.
+
+Verification: candidate wrapper exit 0; Debug and Release each **0 warnings / 0 errors**,
+App/helper publication succeeded. Uninstaller synthetic + leftover scan/delete:
+**245 assertions, 0 failures, exit 0** (`fix5-tests/uninstaller.txt`). Initial
+model-contract test failed before implementation; two additional edge tests failed
+before WindowsApps rejection and managed dedup path preservation were fixed.
+Further regression tests failed before stale native evidence invalidation and
+fail-closed game completion without launcher verification were fixed.
+Regression evidence (`artifacts/current/fix5-tests/console-final-summary.json` for
+final assertion-suite reruns; `console-summary.json` for all diagnostic modes):
+
+| Suite / mode | Assertions or cycles | Exit |
+|---|---:|---:|
+| Uninstaller synthetic + scan + delete | 245 PASS | 0 |
+| Security | 56 PASS; 1,000 fuzz inputs | 0 |
+| Unit | 198 PASS | 0 |
+| Startup default | 80 PASS | 0 |
+| Cleaner scanner | 18 PASS | 0 |
+| Cleaner executor | 22 PASS | 0 |
+| Cleaner completion | 49 PASS | 0 |
+| Cleaner scan performance | 43 PASS | 0 |
+| Cleaner scan progress | 24 PASS | 0 |
+| Cleaner memory engine | 100 workload cycles; no assertion counter | 0 |
+| Cleaner memory isolation | 100 workload cycles + cooldown; no assertion counter | 0 |
+| Cleaner read-only scan | Incomplete, not a pass | 2 |
+| Cleaner read-only benchmark (1 worker) | Diagnostic completed; not an assertion suite | 0 |
+
+Total assertion suites: **735 PASS**. Cleaner real scan remained fail-closed:
+UserTemp Incomplete (Limit=5), WindowsTemp Unavailable; browser/WER adapters unavailable.
+It took 71,225.5148 ms; this is not a FIX 3 benchmark comparison or regression claim.
+No Cleaner source was modified. A later candidate rebuild overlapped the memory
+diagnostic and failed with MSB3027/MSB3021 (10 copy warnings, 2 errors), not a compiler
+failure. The original log is preserved in `fix5-tests/build-overlap-failed.txt`;
+final candidate rerun after that diagnostic finished **passed, exit 0**, with
+Debug/Release each **0 warnings / 0 errors** and App/helper publication. Published
+Core/Infrastructure SHA-256 values match the Uninstaller test engine exactly.
+
+Final-publication native checks (`fix5-tests/native-final-summary.json`):
+`Invoke-F1UninstallerRegression.ps1` **exit 0**, with **208 PASS** engine assertions
+(synthetic + delete subset) and **57 PASS** original Uninstaller page checks;
+new read-only EN/AR game UI **26 PASS, exit 0**; cleanup smoke **34 PASS, exit 0**
+(ten routes, attribution and absent Premium card). All used the current publication.
+
+Independently re-run and re-measured against the same publication by the primary
+session, evidence under `artifacts/current/fix5-verify/`: Debug **0 warnings /
+0 errors**, Release **0/0**, publish app + helper succeeded; UninstallerTests
+**208** `FinalChecks`, 0 failed, exit 0; UnitTests **198** PASS, 0 FAIL, exit 0;
+SecurityTests **56** checks, 0 failed, exit 0; StartupTests **80** checks,
+0 failed, exit 0; CleanerTests default/executor/completion/scan-progress/
+scan-performance **18 / 22 / 49 / 43 / 24** PASS, 0 FAIL, each exit 0 — identical to
+the pre-FIX 5 baseline, so no Cleaner regression. Game library UI **26/26**;
+uninstaller regression fixture UI **57/57**; cleanup smoke **34/34**
+(`artifacts/project-cleanup/runtime`); legacy Uninstaller UI **57/57** after the
+harness update below. `stderr.txt` empty in every run.
+The actual legacy
+script is `Test-F1UninstallerUi.ps1` (`Test-UninstallerUi.ps1` does not exist). It
+FAILED, exit 1 after 5 recorded passing checks, and the failure is caused by FIX 5,
+not pre-existing. Line 48 assumed the first visible row always exposes an enabled
+`UnUninstall`; the first sorted row is now a correctly launcher-managed game whose
+destructive button is `Collapsed`, so `Find 'UnUninstall'` returns nothing and the
+`[bool]$ok` binding fails. Measured directly: `btnNull=True` for `Among Us`, a
+launcher-managed Steam game. The product behaviour is the required one — a managed
+game must expose no destructive control.
+
+The owner-approved contract-aware harness update was therefore applied, and it
+**strengthened** the script rather than relaxing it (`artifacts/current/fix5-verify/
+uninstaller-ui-4/checks.json`, **57 checks, 57 passed, 0 failed**):
+
+- The selection loop now classifies each visible row by what it actually exposes,
+  then selects the first row that really holds native removal rights.
+- `A visible native app has an enabled native uninstall action` and
+  `Selected native app has enabled native uninstall action` retain the original
+  intent against a correctly identified native row, and the original confirmation /
+  cancel-without-uninstall checks still run against a native selection.
+- Three new assertions were added for the new invariant:
+  `Launcher-managed game exposes no native uninstall action`,
+  `Launcher-managed game exposes no leftover scan action`, and
+  `Launcher-managed game still offers a separate launcher control`.
+- No fake uninstall button was added and no assertion was removed or loosened.
+- A row with no native removable app now fails loudly instead of continuing on `$null`.
+
+Wrapper scripts only gained explicit current AppPath/EvidencePath
+parameters, with existing assertions unchanged.
+
+No screenshot visual review is claimed.
 
 ## Sidebar
 

@@ -15,6 +15,12 @@ public sealed class UninstallCompletionDetector(IInstalledApplicationInventory i
     public async Task<UninstallState> VerifyAsync(InstalledApplication original, CancellationToken token)
     {
         var current = await inventory.ReadAsync(token).ConfigureAwait(false);
+        if (original.ItemKind == ItemKind.Game)
+        {
+            if (current.Applications.Any(a => a.Source == original.Source && a.GameIdentity == original.GameIdentity)) return UninstallState.StillInstalled;
+            if (!current.GameDiscovery.Any(s => s.Source == original.Source && s.LauncherDetected)) return UninstallState.Unknown;
+            if (current.GameDiscovery.Any(s => s.Source == original.Source && s.UnsupportedOrUnverified > 0)) return UninstallState.Unknown;
+        }
         if (current.Applications.Any(a => a.Id == original.Id)) return UninstallState.StillInstalled;
         return current.Complete ? UninstallState.Removed : UninstallState.Unknown;
     }

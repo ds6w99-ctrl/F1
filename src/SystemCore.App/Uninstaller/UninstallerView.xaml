@@ -4,10 +4,11 @@
     <TextBlock x:Name="Title" Style="{StaticResource F1PageTitleStyle}" FontSize="28" VerticalAlignment="Center" AutomationProperties.AutomationId="PageTitle"/>
     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"><Button x:Name="Refresh" Click="OnRefresh" Style="{StaticResource F1PrimaryButtonStyle}" MinHeight="40" FontSize="14" Padding="12,8" AutomationProperties.AutomationId="UnRefresh"/><Button x:Name="CancelOperation" Click="OnCancelOperation" Padding="12,8" AutomationProperties.AutomationId="UnCancelOperation"/></StackPanel>
    </Grid>
-   <Grid Grid.Row="1" ColumnDefinitions="*,140,140" ColumnSpacing="8">
+   <Grid Grid.Row="1" ColumnDefinitions="*,120,140,140" ColumnSpacing="8">
     <TextBox x:Name="Search" TextChanged="OnSearch" AutomationProperties.AutomationId="UnSearch"/>
-    <ComboBox x:Name="Filter" Grid.Column="1" HorizontalAlignment="Stretch" SelectionChanged="OnFilter" AutomationProperties.AutomationId="UnFilter"/>
-    <ComboBox x:Name="Sort" Grid.Column="2" HorizontalAlignment="Stretch" SelectionChanged="OnSort" AutomationProperties.AutomationId="UnSort"/>
+    <ComboBox x:Name="KindFilter" Grid.Column="1" HorizontalAlignment="Stretch" SelectionChanged="OnKindFilter" AutomationProperties.AutomationId="UnKindFilter"/>
+    <ComboBox x:Name="Filter" Grid.Column="2" HorizontalAlignment="Stretch" SelectionChanged="OnFilter" AutomationProperties.AutomationId="UnFilter"/>
+    <ComboBox x:Name="Sort" Grid.Column="3" HorizontalAlignment="Stretch" SelectionChanged="OnSort" AutomationProperties.AutomationId="UnSort"/>
    </Grid>
    <TextBlock x:Name="Status" Grid.Row="2" TextTrimming="CharacterEllipsis" MaxLines="1" AutomationProperties.AutomationId="UnStatus"/>
    <ListView x:Name="Applications" Grid.Row="3" SelectionMode="Single" SelectionChanged="OnSelection" ContainerContentChanging="OnContainerChanging" AutomationProperties.AutomationId="UnApplications" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -24,6 +25,7 @@
    <Border Grid.Row="5" Style="{StaticResource CardStyle}" Padding="12,8"><StackPanel Spacing="6">
     <ScrollViewer MaxHeight="48"><StackPanel Spacing="8"><TextBlock x:Name="Details" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.AutomationId="UnDetails"/><TextBlock x:Name="LeftoverSummary" TextWrapping="Wrap" AutomationProperties.AutomationId="UnLeftoverSummary"/><TextBlock x:Name="CleanupSummary" TextWrapping="Wrap" AutomationProperties.AutomationId="UnCleanupSummary"/></StackPanel></ScrollViewer>
    <f1:F1WrapPanel><Button x:Name="Uninstall" Click="OnUninstall" Style="{StaticResource DangerButtonStyle}" AutomationProperties.AutomationId="UnUninstall"/><Button x:Name="ScanLeftovers" Click="OnScanLeftovers" AutomationProperties.AutomationId="UnScanLeftovers"/><Button x:Name="DeleteLeftovers" Click="OnDeleteLeftovers" Style="{StaticResource DangerButtonStyle}" AutomationProperties.AutomationId="UnDeleteLeftovers"/></f1:F1WrapPanel>
-  </StackPanel></Border>
+    <Button x:Name="OpenLauncher" Click="OnOpenLauncher" Visibility="Collapsed" AutomationProperties.AutomationId="UnOpenLauncher"/>
+   </StackPanel></Border>
   </Grid>
 </UserControl>

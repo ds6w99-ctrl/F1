@@ -21,6 +21,13 @@ public sealed class ApplicationRemovalEvidence
     internal Task CaptureAsync(InstalledApplication app, InventoryResult inventory, CancellationToken token) => Task.Run(() =>
     {
         token.ThrowIfCancellationRequested();
+        // Game save/shared-launcher ownership is not established by discovery.
+        // FIX 5 never issues a cleanup receipt for a discovered game.
+        if (app.ItemKind == ItemKind.Game)
+        {
+            lock (sync) pending.Remove(app.Id);
+            return;
+        }
         var directories = new List<DirectoryEvidence>();
         var registry = new List<RegistryEvidence>();
         // InstallLocation plus a verified executable inside it supplies two concrete

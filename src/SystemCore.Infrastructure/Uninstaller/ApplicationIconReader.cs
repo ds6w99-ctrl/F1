@@ -63,6 +63,10 @@ public static class ApplicationIconReader
             }
             var source = Parse(app.IconLocation);
             var pixelsDesktop = source is null ? null : Extract(source);
+            if (pixelsDesktop is null && app.ItemKind == ItemKind.Game && Parse(app.ManifestExecutable) is { } gameImage)
+                pixelsDesktop = Extract(gameImage);
+            if (pixelsDesktop is null && app.ItemKind == ItemKind.Game && Parse(app.LauncherIcon) is { } launcherImage)
+                pixelsDesktop = Extract(launcherImage);
             if (pixelsDesktop is null && UninstallCommandParser.Parse(app.RegisteredUninstallCommand) is { } command
                 && app.InstallLocation is { } root && System.IO.Path.IsPathFullyQualified(root)
                 && command.Executable.StartsWith(root.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))

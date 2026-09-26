@@ -2,7 +2,8 @@ using SystemCore.Core.Uninstaller;
 
 namespace SystemCore.Infrastructure.Uninstaller;
 
-public sealed class InstalledApplicationInventory(IWin32ApplicationProvider win32, IMsiApplicationProvider msi, IMsixApplicationProvider msix) : IInstalledApplicationInventory
+public sealed class InstalledApplicationInventory(IWin32ApplicationProvider win32, IMsiApplicationProvider msi, IMsixApplicationProvider msix,
+    IEnumerable<IGameLibraryProvider>? games = null) : IInstalledApplicationInventory
 {
     public async Task<InventoryResult> ReadAsync(CancellationToken token)
     {
@@ -29,7 +30,11 @@ public sealed class InstalledApplicationInventory(IWin32ApplicationProvider win3
                 UnavailableReason = canRemove ? null : restricted ? "Protected registration" : first.UnavailableReason });
         }
         // Different source identities are retained even when names are identical.
-        return new(applications.OrderBy(a => a.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToArray(),
+        var native = new InventoryResult(applications.OrderBy(a => a.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToArray(),
             results.All(r => r.Complete), results.SelectMany(r => r.UnavailableSources).Distinct().ToArray());
+        // Optional discovery is read-only. Its diagnostics do not grant native rights
+        // or change the meaning of Phase 5's native inventory Complete flag.
+        var discovered = await Task.WhenAll((games ?? []).Select(p => p.ReadAsync(token))).ConfigureAwait(false);
+        return GameLibraryMerge.Merge(native, discovered);
     }
 }

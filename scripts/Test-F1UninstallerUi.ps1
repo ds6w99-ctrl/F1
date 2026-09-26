@@ -1,8 +1,8 @@
-param([string]$EvidencePath='artifacts/f1-uninstaller/ui-03')
+param([string]$EvidencePath='artifacts/f1-uninstaller/ui-03',[string]$AppPath='artifacts/current/F1/F1.exe')
 $ErrorActionPreference='Stop'
 $visual=[IO.File]::ReadAllText((Resolve-Path scripts/Test-F1Visual.ps1))
 $entry=[regex]::Match($visual,'(?m)^try\{\r?$').Index
-. ([scriptblock]::Create($visual.Substring(0,$entry))) -AppPath artifacts/f1-uninstaller/publish/F1.exe -EvidencePath $EvidencePath
+. ([scriptblock]::Create($visual.Substring(0,$entry))) -AppPath $AppPath -EvidencePath $EvidencePath
 Add-Type @'
 using System;using System.Runtime.InteropServices;
 public static class UninstallerFocus {
@@ -44,8 +44,28 @@ try{
  Capture 'Uninstaller' '-loaded'
  Check 'At least twelve fully visible app rows at reference size' ($visible.Count -ge 12) @{Rows=$visible.Count;ListHeight=$bounds.Height;RowHeight=$visible[0].Current.BoundingRectangle.Height;Counts=(Find 'UnStatus').Current.HelpText}
  Check 'Virtualized item source supports scroll' $list.GetCurrentPropertyValue([Windows.Automation.AutomationElement]::IsScrollPatternAvailableProperty) $null
- $first=$visible[0].Current.Name;$visible[0].GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select()
- Check 'Visible app has enabled native uninstall action' (Find 'UnUninstall').Current.IsEnabled $first
+ $first=$visible[0].Current.Name
+ # FIX 5: the unified list may lead with a launcher-managed game, which correctly exposes
+ # no native uninstall control at all. Select the first visible row that really has native
+ # removal rights, and separately assert the managed game exposes no destructive action.
+ $nativeRow=$null;$managedRow=$null
+ foreach($row in $visible){
+  $row.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 200
+  $uninstall=Find 'UnUninstall'
+  if($null -ne $uninstall -and $uninstall.Current.IsEnabled){if($null -eq $nativeRow){$nativeRow=$row}}
+  elseif($null -eq $managedRow -and $null -ne (Find 'UnDetails') -and (Find 'UnDetails').Current.Name -like 'Managed by *'){$managedRow=$row}
+ }
+ Check 'A visible native app has an enabled native uninstall action' ($null -ne $nativeRow) $first
+ if($null -ne $managedRow){
+  $managedRow.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 300
+  $managedName=$managedRow.Current.Name
+  Check 'Launcher-managed game exposes no native uninstall action' ($null -eq (Find 'UnUninstall') -or !(Find 'UnUninstall').Current.IsEnabled) $managedName
+  Check 'Launcher-managed game exposes no leftover scan action' (!(Find 'UnScanLeftovers').Current.IsEnabled) $managedName
+  Check 'Launcher-managed game still offers a separate launcher control' ($null -ne (Find 'UnOpenLauncher')) $managedName
+ }
+ if($null -eq $nativeRow){throw 'No visible native removable app row to continue the uninstall confirmation checks'}
+ $nativeRow.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select();Start-Sleep -Milliseconds 300
+ Check 'Selected native app has enabled native uninstall action' (Find 'UnUninstall').Current.IsEnabled $nativeRow.Current.Name
  Capture 'Uninstaller' '-selected'
  Invoke-Control 'UnUninstall';Check 'Confirmation retained' ($null -ne (Find 'UnConfirmation')) $null
  [Windows.Forms.SendKeys]::SendWait('{ESC}');Start-Sleep -Milliseconds 600

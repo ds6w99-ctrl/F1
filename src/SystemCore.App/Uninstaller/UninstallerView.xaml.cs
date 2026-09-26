@@ -44,6 +44,9 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             Previous.Content = ViewModel.Text("UnPrevious"); Next.Content = ViewModel.Text("UnNext");
             Filter.Items.Clear(); foreach (var key in new[] { "UnAll", "UnWin32", "UnMsi", "UnMsix", "UnRecent", "UnLarge" }) Filter.Items.Add(key == "UnLarge" ? ViewModel.LargeFilterLabel : ViewModel.Text(key));
             Filter.SelectedIndex = ViewModel.Filter;
+            KindFilter.Items.Clear(); foreach (var key in new[] { "UnAllKinds", "UnApplicationsKind", "UnGamesKind" }) KindFilter.Items.Add(ViewModel.Text(key));
+            KindFilter.SelectedIndex = ViewModel.KindFilter;
+            AutomationProperties.SetName(KindFilter, ViewModel.Text("UnKindFilter"));
             Sort.Items.Clear(); foreach (var key in new[] { "UnName", "UnPublisher", "UnDate", "UnSize" }) Sort.Items.Add(ViewModel.Text(key));
             Sort.SelectedIndex = ViewModel.Sort;
             Status.Text = string.IsNullOrEmpty(ViewModel.CleanupSummary) ? ViewModel.Status : ViewModel.Text("UnCleanupComplete");
@@ -53,6 +56,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             currentApps = rows.ToDictionary(a => a.Id);
             currentLeftovers = leftovers.ToDictionary(a => a.Id.ToString());
             Search.IsEnabled = Filter.IsEnabled = Sort.IsEnabled = !ViewModel.Busy && !ViewModel.ShowLeftovers;
+            KindFilter.IsEnabled = Search.IsEnabled;
             var ids = ViewModel.ShowLeftovers ? leftovers.Select(a => a.Id.ToString()).ToArray() : rows.Select(a => a.Id).ToArray();
             if (!displayed.SequenceEqual(ids)) { CancelIcons(); displayed = ids; Applications.ItemsSource = ids; }
             Applications.SelectedItem = !ViewModel.ShowLeftovers && ids.Contains(ViewModel.SelectedId) ? ViewModel.SelectedId : null;
@@ -60,9 +64,13 @@ public sealed partial class UninstallerView : UserControl, IDisposable
                 if (Applications.ContainerFromIndex(index) is ListViewItem item) PresentRow(item, displayed[index]);
             Previous.IsEnabled = !ViewModel.Busy && ViewModel.HasPrevious; Next.IsEnabled = !ViewModel.Busy && ViewModel.HasNext;
             PageNumber.Text = $"{ViewModel.Page} / {Math.Max(1, (ViewModel.Count + 19) / 20)} — {ViewModel.Count}";
-            Details.Text = ViewModel.Selected is { } selected ? Label(selected) + (!selected.CanUninstall ? "\n" + ViewModel.Text("UnUnavailable") : "") : ViewModel.Text("UnSelectDetails");
-            AutomationProperties.SetHelpText(Status, $"Raw={ViewModel.RawCount};Hidden={ViewModel.HiddenCount};Removable={ViewModel.RemovableCount}");
+            Details.Text = ViewModel.Selected is { } selected ? (UnifiedLibraryPresentation.IsLauncherManaged(selected) ? ViewModel.ManagedLabel(selected) + "\n" : "") + Label(selected) : ViewModel.Text("UnSelectDetails");
+            AutomationProperties.SetHelpText(Status, $"Raw={ViewModel.RawCount};Hidden={ViewModel.HiddenCount};Removable={ViewModel.RemovableCount};Managed={ViewModel.ManagedCount}");
             Uninstall.IsEnabled = !ViewModel.Busy && ViewModel.Selected is { CanUninstall: true, IsProtected: false };
+            Uninstall.Visibility = ViewModel.Selected is { } managed && UnifiedLibraryPresentation.IsLauncherManaged(managed) ? Visibility.Collapsed : Visibility.Visible;
+            OpenLauncher.Visibility = ViewModel.Selected is { ItemKind: ItemKind.Game } ? Visibility.Visible : Visibility.Collapsed;
+            OpenLauncher.Content = ViewModel.Text("UnOpenLauncher"); OpenLauncher.IsEnabled = ViewModel.CanOpenLauncher;
+            ToolTipService.SetToolTip(OpenLauncher, ViewModel.Text(ViewModel.CanOpenLauncher ? "UnOpenLauncher" : "UnLauncherUnavailable"));
             ScanLeftovers.Content = ViewModel.Text("UnScanLeftovers"); ScanLeftovers.IsEnabled = ViewModel.CanScanLeftovers;
             LeftoverSummary.Text = ViewModel.LeftoverSummary;
             DeleteLeftovers.Content = $"{ViewModel.Text("UnDeleteLeftovers")} ({ViewModel.SelectedLeftoverCount})";
@@ -73,6 +81,8 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     }
     private void OnSearch(object sender, TextChangedEventArgs args) { if (!rendering) ViewModel.Search = Search.Text; }
     private void OnFilter(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.Filter = Filter.SelectedIndex; }
+    private void OnKindFilter(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.KindFilter = KindFilter.SelectedIndex; }
+    private async void OnOpenLauncher(object sender, RoutedEventArgs args) => await ViewModel.OpenLauncherAsync();
     private void OnSort(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.Sort = Sort.SelectedIndex; }
     private void OnSelection(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.SelectedId = Applications.SelectedItem as string ?? ""; }
     private async void OnRefresh(object sender, RoutedEventArgs args)
@@ -143,7 +153,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             text.TextWrapping = leftover is null ? TextWrapping.NoWrap : TextWrapping.Wrap;
             text.MaxLines = leftover is null ? 2 : 0;
             text.Text = app is not null ? $"{DisplayName(app)}\n{app.Publisher ?? ViewModel.Text("UnUnknown")} · {app.DisplayVersion ?? ViewModel.Text("UnUnknown")}" : leftover is not null ? ViewModel.LeftoverLabel(leftover) : "";
-            metadata.Text = app is null ? "" : $"{ViewModel.FormatSize(app.EstimatedSize)}\n{app.ApplicationType}";
+            metadata.Text = app is null ? "" : $"{ViewModel.FormatSize(app.EstimatedSize)}\n{(app.ItemKind == ItemKind.Game ? ViewModel.SourceLabel(app) : app.ApplicationType.ToString())}";
             grid.BorderThickness = app is not null && app.Id == ViewModel.SelectedId ? new Thickness(3, 0, 0, 0) : new Thickness(0);
             AutomationProperties.SetName(item, app is not null ? DisplayName(app) : leftover?.DisplayLocation ?? "");
             if (app is not null && !Equals(image.Tag, app)) LoadIcon(image, app);

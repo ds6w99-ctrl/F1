@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="UnAllKinds" xml:space="preserve"><value>الكل</value></data>
+  <data name="UnApplicationsKind" xml:space="preserve"><value>البرامج</value></data>
+  <data name="UnGamesKind" xml:space="preserve"><value>الألعاب</value></data>
+  <data name="UnKindFilter" xml:space="preserve"><value>نوع العنصر</value></data>
+  <data name="UnManagedBy" xml:space="preserve"><value>تديرها {0}</value></data>
+  <data name="UnOpenLauncher" xml:space="preserve"><value>فتح المشغّل</value></data>
+  <data name="UnLauncherUnavailable" xml:space="preserve"><value>إجراء المشغّل غير متاح</value></data>
+  <data name="UnSourceSteam" xml:space="preserve"><value>Steam</value></data>
+  <data name="UnSourceEpic" xml:space="preserve"><value>Epic Games</value></data>
+  <data name="UnSourceXbox" xml:space="preserve"><value>Xbox</value></data>
+  <data name="UnSourceEA" xml:space="preserve"><value>EA</value></data>
+  <data name="UnSourceUbisoft" xml:space="preserve"><value>Ubisoft</value></data>
+  <data name="UnSourceBattleNet" xml:space="preserve"><value>Battle.net</value></data>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>

@@ -8,7 +8,7 @@ internal sealed class ApplicationIconCache
 {
     private readonly SemaphoreSlim workers = new(2);
     private readonly Dictionary<string, (byte[]? Bytes, DateTime Used)> cache = [];
-    private static string Key(InstalledApplication app) => $"{app.Id}|{app.IconLocation}|{app.DisplayVersion}|{app.InstallLocation}|{app.RegisteredUninstallCommand}";
+    private static string Key(InstalledApplication app) => $"{app.Id}|{app.IconLocation}|{app.DisplayVersion}|{app.InstallLocation}|{app.RegisteredUninstallCommand}|{app.ManifestExecutable}|{app.LauncherIcon}";
     public void Refresh(IReadOnlyList<InstalledApplication> apps)
     {
         var keys = apps.Select(Key).ToHashSet(StringComparer.Ordinal);
