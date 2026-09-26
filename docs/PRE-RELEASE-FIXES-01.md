@@ -45,30 +45,39 @@ Fresh final checks (all exit **0**, no failures):
 | Check | Result |
 |---|---:|
 | Exact candidate build, locked restore + Debug/Release + app/helper publish | 0 warnings / 0 errors in each build |
-| Uninstaller default / full synthetic + scan + delete | 198 / 362 assertions |
-| Uninstaller regression command | 293 engine assertions + 62 native UI checks |
+| Uninstaller default synthetic + scan + delete | 240 assertions |
+| Uninstaller regression command | 335 engine assertions + 63 native UI checks |
 | Security / Unit / Startup | 56 (+1,000 fuzz inputs) / 198 / 80 |
-| Cleaner default / executor / completion / scan-performance / scan-progress | 18 / 22 / 49 / 43 / 24 |
+| Cleaner default / executor / completion / scan-progress / scan-performance | 18 / 22 / 49 / 24 / 43 |
 | Game library UI / legacy Uninstaller UI / ten-route smoke | 26 / 57 / 34 |
-| Read-only native inventory | Complete; 135 raw / 27 removable / 108 hidden, 654 ms |
+| Read-only native inventory | Complete; 144 raw / 27 removable / 108 hidden / 9 launcher-managed |
+
+`stderr.txt` was empty in every UI run. The first `Test-F1UninstallerUi.ps1`
+attempt aborted with the known capture flake (`Foreground F1 desktop capture
+required`) because the F1 window did not reach the foreground within 5 s; the
+immediate re-run passed 57/57. The raw inventory count varies between runs
+(135 in an earlier run, 144 here) while hidden/removable stayed 108/27.
 
 The brief listed the last two Cleaner modes in the opposite order: actual unchanged
 counts are **scan-progress=24**, **scan-performance=43**, not vice versa. No Cleaner
 source/test changes were made. This is a reporting-order discrepancy, not a hidden pass.
 
-Automatic native scan on this machine was observed after synthetic uninstall:
-**365.7234 ms lower bound** from first sampled Scanning status until ready (100 ms
-polling); wait after confirmation was **1,766.0817 ms**, excluding the helper's prior
-250 ms wait. Not an exact scan benchmark. Isolated scanner fixtures measured
-14.5677 / 4.2627 ms with deterministic empty inventory, not real-device scan timings.
-No real application/game was uninstalled, nor real application files/registry keys/
-install folders targeted for mutation. Tests created/removed only isolated synthetic
-fixtures; UI scripts temporarily changed/restored F1 preferences and generated logs,
-screenshots and synthetic registry backups. A literal zero-write claim is not made.
+Automatic native scan measured by the controller on this machine after the
+synthetic uninstall: **265.6527 ms lower bound** from the first sampled Scanning
+status until results were ready (100 ms polling); wait after confirmation was
+**1,678.4646 ms**, excluding the helper's prior 250 ms wait. Not an exact scan
+benchmark. No real application/game was uninstalled, nor real application
+files/registry keys/install folders targeted for mutation. Tests created/removed
+only isolated synthetic fixtures; UI scripts temporarily changed/restored F1
+preferences and generated logs, screenshots and synthetic registry backups. A
+literal zero-write claim is not made.
 
-Visually inspected only the final English/light native `leftover-review.png`: compact
-found/count-size summary, Keep/Delete actions and disabled personal-data rows were
-visible. No full visual/accessibility, high-DPI, clean-VM or real-game certification.
+**No visual review was performed.** The earlier claim in this section that a
+light-theme screenshot was visually inspected is withdrawn: no vision-capable
+model is confirmed to have viewed any image in this work, and an agent's
+statement is not evidence. The screenshots listed above are evidence that the
+run produced images, nothing more. Full visual, accessibility, high-DPI,
+clean-VM and real-game certification remain outstanding.
 
 ### Game Discovery
 
