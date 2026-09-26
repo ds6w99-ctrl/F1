@@ -46,6 +46,10 @@ public sealed class CleanerViewModel : LocalizedViewModel
     private bool cleaning, failed;
     private int previewPage;
     private int selectionSubscriptions;
+    private CleanerScanProgress? scanProgress;
+    public string ScanProgress => !IsBusy || cleaning || scanProgress is not { } p ? "" :
+        L.Format("CleanLiveProgress", L["Clean" + p.Category], p.Visited, p.Eligible,
+            InfoFormatting.Size((ulong)p.Bytes, L.Culture), p.Status is { } status ? L["CleanStatus" + status] : L["CleanScanning"]);
     public ObservableCollection<CleanerCategoryRow> Categories { get; } = [];
     public ObservableCollection<CleanerItemRow> Preview { get; } = [];
     public string Title => L["NavCleaner"];
@@ -64,7 +68,7 @@ public sealed class CleanerViewModel : LocalizedViewModel
         (result.RecycleBin is { } bin ? "\n" + L["CleanBin" + bin] : "") : session is null ? L["CleanReady"] :
         L.Format("CleanSummary", session.Categories.Sum(c => c.ItemCount), InfoFormatting.Size((ulong)session.Categories.Sum(c => c.Bytes), L.Culture));
     public string OutcomeDetails => cleanResult is null ? "" : string.Join(" · ", cleanResult.Items.GroupBy(i => i.Outcome).Select(g => L["CleanOutcome" + g.Key] + ": " + g.Count().ToString(L.Culture)));
-    public bool IsBusy { get => busy; private set { SetProperty(ref busy, value); OnPropertyChanged(nameof(Summary)); UpdateCommands(); } }
+    public bool IsBusy { get => busy; private set { SetProperty(ref busy, value); OnPropertyChanged(nameof(Summary)); OnPropertyChanged(nameof(ScanProgress)); UpdateCommands(); } }
     public bool CanClean => !IsBusy && !disposed && session is not null && !session.Categories.Any(c => c.Status == CleanerScanStatus.Cancelled) && Categories.Any(c => c.Selected && c.CanSelect && (c.Result.Category == CleanerCategory.RecycleBin || c.Result.Items.Any(i => !excluded.Contains(i.Id))));
     public bool CanEdit => !IsBusy;
     public int SelectedCategory
@@ -101,6 +105,7 @@ public sealed class CleanerViewModel : LocalizedViewModel
     {
         if (!CanClean || request.SessionId != session?.Id) return;
         using var source = new CancellationTokenSource();
+        scanProgress = null;
         cancellation = source; cleaning = true; IsBusy = true; state.Set(null); failed = false;
         try { cleanResult = await scanner.CleanAsync(request, source.Token); }
         catch (OperationCanceledException) when (source.IsCancellationRequested) { failed = true; }
@@ -123,7 +128,15 @@ public sealed class CleanerViewModel : LocalizedViewModel
         cancellation = source; failed = false; cleanResult = null; IsBusy = true; session = null; excluded.Clear(); state.Set(null); ClearCategories(); ClearPreview();
         try
         {
-            session = await scanner.ScanAsync(source.Token);
+            // Created on the UI context; scanner coalesces before Report posts here.
+            // Queued updates from cancelled/previous scans cannot revive stale UI.
+            var progress = new Progress<CleanerScanProgress>(value =>
+            {
+                if (disposed || !ReferenceEquals(cancellation, source) || source.IsCancellationRequested) return;
+                scanProgress = value;
+                OnPropertyChanged(nameof(ScanProgress));
+            });
+            session = await scanner.ScanAsync(source.Token, progress);
             if (disposed) return;
             if (source.IsCancellationRequested) { session = null; Render(); return; }
             Render();
@@ -132,7 +145,7 @@ public sealed class CleanerViewModel : LocalizedViewModel
         catch (OperationCanceledException) when (source.IsCancellationRequested) { scanner.Invalidate(); session = null; Render(); }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         { failed = true; Core.Diagnostics.ReliabilityDiagnostics.Log.UnexpectedFailure((int)Core.Diagnostics.ReliabilityComponent.Cleaner, ex.HResult); scanner.Invalidate(); session = null; Render(); }
-        finally { cancellation = null; IsBusy = false; }
+        finally { cancellation = null; scanProgress = null; IsBusy = false; }
     }
     private void Render()
     {

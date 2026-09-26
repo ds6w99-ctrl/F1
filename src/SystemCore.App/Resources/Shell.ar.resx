@@ -551,4 +551,5 @@
   <data name="F1LastScan" xml:space="preserve"><value>آخر فحص</value></data>
   <data name="UnRemovableEmpty" xml:space="preserve"><value>لم يُعثر على تطبيقات قابلة للإزالة.</value></data>
   <data name="UnSelectDetails" xml:space="preserve"><value>اختر تطبيقًا لعرض تفاصيله.</value></data>
+  <data name="CleanLiveProgress" xml:space="preserve"><value>{0} · مفحوص: {1:N0} · مؤهل: {2:N0} · بيانات: {3} · {4}</value></data>
 </root>

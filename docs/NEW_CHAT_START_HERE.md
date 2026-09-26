@@ -17,7 +17,7 @@
 - Dashboard: real CPU/RAM/storage/activity and shared monitoring summaries.
 - System Information: native hardware/software data.
 - Performance/Memory: live measurements, bounded histories, shared monitor. Production Memory optimization is an honest no-op: no proven releasable cache owners.
-- Cleaner: safety-first scan, confirmed clean, session/identity/reparse protections. **Not yet optimized or centrally auto-scanned.**
+- Cleaner: safety-first scan, confirmed clean, session/identity/reparse protections. **FIX 3 complete: 78.831 s fresh before / 37.947 s after; live-dataset drift disclosed.** Two bounded category workers; native safety unchanged. Live category/count/bytes progress coalesced at 150 ms, EN/AR. Not centrally auto-scanned (FIX 7 pending).
 - Uninstaller: removable-only main list; real Win32/MSI/MSIX icons and fallback; virtualized 52px rows, 20 items/page; native removal verification and safe leftover review.
 - Startup: reversible mechanisms/helper retained; **preliminary manageable-list filter added, incomplete full capability verification; real icons still pending**.
 - Tools, Settings, About: existing native functions, System/Light/Dark, localization. Official F1 logo and attribution retained.
@@ -39,6 +39,7 @@ No separate Games page is allowed. Pending discovery belongs in the existing Uni
 - Preserve KB/MB/GB/TB display labels, Arabic/English, safe errors/confirmations/accessibility text, logo, current version, namespaces, helper identities, `%LOCALAPPDATA%\SystemCore`, schemas and recovery paths.
 
 ## Current build and tests
+- Latest FIX 3 follow-up: exact candidate build command PASS, Debug/Release 0 warnings/errors; 580 console assertions, 26 native synthetic lifecycle checks and 25 read-only EN/AR progress checks PASS. Memory-engine/isolation modes completed 100 cycles each. Historical read-only scan exit 2 and capture exit 1 are expected fail-closed safety, not defects: depth-limited User Temp stays incomplete and Clean stays disabled for that selection. Same signature exists in phase4a/4b evidence. No screenshot visual review or clean-VM/UAC certification claimed.
 - Run from repository root: `& ".\artifacts\current\F1\F1.exe"`; retain entire F1 folder including ElevatedHost.
 - Cleanup locked restore, Debug, Release, x64 App/helper publication: PASS, zero build warnings/errors.
 - Cleanup native runtime smoke: **34 PASS** (launch, all ten routes, attribution, absent Premium card, normal close). Unit smoke passed; exact totals in current state/report.
@@ -47,7 +48,7 @@ No separate Games page is allowed. Pending discovery belongs in the existing Uni
 - Earlier F1 rebrand: 1,739 assertions + 1,000 malformed inputs; historical screenshot/performance evidence archived, not rerun by cleanup.
 
 ## Remaining work / next step
-Resume unfinished pre-release requirements only when instructed. The source currently includes Sidebar removal, initial Startup filtering, and a Cleaner baseline profiler. Measured historical baseline: **53.51s** overall; User Temp visited 75,910 entries. No after-optimization result exists.
+Resume unfinished pre-release requirements only when instructed. Cleaner FIX 3 is implemented and verified, including throttled live progress; see `PRE-RELEASE-FIXES-01.md` (Cleaner Performance). Historical baseline **53.51s / 75,910 User Temp entries** is not the fresh comparison denominator. Fresh overall **78.831s before / 37.947s after**; dataset changed 91,724 to 98,348 visited entries. Pre-existing depth-limited User Temp remains incomplete, and Clean disabled by design for that selection. This is not an outstanding FIX 3 defect. No screenshot visual review; FIX 4–7 and Phase 10 were not started by this work.
 
 Full photographic-reference acceptance still pending (clean reference background missing; authorized temporary SVG used). Higher DPI/full Narrator/high contrast, clean-machine/edition matrices, alternate-credential UAC and broader Release QA remain deferred.
 

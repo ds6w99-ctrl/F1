@@ -43,13 +43,14 @@ public sealed class ValidationCleanerService : ICleanerService
         var path = Path.Combine(root, name); File.WriteAllText(path, text); File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddDays(-2));
     }
     public void Invalidate() => service.Invalidate();
-    public async Task<CleanerScanSession> ScanAsync(CancellationToken token)
+    public Task<CleanerScanSession> ScanAsync(CancellationToken token) => ScanAsync(token, null);
+    public async Task<CleanerScanSession> ScanAsync(CancellationToken token, IProgress<CleanerScanProgress>? progress)
     {
         Interlocked.Increment(ref activeTasks);
         try
         {
             await Task.Delay(150, token);
-            var scan = await service.ScanAsync(token);
+            var scan = await service.ScanAsync(token, progress);
             observedSessions.Add(new(scan));
             foreach (var item in scan.Categories.SelectMany(c => c.Items)) observedItems.Add(new(item));
             return scan;

@@ -7,8 +7,10 @@ using Microsoft.Win32.SafeHandles;
 using System.Text;
 
 var passed = true;
-if (args.Contains("--scan-benchmark")) return await ScanBenchmark.Run();
+if (args.Contains("--scan-benchmark")) return await ScanBenchmark.Run(args.Length > 1 ? int.Parse(args[1]) : 1);
 if (args.Contains("--executor")) return await ExecutorTests.Run();
+if (args.Contains("--scan-performance")) return await ScanPerformanceTests.Run();
+if (args.Contains("--scan-progress")) return await ScanProgressTests.Run();
 if (args.Contains("--completion")) return await CompletionTests.Run();
 if (args.Contains("--memory-engine")) return await MemoryEngineExperiment.Run();
 if (args.Length == 2 && args[0] == "--memory-engine-isolation") return await MemoryEngineExperiment.Run(300, args[1]);
@@ -48,6 +50,11 @@ using (var held = new FileStream(locked, FileMode.Open, FileAccess.ReadWrite, Fi
     Check("root not an item", temp.Items.All(i => CleanerSafety.IsChild(root, i.DisplayPath)));
     Check("unique item identities", temp.Items.Select(i => i.Id).Distinct().Count() == temp.Items.Count);
     Check("native identities recorded", temp.Items.All(i => i.Identity.FileId != 0 && i.Identity.Links == 1));
+}
+using (var heldRecent = new FileStream(recent, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+{
+    var early = await new WindowsCleanerScanner(new FixtureTargets(root)).ScanAsync(default);
+    Check("recent metadata rejects before exclusive native candidate open", early.Categories.Single(c => c.Category == CleanerCategory.UserTemp).Skipped.GetValueOrDefault(CleanerSkip.Recent) == 1);
 }
 Check("no fixture deletion", Directory.GetFiles(root, "*", SearchOption.AllDirectories).Length == 1003 && File.ReadAllText(old) == "old-data");
 using var cancelled = new CancellationTokenSource(); cancelled.Cancel();

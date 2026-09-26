@@ -1,6 +1,6 @@
-# Pre-release fixes 01 — Sidebar / Startup
+# Pre-release fixes 01 — Sidebar / Startup / Cleaner performance
 
-Scope: FIX 1 dead-code cleanup and FIX 2 only. Version remains `0.9.0-dev`.
+Scope: FIX 1 dead-code cleanup, FIX 2 and FIX 3 scan performance. Version remains `0.9.0-dev`.
 No Phase 10, signing, installer finalization, deployment, or real startup mutation.
 
 ## Sidebar
@@ -58,7 +58,198 @@ off the UI thread, cancelled on refresh/unload/disposal, and cached as PNG bytes
 with a 128-entry bound. Resource identity/metadata changes invalidate cached
 results; unchanged requests reuse extracted bytes across refreshes.
 
-## Verification
+## Cleaner Performance
+
+FIX 3, 2026-09-26. Real-device operations were **read-only**. Destructive
+regressions used newly created synthetic fixtures or a fake Recycle Bin only.
+Historical baseline: **53.51 s / 75,910 User Temp entries**, not the comparison
+denominator. Fresh measurements used the existing console benchmark, extended
+with overall process CPU/private-memory and Shell-query measurements before
+changing the production scanner.
+
+**Measured bottleneck: User Temp**, 75.344 s in the fresh category profile;
+the other filesystem categories together took about 38 ms. The original scanner
+already streamed names, but fetched attributes separately and opened/pinned the
+whole native path even for recent files that would subsequently be rejected.
+Replacing that preliminary work with directory-record attributes/write time and
+early conservative rejection gave a 39.157 s overall / 38.714 s User Temp
+single-worker measurement before adding category concurrency. Native call timing
+was not individually instrumented; the category dominance and single-change
+measurement, not guessed per-call percentages, support this optimization.
+
+| Metric | Before | After (2 workers) | Change |
+|---|---:|---:|---:|
+| Total duration, including Shell query | 78.831 s | 37.947 s | -51.86% observed |
+| Items/sec | 1,163.56 | 2,591.69 | +122.74% observed |
+| User Temp, separately timed | 75.344 s | 38.077 s | -49.46% observed |
+| Slowest category | User Temp | User Temp | unchanged |
+| CPU avg, normalized over logical processors | 7.59% | 8.29% | +0.71 percentage points |
+| Approximate private-memory delta | 35.72 MiB | 41.00 MiB | +5.28 MiB |
+
+Overall visited/eligible/skipped: **91,724 / 42,914 / 42,732** before;
+**98,348 / 45,257 / 46,986** after. This is the same live set of trusted roots,
+**not an immutable dataset**: retained synthetic fixtures and ongoing machine
+activity changed it. Cold/warm cache and scheduling noise also apply. These are
+observed runs, not a guaranteed 2x speedup. The first category-only cold baseline
+was 116.793 s for User Temp (91,395 visited), further illustrating variability.
+Directories count as visited but need not be eligible or skipped.
+
+| Category | Before ms | After ms | Before visited / eligible / skipped | After visited / eligible / skipped |
+|---|---:|---:|---|---|
+| User Temp | 75343.935 | 38076.881 | 91707 / 42963 / 42680 | 98271 / 45248 / 46935 |
+| Windows Temp | 0.752 | 0.548 | 0 / 0 / 1 | 0 / 0 / 1 |
+| Shader Cache | 20.816 | 9.974 | 36 / 0 / 18 | 36 / 0 / 18 |
+| Crash Dumps | 5.722 | 0.687 | 10 / 0 / 10 | 10 / 0 / 10 |
+| Thumbnails | 10.970 | 9.160 | 32 / 9 / 23 | 32 / 9 / 23 |
+| Recycle Bin Shell query | 50.608 | 41.039 | 0 Shell items | 0 Shell items |
+
+User Temp was **Incomplete both before and after**, and Windows Temp unavailable;
+these statuses remain fail-closed, not performance failures to hide. Browsers and
+WER remain unsupported; no profile traversal or `$Recycle.Bin` enumeration added.
+Category measurements are separate serial probes, not additive concurrent timings.
+Raw JSON includes category bytes, status, throughput, CPU and memory deltas.
+
+| Workers | Overall duration | Items/sec | CPU avg | Private-memory delta |
+|---:|---:|---:|---:|---:|
+| 1 | 44.707 s | 2199.83 | 7.12% | 38.89 MiB |
+| 2 (selected) | 37.947 s | 2591.69 | 8.29% | 41.00 MiB |
+| 4 | 37.991 s | 2588.75 | 8.31% | 40.78 MiB |
+
+Two workers had the lowest observed total and avoid the extra concurrency of four;
+the 2-vs-4 difference is within likely measurement noise. No claim that concurrency
+itself caused the whole improvement: one category dominates. Worker settings are
+internal, clamped to 1..4; total visited/byte budgets are synchronized and category
+output ordering is stable. Deletion was not parallelized or changed.
+
+### Safety and functional regression
+
+`FileSystemEnumerable` is explicitly nonrecursive, includes hidden/system/reparse
+records for explicit rejection, and does not silently ignore root access errors.
+It materializes one path plus attributes/write-time per entry, no `FileInfo`, size
+query, hash or per-file log. Enumeration metadata is a rejection hint only:
+every accepted file still receives the **unchanged** native exclusive lease,
+ancestor/reparse/resolved-path checks, hard-link/type checks, identity/size and fresh
+age validation. `CleanerSafety`, root allowlists, executor, freshness/session
+authorization and recovery paths are unchanged. Root provider resolution remains
+once per scan; canonical safety/ancestor validations were deliberately not cached
+away. Thus "single metadata read" applies to enumeration metadata, **not** removal
+of the mandatory fresh native identity read.
+
+New synthetic tests cover array-oracle/streaming equivalence, recent locked-file
+rejection before exclusive opening (observed RED then GREEN), stable counts/bytes,
+single target resolution, 1/2/4 and out-of-range worker bounds, in-flight cancellation
+under two seconds, incomplete category authorization rejection, and Dashboard
+complete/partial summaries. All required regressions were rerun: traversal,
+protected roots, reparse/junction escape, root survival, age filtering, incomplete
+scan protection, session integrity and changed-since-scan **PASS**.
+
+| FIX 3 verification | Observed result | Exit |
+|---|---|---:|
+| Cleaner default | 18 PASS | 0 |
+| Cleaner executor | 22 PASS | 0 |
+| Cleaner completion / broker / fake Shell | 49 PASS | 0 |
+| Cleaner scan-performance | 43 PASS | 0 |
+| Cleaner live-progress (workers 1 / 2 / 4, synthetic file + fake Shell categories) | 24 PASS | 0 |
+| Security | 56 PASS plus 1,000 fuzz inputs | 0 |
+| Unit, including Dashboard summary lifetime/status | 198 PASS | 0 |
+| Startup / synthetic mutation | 80 / 74 PASS | 0 / 0 |
+| Reliability | 16 PASS | 0 |
+| Memory engine | 100 synthetic scan/clean/rescan cycles, 300 invariant checks; no printed PASS counter | 0 |
+| Memory-engine isolation | 100 cycles / 300 invariants, then 300 s cooldown; completed at 371.739 s | 0 |
+| Benchmark before / after / workers 1, 2, 4 | Read-only measurement completed; no assertion counter | 0 each |
+| Real-scan mode | EXPECTED FAIL-CLOSED: User Temp Incomplete, 42.448 s / 106,553 User Temp entries; depth bound retained | 2 (observed) |
+| Final locked restore / Debug / Release | PASS; both builds 0 warnings / 0 errors | 0 |
+| Final x64 production App / helper / separate validation publish | PASS; 0 warning/error log entries; Core/Infrastructure hashes match between production and validation | 0 |
+| Native synthetic Cleaner lifecycle | 26 checks, 0 failed; scan/cancel/rescan/select/105 deletions/111 actual bytes | 0 |
+| Production capture script | EXPECTED FAIL-CLOSED UI: 7 checks passed, then harness attempted disabled Clean; not a FIX 3 defect | 1 (observed) |
+| Read-only native EN/AR live progress / cancel / rescan | 25 checks, 0 failed | 0 |
+
+The native lifecycle used `artifacts/current/CleanerValidation/F1.exe`, not the
+production binary. Production capture used `artifacts/current/F1/F1.exe`; its
+confirmation assumption encountered `ElementNotEnabledException` because Clean
+was disabled by design. No confirmation was accepted, no real file deleted, and
+no test was weakened to bypass this.
+Screenshots were captured; **no visual review performed**.
+Final progress-follow-up lifecycle evidence:
+`artifacts/current/review/cleaner-fix3-progress-lifecycle/`
+(26 checks, 0 failed, 17.514 s). Final console regression total: **580 printed
+PASS assertions**, excluding native checks, fuzz inputs and memory invariants.
+`--real-scan` deliberately returns 2 when User Temp is incomplete; this is **not a
+claim of a complete scan**, and is expected safety behavior, not failed FIX 3
+acceptance. The original observed exit codes are retained, not rewritten to zero.
+
+### Historical fail-closed comparison (follow-up correction)
+
+The archived `docs/archive/evidence/phase4a-validation/real-scan.txt` and
+`docs/archive/evidence/phase4b-validation/real-scan.txt` both show User Temp
+**Incomplete**, `Skipped.Limit = 2`, top-level `Complete = false`; the FIX 3 scan
+has the same signature. The incomplete state therefore predates this optimization.
+In the current scan, 106,553 User Temp entries are below the unchanged 200,000
+category / 500,000 total caps. Two temp subtrees hit the unchanged
+`depth > MaximumDepth` guard (depth 32); that guard still marks the category
+Incomplete and records Limit. **Clean remains disabled by design for the default
+incomplete category selection.** Incomplete categories never authorize discovered
+file IDs, as the regression test confirms; independently complete categories retain
+their existing eligibility rules. Neither the bound nor this safety rule was
+weakened to satisfy a capture script. These two observations are not outstanding
+FIX 3 defects or acceptance failures.
+
+### Throttled live progress — implemented and verified
+
+The scanner now reports the current category, aggregate visited count, eligible
+count and bytes through `CleanerScanProgress`. A **shared 150 ms monotonic gate**
+coalesces updates across category workers; only category start/end transitions are
+immediate. Worker switching per entry cannot bypass this gate. Snapshots use the
+existing synchronized scan counters; no parallel enumeration mechanism, per-file
+UI dispatch, timer or polling worker was added. Work remains on `Task.Run`, and
+cancellation checks surround reporting. The service forwards progress and adds
+Shell-query transitions/counts without enumerating the Recycle Bin.
+
+The existing Cleaner view adds a single concise localized Name/Value/Status line
+(`CleanLiveProgress` in English and Arabic), leaving all existing summaries,
+category statuses, safety notices and confirmations intact. `Progress<T>` is
+created on the UI context; cancelled, completed, disposed and superseded scans
+cannot apply queued stale progress. The line clears when the operation ends.
+
+New console tests were observed RED before implementation, then 24 PASS: all
+category transitions (including unavailable categories), nondecreasing totals,
+final-result agreement, delivery bounds/150 ms spacing, cancellation while progress
+flows, and service forwarding through a synthetic file category plus fake Shell.
+Native `scripts/Test-CleanerProgress.ps1` is read-only and invokes only scan/cancel:
+**25 checks PASS**, English and Arabic, with 20/21 observed changing progress
+values during each three-second sample; cancel-to-idle was **129.751 / 88.057 ms**.
+It also verifies labels, UI responsiveness, disabled Clean during scanning and no
+stale progress after cancellation. The existing synthetic lifecycle separately
+passed **26 checks**, including actual synthetic deletion/bytes and rescan.
+
+Follow-up verification reran the exact candidate build (locked restore, Debug,
+Release, x64 App/helper: **0 warnings/errors, exit 0**), all listed console suites,
+the two native scripts, benchmark with two workers (exit 0), and memory-engine
+isolation (100 synthetic cycles plus cooldown, exit 0). The original benchmark
+comparison table remains the original measured comparison; the later live-dataset
+probe is saved separately at `artifacts/current/fix3-tests/progress-benchmark.txt`.
+
+**Final FIX 3 status: implemented and verification PASS.** No outstanding FIX 3
+functional blocker identified. Screenshots were captured but not visually reviewed;
+fixed-dataset/repeated-trial performance certification and clean-VM/UAC certification
+are not claimed. No automatic scan/orchestration (FIX 7) or other pre-release feature
+was added; Phase 10 has not started.
+
+Evidence: `artifacts/fix3-before-categories.txt`, `artifacts/fix3-before.txt`,
+`artifacts/fix3-early-rejection.txt`, `artifacts/fix3-workers-{1,2,4}.txt`,
+`artifacts/current/fix3-tests/`, `artifacts/current/review/cleaner-fix3-lifecycle/`,
+`artifacts/current/review/cleaner-fix3-production/`. A transient Debug rebuild
+failed (10 MSB3026 warnings / 2 copy errors) while the separate memory-isolation
+experiment held its test DLL; logs retained as `*-locked.txt`, not hidden.
+After that experiment exited normally (0), the exact requested build command was
+rerun successfully with zero warnings/errors, followed by final regressions and
+the native lifecycle. No process was killed and no build/test was disabled.
+Progress evidence: `artifacts/current/fix3-tests/CleanerProgress.txt`,
+`progress-red.txt`, `progress-additional-exits.json`,
+`artifacts/current/review/cleaner-fix3-progress/`, and
+`artifacts/current/review/cleaner-fix3-progress-lifecycle/`.
+
+## Verification (FIX 1 / FIX 2 historical evidence)
 
 | Check | Result | Exit |
 |---|---|---:|

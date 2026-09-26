@@ -112,6 +112,18 @@ means Unavailable. Dashboard partial results are labeled Partial scan.
 Browser caches and user WER are **UNSUPPORTED IN V1**: disabled rows, no guessed
 profile roots and no browser personal-data deletion.
 
+FIX 3 scan-only optimization uses nonrecursive streaming directory records to
+reject reparses, unsupported attributes/patterns and recent files before exclusive
+native candidate opening. These records never authorize cleaning: accepted files
+still undergo the original pinned-ancestor/identity/age checks. Two independent
+category workers share synchronized global entry/byte budgets; deletion remains
+serial. Category results retain enum order, cancellation is checked inside each
+directory loop, and incomplete categories still cannot authorize their IDs.
+Live progress uses aggregate scan counters and a shared 150 ms delivery gate,
+with immediate category start/end transitions. Enumeration stays off the UI thread;
+queued progress from a cancelled or superseded scan is ignored. Progress is display
+data only and never authorizes deletion or changes a category's safety status.
+
 ## Validation application
 
 `-p:CleanerValidation=true` produces a separately published validation App.

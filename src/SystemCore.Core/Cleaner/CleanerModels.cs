@@ -20,7 +20,13 @@ public sealed record CleanerScanSession(Guid Id, DateTimeOffset Started, DateTim
         Categories.All(c => c.Status is CleanerScanStatus.Complete or CleanerScanStatus.Unavailable);
 }
 public interface ICleanerTargetProvider { IReadOnlyList<CleanerTarget> Resolve(); }
-public interface ICleanerScanner { Task<CleanerScanSession> ScanAsync(CancellationToken token); }
+public sealed record CleanerScanProgress(CleanerCategory Category, long Visited, long Eligible, long Bytes,
+    CleanerScanStatus? Status = null);
+public interface ICleanerScanner
+{
+    Task<CleanerScanSession> ScanAsync(CancellationToken token);
+    Task<CleanerScanSession> ScanAsync(CancellationToken token, IProgress<CleanerScanProgress>? progress) => ScanAsync(token);
+}
 public enum CleanerItemOutcome { Deleted, Changed, InUse, AccessDenied, AlreadyGone, SafetyRejected, Failed, Cancelled, Unknown }
 public sealed record CleanerCleanRequest(Guid SessionId, IReadOnlyList<Guid> ItemIds, bool EmptyRecycleBin = false);
 public sealed record CleanerItemResult(Guid ItemId, CleanerItemOutcome Outcome, long RemovedBytes);

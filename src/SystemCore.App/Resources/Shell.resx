@@ -551,4 +551,5 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="F1LastScan" xml:space="preserve"><value>Last scan</value></data>
   <data name="UnRemovableEmpty" xml:space="preserve"><value>No removable applications found.</value></data>
   <data name="UnSelectDetails" xml:space="preserve"><value>Select an application to view details.</value></data>
+  <data name="CleanLiveProgress" xml:space="preserve"><value>{0} · Visited: {1:N0} · Found: {2:N0} · Data: {3} · {4}</value></data>
 </root>

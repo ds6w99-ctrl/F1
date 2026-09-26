@@ -14,16 +14,19 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
     private CleanerScanSession? latest;
     private long generation;
     public void Invalidate() { lock (sync) { latest = null; generation++; } }
-    public async Task<CleanerScanSession> ScanAsync(CancellationToken token)
+    public Task<CleanerScanSession> ScanAsync(CancellationToken token) => ScanAsync(token, null);
+    public async Task<CleanerScanSession> ScanAsync(CancellationToken token, IProgress<CleanerScanProgress>? progress)
     {
         await operation.WaitAsync(token).ConfigureAwait(false);
         try
         {
             long version;
             lock (sync) { latest = null; version = ++generation; }
-            var session = await new WindowsCleanerScanner(targets).ScanAsync(token).ConfigureAwait(false);
+            var session = await new WindowsCleanerScanner(targets).ScanAsync(token, progress).ConfigureAwait(false);
             if (recycleBin is not null && !token.IsCancellationRequested)
             {
+                progress?.Report(new(CleanerCategory.RecycleBin, session.Categories.Sum(c => c.Visited),
+                    session.Categories.Sum(c => c.ItemCount), session.Categories.Sum(c => c.Bytes)));
                 RecycleBinSnapshot bin;
                 try { bin = await recycleBin.QueryAsync(token).ConfigureAwait(false); }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { bin = new(false, 0, 0); }
@@ -35,6 +38,10 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
                     session = session with { Categories = Array.AsReadOnly(session.Categories.Select(c => c.Category == CleanerCategory.RecycleBin ?
                         c with { Status = CleanerScanStatus.Complete, Bytes = bin.Bytes, ReportedItems = bin.Count } : c).ToArray()) };
                 }
+                if (!token.IsCancellationRequested)
+                    progress?.Report(new(CleanerCategory.RecycleBin, session.Categories.Sum(c => c.Visited),
+                        session.Categories.Sum(c => c.ItemCount), session.Categories.Sum(c => c.Bytes),
+                        session.Categories.Single(c => c.Category == CleanerCategory.RecycleBin).Status));
             }
             lock (sync)
                 if (generation == version && !token.IsCancellationRequested) latest = session;
