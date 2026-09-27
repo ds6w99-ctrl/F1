@@ -76,6 +76,8 @@ public partial class App : Application
         registrations.AddSingleton<DashboardMonitor>();
         registrations.AddSingleton<IPerformanceSnapshotSource, WindowsPerformanceSource>();
         registrations.AddSingleton<IPerformanceMonitorService, PerformanceMonitorService>();
+        registrations.AddSingleton<SystemCore.Core.Orchestration.IApplicationDataOrchestrator>(s => new SystemCore.Core.Orchestration.ApplicationDataOrchestrator(
+            s.GetRequiredService<IPerformanceMonitorService>(), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "cache")));
         registrations.AddSingleton<PerformanceViewModel>();
         registrations.AddSingleton<ICleanerTargetProvider, WindowsCleanerTargets>();
         registrations.AddSingleton<ICleanerScanner, WindowsCleanerScanner>();
@@ -157,6 +159,7 @@ public partial class App : Application
         window.AppWindow.Closing += OnClosing;
         window.Closed += (_, _) => { window = null; };
         window.Activate();
+        _ = services.GetRequiredService<SystemCore.Core.Orchestration.IApplicationDataOrchestrator>().StartAsync();
     }
 
     private async void OnClosing(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowClosingEventArgs args)

@@ -45,4 +45,5 @@ var settingsPassed = SettingsTests.Run();
 var informationPassed = await SystemInformationTests.Run();
 var performancePassed = await PerformanceTests.Run();
 var cleanerPassed = CleanerSafetyTests.Run();
-return cases.All(test => test.Actual == test.Expected) && settingsPassed && informationPassed && performancePassed && cleanerPassed ? 0 : 1;
+var orchestrationPassed = await OrchestrationTests.Run();
+return cases.All(test => test.Actual == test.Expected) && settingsPassed && informationPassed && performancePassed && cleanerPassed && orchestrationPassed ? 0 : 1;
