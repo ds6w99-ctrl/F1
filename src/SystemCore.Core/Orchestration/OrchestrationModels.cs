@@ -16,6 +16,10 @@ public sealed record ApplicationsSummarySnapshot(int Applications, int Games, bo
 public sealed record StartupSummarySnapshot(int Total, int Enabled, int Disabled, int Protected, bool Complete, DateTimeOffset CapturedAt);
 public sealed record CleanerSummarySnapshot(bool Complete, long Bytes, long Items, DateTimeOffset CapturedAt);
 
+// One caller-supplied refresh action for a dataset, evaluated by the orchestrator
+// so that staleness, in-flight de-duplication and the lifetime token stay in one place.
+public sealed record DatasetRefreshRequest(DataDataset Dataset, TimeSpan StaleAfter, Func<CancellationToken, Task> Refresh);
+
 public interface IApplicationDataOrchestrator : IAsyncDisposable
 {
     Task StartAsync();
@@ -24,6 +28,15 @@ public interface IApplicationDataOrchestrator : IAsyncDisposable
     Task<T> RefreshAsync<T>(DataDataset dataset, LoadTier tier,
         Func<CancellationToken, Task<T>> producer, CancellationToken token);
     bool IsStale(DataDataset dataset, TimeSpan freshness);
+
+    // True once the orchestrator has been disposed. Callers use it to tell an expected
+    // teardown ObjectDisposedException from an unexpected one.
+    bool IsShutdown { get; }
+
+    // Starts at most one refresh per dataset, and only for datasets that are stale.
+    // Never throws, never starts a second run while the first is in flight, and never
+    // runs after shutdown. Returns how many datasets this call actually started.
+    Task<int> RefreshStaleAsync(IReadOnlyList<DatasetRefreshRequest> requests, CancellationToken token = default);
     void Publish<T>(DataDataset dataset, T value, TimeSpan lifetime);
     event EventHandler<DatasetStatus>? StatusChanged;
     void StartLiveTelemetry();

@@ -25,7 +25,7 @@ function Start-App {
  $elevated=& ([scriptblock]::Create([IO.File]::ReadAllText((Resolve-Path scripts/Get-ProcessElevation.ps1)))) -ProcessId $p.Id
  Check 'Product app is non-elevated' (!$elevated) $elevated
 }
-function Invoke-Control([string]$id){(Find $id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
+function Invoke-Control([string]$id){if($id -in @('UnRefresh','StartRefresh','ToolsRefresh','InfoRefresh')){Wait-InventoryButton $id};(Find $id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
 function Wait-Enabled([string]$id,[int]$seconds=30){
  $clock=[Diagnostics.Stopwatch]::StartNew()
  do{Start-Sleep -Milliseconds 200;$control=Find $id}while((!$control -or !$control.Current.IsEnabled) -and $clock.Elapsed.TotalSeconds -lt $seconds)
@@ -45,13 +45,21 @@ function Calibrate([string]$language,[string]$id){
  $node=Find $id;$r=New-Object ShellSmokeNative+Rect;$null=[ShellSmokeNative]::GetWindowRect($p.MainWindowHandle,[ref]$r)
  $b=$node.Current.BoundingRectangle
  if($node.Current.IsOffscreen -or $b.Width -le 0 -or $b.Height -le 0){throw "Cannot calibrate $id"}
- $calibration[$language][$id]=@{X=[int]($b.X+$b.Width/2-$r.Left);Y=[int]($b.Y+$b.Height/2-$r.Top)}
+ # A navigation row's reported rect is not reliably clickable at its centre. An item that owns
+ # child rows spans the item and its children, and the branded footer row is padded by its style
+ # margins, so in both cases the centre of the rect falls outside the row's hit area. Clicking
+ # there selects nothing and the page never navigates, which reads as an unverified route rather
+ # than as a bad coordinate. The upper part of a navigation row is the row itself. Anything else
+ # calibrated here is a button or a picker whose whole rect is the control, so its centre stands.
+ $offset=[int]($b.Height/2)
+ if($node.Current.ControlType -eq [Windows.Automation.ControlType]::ListItem){$offset=[int]($b.Height/4)}
+ $calibration[$language][$id]=@{X=[int]($b.X+$b.Width/2-$r.Left);Y=[int]($b.Y+$offset-$r.Top)}
 }
 try{
  [IO.Directory]::CreateDirectory((Split-Path $pref))|Out-Null
  [IO.File]::WriteAllText($pref,'{"schemaVersion":1,"theme":"Light","language":"en"}')
  Start-App
- Check 'First launch opens Dashboard' ((Find 'PageTitle').Current.Name -eq $resources.en.NavDashboard) $null
+  Check 'First launch opens Dashboard' ((Find 'PageTitle').Current.Name -eq $resources.en.F1Welcome -and (Find 'NavDashboard').GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) $null
  Check 'No automatic Cleaner scan' ((Find 'JunkStatus').Current.Name -eq $resources.en.NotScanned) (Find 'JunkStatus').Current.Name
  foreach($language in @('en','ar')){
   $calibration[$language]=@{}
@@ -71,7 +79,8 @@ try{
     }
     if($page -eq 'Tools'){Wait-Enabled 'ToolsRefresh'}
     $title=(Find 'PageTitle').Current.Name
-    Check "$language $theme $page localized title" ($title -eq $resources[$language]["Nav$page"]) $title
+     $titleKey=if($page -eq 'Dashboard'){'F1Welcome'}else{"Nav$page"}
+     Check "$language $theme $page localized title" ($title -eq $resources[$language][$titleKey]) $title
     $nav=Find "Nav$page"
     Check "$language $theme $page active navigation" ($nav.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) $null
     if($theme -eq 'Light'){
@@ -113,7 +122,8 @@ try{
  Check 'Startup empty filter state' ((Find 'StartStatus').Current.Name.Contains($resources.en.ProductNoMatches)) (Find 'StartStatus').Current.Name
  (Find 'StartSearch').GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('')
  Navigate 'NavAbout';Invoke-Control 'AboutCopyVersion'
- Check 'About copies assembly version' ([Windows.Forms.Clipboard]::GetText() -eq "SystemCore $ExpectedVersion X64") ([Windows.Forms.Clipboard]::GetText())
+  $expectedProduct=[Diagnostics.FileVersionInfo]::GetVersionInfo((Resolve-Path $AppPath)).ProductName
+  Check 'About copies assembly version' ([Windows.Forms.Clipboard]::GetText() -eq "$expectedProduct $ExpectedVersion X64") ([Windows.Forms.Clipboard]::GetText())
  Check 'About reports x64' ((Find 'AboutArchitecture').Current.Name -match 'X64') $null
  (Find 'AboutLicenses').GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand();Start-Sleep -Seconds 2
  Check 'Original license texts displayed' ((Find 'AboutNotices').Current.Name.Contains('Permission is hereby granted')) $null
@@ -148,9 +158,9 @@ try{
  Check 'Theme/language persisted' ($stored.theme -eq 'Dark' -and $stored.language -eq 'ar' -and $stored.schemaVersion -eq 1) $stored
  Start-App
  $restartWait=[Diagnostics.Stopwatch]::StartNew()
- do{Start-Sleep -Milliseconds 100;$restartTitle=(Find 'PageTitle').Current.Name}while($restartTitle -ne $resources.ar.NavDashboard -and $restartWait.Elapsed.TotalSeconds -lt 15)
+  do{Start-Sleep -Milliseconds 100;$restartTitle=(Find 'PageTitle').Current.Name}while($restartTitle -ne $resources.ar.F1Welcome -and $restartWait.Elapsed.TotalSeconds -lt 15)
  Save-WindowPicture 'restart-dashboard'
- Check 'Restart opens localized Dashboard' ($restartTitle -eq $resources.ar.NavDashboard) $restartTitle
+  Check 'Restart opens localized Dashboard' ($restartTitle -eq $resources.ar.F1Welcome -and (Find 'NavDashboard').GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Current.IsSelected) $restartTitle
  Navigate 'NavSettings'
  Check 'Restart restores language selection' ((Find 'LanguagePicker').GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern).Current.GetSelection()[0].Current.Name -eq $resources.ar.Arabic) $null
  Check 'Restart restores theme selection' ((Find 'ThemePicker').GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern).Current.GetSelection()[0].Current.Name -eq $resources.ar.ThemeDark) $null

@@ -18,7 +18,9 @@ try {
  Check 'Enable disabled without selection' (!(Find 'StartEnable').Current.IsEnabled) $null
  Check 'Disable disabled without selection' (!(Find 'StartDisable').Current.IsEnabled) $null
  $watch=[Diagnostics.Stopwatch]::StartNew()
- (Find 'StartRefresh').GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+  Wait-InventoryButton 'StartRefresh'
+  Check 'FIX7 startup populated without refresh' ((Find 'StartStatus').Current.Name -match '^Inventory loaded|^Some startup sources') (Find 'StartStatus').Current.Name
+  (Find 'StartRefresh').GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
  do{Start-Sleep -Milliseconds 200;$refresh=Find 'StartRefresh'}while(!$refresh.Current.IsEnabled -and $watch.Elapsed.TotalSeconds -lt 40)
  Check 'Startup refresh returned' ($refresh.Current.IsEnabled) $watch.Elapsed.TotalSeconds
  Check 'Startup source status reported' ((Find 'StartStatus').Current.Name -match 'Inventory loaded|Some startup sources') $null

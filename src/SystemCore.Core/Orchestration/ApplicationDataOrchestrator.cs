@@ -1,10 +1,11 @@
 using System.Diagnostics;
+using SystemCore.Core.Diagnostics;
 using SystemCore.Core.Performance;
 
 namespace SystemCore.Core.Orchestration;
 
 // Producers are trusted application code. This layer has no mutation-service dependency.
-public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorService monitor, string cacheRootDirectory) : IApplicationDataOrchestrator
+public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorService monitor, IAppDiagnostics diagnostics, string cacheRootDirectory) : IApplicationDataOrchestrator
 {
     public const int MaxConcurrentHeavyProviders = 2;
     public static readonly TimeSpan CleanerStaleThreshold = TimeSpan.FromMinutes(60);
@@ -16,10 +17,18 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
     private readonly SnapshotCacheStore cache = new(cacheRootDirectory);
     private readonly Dictionary<DataDataset, Entry> entries = [];
     private readonly Dictionary<DataDataset, Warmup> warmups = [];
+    // A refresh mark carries the ticket of the call that owns it, so a finishing call can
+    // never clear a mark that a later call has already taken over for the same dataset.
+    private readonly Dictionary<DataDataset, long> refreshing = [];
+    private long refreshTicket;
     private readonly AsyncLocal<Flight?> warmupContext = new();
     private readonly Stopwatch watch = Stopwatch.StartNew();
     private StartupMeasurements measurements = new(DateTimeOffset.UtcNow, null, null, null, null, null, null, null, null, null);
-    private bool started, startupReady, disposed, telemetryActive;
+    private bool started, startupReady, telemetryActive;
+    // Volatile so IsShutdown can be observed from an exception filter. Disposal writes it once
+    // under the lock; every reader must be able to see that write without taking the lock itself,
+    // because a filter runs on whichever thread the failure landed on and may already hold one.
+    private volatile bool disposed;
     private Task? startup, disposal;
     public event EventHandler<DatasetStatus>? StatusChanged;
     public StartupMeasurements Measurements { get { lock (sync) return measurements; } }
@@ -161,6 +170,71 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
             return new(true, value);
         }
         finally { if (needsPermit) heavy.Release(); }
+    }
+
+    public bool IsShutdown => disposed;
+
+    private void Release(DataDataset dataset, long ticket)
+    {
+        lock (sync) { if (refreshing.TryGetValue(dataset, out var held) && held == ticket) refreshing.Remove(dataset); }
+    }
+
+    public Task<int> RefreshStaleAsync(IReadOnlyList<DatasetRefreshRequest> requests, CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+        List<(DataDataset Dataset, long Ticket, Func<CancellationToken, Task> Refresh)> due = [];
+        lock (sync)
+        {
+            // Shutdown is decided here, under the same lock that Dispose uses, so a refresh
+            // can never be admitted between the caller's check and the orchestrator's own.
+            if (disposed || token.IsCancellationRequested) return Task.FromResult(0);
+            foreach (var request in requests)
+            {
+                if (request.Refresh is null) continue;
+                if (refreshing.ContainsKey(request.Dataset)) continue;
+                if (!Stale(EntryFor(request.Dataset), request.StaleAfter)) continue;
+                var ticket = ++refreshTicket;
+                refreshing[request.Dataset] = ticket;
+                due.Add((request.Dataset, ticket, request.Refresh));
+            }
+        }
+        if (due.Count == 0) return Task.FromResult(0);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                foreach (var (dataset, ticket, refresh) in due)
+                {
+                    // Admission and execution are separated in time, and shutdown can begin in
+                    // between. Re-checked per item, not once, so a refresh never starts late.
+                    if (token.IsCancellationRequested || lifetime.IsCancellationRequested) return;
+                    try { await refresh(lifetime.Token).ConfigureAwait(false); }
+                    // Expected only on genuine cancellation. Both the caller's token and our own
+                    // lifetime count, because a caller-side cancel tears this pass down.
+                    catch (OperationCanceledException) when (lifetime.IsCancellationRequested || token.IsCancellationRequested) { }
+                    // Expected only when teardown is genuinely under way. DisposeAsync cancels the
+                    // lifetime on every disposal path, so this covers a read that is refused
+                    // because the orchestrator is shutting down. IsShutdown would say the same
+                    // thing here, but lifetime cancellation is the condition this file already
+                    // discriminates on, and it is exactly equivalent at this point in the pass.
+                    catch (ObjectDisposedException) when (lifetime.IsCancellationRequested) { }
+                    // A caller-supplied delegate that fails for any other reason is a real defect.
+                    // It is recorded rather than swallowed, and never rendered to the user.
+                    catch (Exception e) { diagnostics.Record(DiagnosticFeature.App, DiagnosticEvent.ProviderFailure, e.HResult); }
+                    // Released as soon as this dataset is done, so one stalled dataset cannot
+                    // hold the other three marked for the rest of the pass.
+                    finally { Release(dataset, ticket); }
+                }
+            }
+            finally
+            {
+                // Releases the marks of items that were admitted but never reached, for example
+                // when the caller's token was cancelled mid-pass. Ticket-matched, so a dataset
+                // another call has since re-admitted is left alone.
+                foreach (var (dataset, ticket, _) in due) Release(dataset, ticket);
+            }
+        });
+        return Task.FromResult(due.Count);
     }
 
     private void ScheduleWarmup(DataDataset dataset, Warmup registration)

@@ -13,7 +13,8 @@ static class AutomaticLeftoverTests
         foreach (var language in new[] { "en", "ar" })
         {
             var executor = new Executor(); var scanner = new Scanner(); var deletion = new Deletion();
-            using var vm = new UninstallerViewModel(new LocalizationService(new Settings(language)), executor, scanner, deletion, new Launcher());
+            await using var orchestrator = InventoryTestOrchestrator.Create();
+            using var vm = new UninstallerViewModel(new LocalizationService(new Settings(language)), executor, scanner, deletion, new Launcher(), orchestrator, new InventoryAutoLoadTests.Diagnostics());
             async Task Remove()
             {
                 await vm.RefreshAsync(); vm.SelectedId = executor.App.Id;
@@ -93,7 +94,12 @@ static class AutomaticLeftoverTests
             check("Unexpected scan fault restores coherent retry " + language, !vm.Busy && vm.CanScanLeftovers && !vm.ShowLeftovers && vm.Status == vm.Text("UnStateFailed") && deletion.Calls == 1);
             scanner.UnexpectedFailure = false;
             executor.ThrowCancellation = true; calls = scanner.Calls; await Remove();
-            check("Uninstall cancellation exception never scans " + language, scanner.Calls == calls && !vm.CanScanLeftovers && !vm.Busy);
+            // This double throws a bare OperationCanceledException without cancelling the token it
+            // was handed, which is not a cancellation the view model may honour: it is an unexpected
+            // failure. The scan is still refused, and the status now says Failed rather than claiming
+            // the user cancelled. The genuine-cancellation counterpart is asserted in InventoryAutoLoadTests.
+            check("Unexpected uninstall cancellation exception never scans " + language,
+                scanner.Calls == calls && !vm.CanScanLeftovers && !vm.Busy && vm.Status == vm.Text("UnStateFailed"));
             executor.ThrowCancellation = false;
             foreach (var state in new[] { UninstallState.Failed, UninstallState.Unknown, UninstallState.StillInstalled })
             {

@@ -11,7 +11,7 @@ $registry=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHi
 $fixtureRoot=Join-Path $env:LOCALAPPDATA $name
 $siblingRoot=$fixtureRoot+'-shared'
 $p=$null
-function Invoke-Button([string]$id){(Find $id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
+function Invoke-Button([string]$id){if($id -eq 'UnRefresh'){Wait-InventoryButton $id};(Find $id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();Start-Sleep -Milliseconds 250}
 function Wait-Inventory {
  param([switch]$ObserveAutomaticScan)
   $watch=[Diagnostics.Stopwatch]::StartNew()
@@ -44,7 +44,9 @@ try {
  Check 'Production app token is not elevated' (!$elevated) $elevated
  $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
  Start-Sleep -Seconds 3
- Navigate 'NavUninstaller'
+  Navigate 'NavUninstaller'
+  Wait-InventoryButton 'UnRefresh'
+  Check 'FIX7 inventory populated before manual refresh' ((Find 'UnStatus').Current.Name -match '^Applications loaded') (Find 'UnCount').Current.Name
  Check 'Uninstall disabled before selection' (!(Find 'UnUninstall').Current.IsEnabled) $null
  Invoke-Button 'UnRefresh';Wait-Inventory
  (Find 'UnSearch').GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue($name)

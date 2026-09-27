@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop'
 $visual=[IO.File]::ReadAllText((Resolve-Path scripts/Test-F1Visual.ps1))
 $entry=[regex]::Match($visual,'(?m)^try\{\r?$').Index
 . ([scriptblock]::Create($visual.Substring(0,$entry))) -AppPath $AppPath -EvidencePath $EvidencePath
+$captureWindow=(Get-Item Function:Save-WindowPicture).ScriptBlock
+function Save-WindowPicture([string]$name){Invoke-ForegroundCapture $captureWindow $name}
 Add-Type @'
 using System;using System.Runtime.InteropServices;
 public static class UninstallerFocus {
@@ -37,7 +39,9 @@ try{
  Check 'Uninstaller publication launches' (!$p.HasExited -and $p.MainWindowHandle -ne [IntPtr]::Zero) $p.Id
  $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle);Start-Sleep -Seconds 5
  $null=[ShellSmokeNative]::SetWindowPos($p.MainWindowHandle,[IntPtr]::Zero,10,10,1360,1000,0x14)
- $language='en';$theme='Dark';Route 'Uninstaller';Invoke-Control 'UnRefresh';Wait-Refresh
+  $language='en';$theme='Dark';Route 'Uninstaller';Wait-InventoryButton 'UnRefresh'
+  Check 'FIX7 inventory populated without manual refresh' ((Rows).Count -gt 0) (Find 'UnCount').Current.Name
+  Invoke-Control 'UnRefresh';Wait-Refresh
  $list=Find 'UnApplications';$bounds=$list.Current.BoundingRectangle
  $visible=@((Rows)|Where-Object{!$_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Height -ge 48 -and $_.Current.BoundingRectangle.Top -ge $bounds.Top -and $_.Current.BoundingRectangle.Bottom -le $bounds.Bottom})
  $visible|ForEach-Object{[pscustomobject]@{Name=$_.Current.Name;Bounds=$_.Current.BoundingRectangle.ToString()}}|ConvertTo-Json|Set-Content "$EvidencePath/visible-rows.json" -Encoding utf8

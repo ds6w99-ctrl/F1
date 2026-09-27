@@ -77,7 +77,7 @@ public partial class App : Application
         registrations.AddSingleton<IPerformanceSnapshotSource, WindowsPerformanceSource>();
         registrations.AddSingleton<IPerformanceMonitorService, PerformanceMonitorService>();
         registrations.AddSingleton<SystemCore.Core.Orchestration.IApplicationDataOrchestrator>(s => new SystemCore.Core.Orchestration.ApplicationDataOrchestrator(
-            s.GetRequiredService<IPerformanceMonitorService>(), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "cache")));
+            s.GetRequiredService<IPerformanceMonitorService>(), s.GetRequiredService<SystemCore.Core.Diagnostics.IAppDiagnostics>(), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "cache")));
         registrations.AddSingleton<PerformanceViewModel>();
         registrations.AddSingleton<ICleanerTargetProvider, WindowsCleanerTargets>();
         registrations.AddSingleton<ICleanerScanner, WindowsCleanerScanner>();

@@ -4,6 +4,11 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <Compile Include="../../src/SystemCore.App/Uninstaller/UninstallerViewModel.cs" Link="UninstallerViewModel.cs" />
+    <Compile Include="../../src/SystemCore.App/Startup/StartupViewModel.cs" Link="StartupViewModel.cs" />
+    <Compile Include="../../src/SystemCore.App/Tools/ToolsViewModel.cs" Link="ToolsViewModel.cs" />
+    <Compile Include="../../src/SystemCore.App/SystemInformation/SystemInformationViewModel.cs" Link="SystemInformationViewModel.cs" />
+    <Compile Include="../../src/SystemCore.App/SystemInformation/SystemInformationPresentation.cs" Link="SystemInformationPresentation.cs" />
+    <Compile Include="../../src/SystemCore.App/Services/DashboardMonitor.cs" Link="DashboardMonitor.cs" />
     <Compile Include="../../src/SystemCore.App/ViewModels/LocalizedViewModel.cs" Link="LocalizedViewModel.cs" />
     <Compile Include="../../src/SystemCore.App/Services/LocalizationService.cs" Link="LocalizationService.cs" />
     <EmbeddedResource Include="../../src/SystemCore.App/Resources/Shell.resx" LogicalName="SystemCore.App.Resources.Shell.resources" />

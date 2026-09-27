@@ -22,7 +22,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     {
         ViewModel = model; InitializeComponent();
         Unloaded += (_, _) => CancelIcons();
-        Loaded += (_, _) => Render();
+        Loaded += async (_, _) => { Render(); await ViewModel.InitializeAsync(); };
         ViewModel.PropertyChanged += OnChanged;
         Render();
     }
@@ -49,7 +49,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             AutomationProperties.SetName(KindFilter, ViewModel.Text("UnKindFilter"));
             Sort.Items.Clear(); foreach (var key in new[] { "UnName", "UnPublisher", "UnDate", "UnSize" }) Sort.Items.Add(ViewModel.Text(key));
             Sort.SelectedIndex = ViewModel.Sort;
-            Status.Text = string.IsNullOrEmpty(ViewModel.CleanupSummary) ? ViewModel.Status : ViewModel.Text("UnCleanupComplete");
+            Status.Text = string.IsNullOrEmpty(ViewModel.CleanupSummary) || ViewModel.InventoryLoadFailed ? ViewModel.Status : ViewModel.Text("UnCleanupComplete");
             Refresh.IsEnabled = !ViewModel.Busy; Search.IsEnabled = Filter.IsEnabled = Sort.IsEnabled = Applications.IsEnabled = !ViewModel.Busy;
             var rows = ViewModel.Rows;
             var leftovers = ViewModel.LeftoverRows;

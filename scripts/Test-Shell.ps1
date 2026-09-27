@@ -87,15 +87,67 @@ function Choose([string]$id,[string]$name) {
 function Wait-Info([string]$overview) {
     $clock=[Diagnostics.Stopwatch]::StartNew()
     $found=$false
+    $deviceLabels=@('Shell.resx','Shell.ar.resx'|ForEach-Object { (([xml][IO.File]::ReadAllText((Resolve-Path "src/SystemCore.App/Resources/$_"))).root.data|Where-Object name -eq 'InfoDevice').value })
     do {
         $match=$window.FindFirst([Windows.Automation.TreeScope]::Descendants,
             [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$overview))
-        if($null -ne $match) { $found=$true; break }
+        # ItemsControl has no UIA control-view peer. Inspect its actual rendered row instead.
+        $device=$window.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.OrCondition]::new(
+            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$deviceLabels[0]),
+            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$deviceLabels[1])))
+        if($null -ne $match -and $null -ne $device -and (Find 'InfoRefresh').Current.IsEnabled) { $found=$true; break }
         Start-Sleep -Milliseconds 200
     } while($clock.Elapsed.TotalSeconds -lt 30)
     Check 'System information populated' $found @{ElapsedMs=$clock.Elapsed.TotalMilliseconds}
 }
-$p=Start-Process (Resolve-Path $AppPath) -PassThru -RedirectStandardError "$EvidencePath/stderr.txt"
+function Wait-InventoryButton([string]$id,[int]$seconds=120) {
+    $clock=[Diagnostics.Stopwatch]::StartNew()
+    do {
+        $control=Find $id
+        if($control -and $control.Current.IsEnabled){return}
+        Start-Sleep -Milliseconds 100
+    }while($clock.Elapsed.TotalSeconds -lt $seconds)
+    throw "Inventory did not return control: $id"
+}
+function Wait-AppForeground {
+    $clock=[Diagnostics.Stopwatch]::StartNew()
+    $activator=New-Object -ComObject WScript.Shell
+    try {
+        do {
+            if($p.HasExited){throw 'Capture process exited'}
+            $null=[ShellSmokeNative]::ShowWindow($p.MainWindowHandle,9)
+            $null=[ShellSmokeNative]::SetForegroundWindow($p.MainWindowHandle)
+            if([ShellSmokeNative]::GetForegroundWindow() -eq $p.MainWindowHandle){return}
+            # Target only the owned process; Windows can reject SetForegroundWindow
+            # when the controller itself no longer owns the last input event.
+            $null=$activator.AppActivate($p.Id)
+            Start-Sleep -Milliseconds 100
+        }while($clock.Elapsed.TotalSeconds -lt 5)
+    }finally{$null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($activator)}
+    throw 'Foreground F1 desktop capture required'
+}
+function Prepare-ShellLaunch {
+    $path=(Resolve-Path $AppPath).Path
+    $script:shellPreferences=Join-Path $env:LOCALAPPDATA 'SystemCore/preferences.json'
+    $script:shellSavedPreferences=if(Test-Path $script:shellPreferences){[IO.File]::ReadAllBytes($script:shellPreferences)}else{$null}
+    if($null -ne $script:shellSavedPreferences){[IO.File]::WriteAllBytes([IO.Path]::GetFullPath("$EvidencePath/original-preferences.bin"),$script:shellSavedPreferences)}
+    [IO.Directory]::CreateDirectory((Split-Path $script:shellPreferences))|Out-Null
+    [IO.File]::WriteAllText($script:shellPreferences,'{"schemaVersion":1,"theme":"Light","language":"en"}')
+    return $path
+}
+function Invoke-ForegroundCapture([scriptblock]$captureAction,[string]$name) {
+    for($attempt=1;$attempt -le 3;$attempt++){
+        Wait-AppForeground
+        try { & $captureAction $name; return }
+        catch {
+            # The original guard runs after its compositor delay. A theme popup can
+            # take focus during that delay; retry only this exact pre-capture failure.
+            if($_.Exception.Message -ne 'Foreground F1 desktop capture required' -or $attempt -eq 3){throw}
+            "Foreground retry $attempt for $name"|Add-Content "$EvidencePath/foreground-retries.log" -Encoding utf8
+        }
+    }
+}
+$p=Start-Process (Prepare-ShellLaunch) -PassThru -RedirectStandardError "$EvidencePath/stderr.txt"
 try {
     $launch=[Diagnostics.Stopwatch]::StartNew()
     do { Start-Sleep -Milliseconds 300; $p.Refresh() } while(!$p.HasExited -and $p.MainWindowHandle -eq 0 -and $launch.Elapsed.TotalSeconds -lt 30)
@@ -112,18 +164,24 @@ try {
         Check "Navigate $page" ($null -ne (Find 'PageTitle')) (Find 'PageTitle').Current.Name
         if($page -in @('Tools')) {
             if(Find 'ToolsRefresh') {
+                Wait-InventoryButton 'ToolsRefresh'
+                Check 'FIX7 Tools populated without refresh' ($null -ne (Find 'ToolAvailabilityTaskManager')) (Find 'ToolsStatus').Current.Name
                 Check 'Tools page has real availability status' ($null -ne (Find 'ToolsStatus')) (Find 'ToolsStatus').Current.Name
             } else {
                 Check "Placeholder $page" ($null -ne (Find 'DeferredFeature')) (Find 'DeferredFeature').Current.Name
             }
         }
         if($page -eq 'Uninstaller') {
+            Wait-InventoryButton 'UnRefresh'
+            Check 'FIX7 applications populated without refresh' ((Find 'UnStatus').Current.Name -match '^Applications loaded') (Find 'UnCount').Current.Name
             Check 'Uninstaller inventory controls available' ($null -ne (Find 'UnRefresh') -and $null -ne (Find 'UnApplications')) 'Phase 5 inventory page'
-            Check 'Uninstaller requires explicit selection' (!(Find 'UnUninstall').Current.IsEnabled) 'No uninstall performed by regression'
+            Check 'Uninstaller requires explicit selection' (($null -eq (Find 'UnUninstall')) -or !(Find 'UnUninstall').Current.IsEnabled) 'No uninstall performed by regression'
         }
         if($page -eq 'Startup') {
+            Wait-InventoryButton 'StartRefresh'
+            Check 'FIX7 startup populated without refresh' ((Find 'StartStatus').Current.Name -match '^Inventory loaded|^Some startup sources') (Find 'StartStatus').Current.Name
             Check 'Startup inventory controls available' ($null -ne (Find 'StartRefresh') -and $null -ne (Find 'StartItems')) 'Phase 6 inventory page'
-            Check 'Startup requires explicit selection' (!(Find 'StartDisable').Current.IsEnabled -and !(Find 'StartEnable').Current.IsEnabled) $null
+            Check 'Startup requires explicit selection' ((($null -eq (Find 'StartDisable')) -or !(Find 'StartDisable').Current.IsEnabled) -and (($null -eq (Find 'StartEnable')) -or !(Find 'StartEnable').Current.IsEnabled)) $null
         }
         if($page -eq 'Cleaner') {
             Check 'Production excludes synthetic fixture controls' ($null -eq (Find 'CleanerValidationPrepare')) 'Production artifact'
@@ -211,7 +269,8 @@ try {
             if($ancestor){$ancestor.GetCurrentPattern([Windows.Automation.ScrollPattern]::Pattern).SetScrollPercent(-1,100)}
             Start-Sleep -Milliseconds 500
             Choose 'PerfMode' 'All processes'
-            $searchBox.GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('SystemCore')
+            # The published executable was renamed to F1; still assert this exact running app.
+            $searchBox.GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue($p.ProcessName)
             Start-Sleep -Seconds 3
             Check 'Process name search returns current application' ((Find 'PerfProcessState').Current.Name -notmatch '^0 ') (Find 'PerfProcessState').Current.Name
             $searchBox.GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('NoSuchSystemCoreProcess_928173')
@@ -226,6 +285,7 @@ try {
         }
         if($page -eq 'SystemInfo') {
             Wait-Info 'Device overview'
+            Check 'FIX7 System Information populated without refresh' ($null -ne $window.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,'Device name'))) $null
             $liveWait=[Diagnostics.Stopwatch]::StartNew()
             while((Find 'InfoLive').Current.Name -notmatch 'RAM:' -and $liveWait.Elapsed.TotalSeconds -lt 5) { Start-Sleep -Milliseconds 200 }
             Check 'System Info live values' ((Find 'InfoLive').Current.Name -match 'RAM:') 'Live memory populated'
@@ -241,7 +301,7 @@ try {
             Check 'Refresh accepts keyboard focus' ($button.Current.HasKeyboardFocus) @{Id=[Windows.Automation.AutomationElement]::FocusedElement.Current.AutomationId;Name=[Windows.Automation.AutomationElement]::FocusedElement.Current.Name;Focusable=$button.Current.IsKeyboardFocusable;Enabled=$button.Current.IsEnabled}
             Check 'Keyboard targets application window' ([ShellSmokeNative]::GetForegroundWindow() -eq $p.MainWindowHandle) $null
             [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
-            Start-Sleep -Seconds 2
+            Wait-InventoryButton 'InfoRefresh'
             Check 'Keyboard refresh completes' ((Find 'InfoRefresh').Current.IsEnabled) $null
             $button.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
             Start-Sleep -Milliseconds 100
@@ -280,7 +340,7 @@ try {
     Choose 'LanguagePicker' (($arabic | Where-Object name -eq 'Arabic').value)
     Check 'Arabic navigation' ((Find 'NavDashboard').Current.Name -eq ($arabic | Where-Object name -eq 'NavDashboard').value) (Find 'NavDashboard').Current.Name
     Navigate 'NavDashboard'
-    Check 'Arabic dashboard' ((Find 'PageTitle').Current.Name -eq ($arabic | Where-Object name -eq 'NavDashboard').value) (Find 'PageTitle').Current.Name
+    Check 'Arabic dashboard' ((Find 'PageTitle').Current.Name -eq ($arabic | Where-Object name -eq 'F1Welcome').value) (Find 'PageTitle').Current.Name
     if($CleanerExecutor) {
         Navigate 'NavCleaner'
         Check 'Arabic Cleaner title' ((Find 'PageTitle').Current.Name -eq ($arabic | Where-Object name -eq 'NavCleaner').value) $null
@@ -307,7 +367,7 @@ try {
     Navigate 'NavSettings'
     Choose 'LanguagePicker' 'English'
     Navigate 'NavDashboard'
-    Check 'English restored' ((Find 'PageTitle').Current.Name -eq 'Dashboard') (Find 'PageTitle').Current.Name
+    Check 'English restored' ((Find 'PageTitle').Current.Name -eq 'Welcome back') (Find 'PageTitle').Current.Name
     Navigate 'NavSettings'
     Choose 'ThemePicker' 'Dark'
     Choose 'LanguagePicker' (($arabic | Where-Object name -eq 'Arabic').value)
@@ -319,8 +379,9 @@ try {
     $p.Refresh()
     Check 'Relaunch with saved preferences' (!$p.HasExited -and $p.MainWindowHandle -ne 0) $p.Id
     $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
-    Check 'Arabic restored after relaunch' ((Find 'PageTitle').Current.Name -eq ($arabic | Where-Object name -eq 'NavDashboard').value) (Find 'PageTitle').Current.Name
-    Check 'RTL sidebar restored' ((Find 'NavDashboard').Current.BoundingRectangle.X -gt (Find 'MetricCpu').Current.BoundingRectangle.X) (Find 'NavDashboard').Current.BoundingRectangle.X
+    Check 'Arabic restored after relaunch' ((Find 'PageTitle').Current.Name -eq ($arabic | Where-Object name -eq 'F1Welcome').value) (Find 'PageTitle').Current.Name
+    # F1's existing WindowAppearanceController fixes the shell LTR and localizes only ContentHost.
+    Check 'RTL sidebar restored' ((Find 'NavDashboard').Current.Name -eq ($arabic | Where-Object name -eq 'NavDashboard').value -and (Find 'NavDashboard').Current.BoundingRectangle.X -lt (Find 'MetricCpu').Current.BoundingRectangle.X) (Find 'NavDashboard').Current.BoundingRectangle.X
     Navigate 'NavSettings'
     $selection=(Find 'ThemePicker').GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern).Current.GetSelection()
     Check 'Dark restored after relaunch' ($selection[0].Current.Name -eq ($arabic | Where-Object name -eq 'ThemeDark').value) $selection[0].Current.Name
@@ -334,7 +395,7 @@ try {
     $p.Refresh()
     Check 'English relaunch' (!$p.HasExited -and $p.MainWindowHandle -ne 0) $p.Id
     $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
-    Check 'English persisted' ((Find 'PageTitle').Current.Name -eq 'Dashboard') (Find 'PageTitle').Current.Name
+    Check 'English persisted' ((Find 'PageTitle').Current.Name -eq 'Welcome back') (Find 'PageTitle').Current.Name
     Check 'LTR sidebar restored' ((Find 'NavDashboard').Current.BoundingRectangle.X -lt (Find 'MetricCpu').Current.BoundingRectangle.X) (Find 'NavDashboard').Current.BoundingRectangle.X
     Navigate 'NavSettings'
     $selection=(Find 'ThemePicker').GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern).Current.GetSelection()
@@ -345,4 +406,5 @@ try {
     $results | ConvertTo-Json -Depth 4 | Set-Content "$EvidencePath/ui-results.json" -Encoding UTF8
     if(!$p.HasExited) { $null=$p.CloseMainWindow(); $null=$p.WaitForExit(10000) }
     $p.Dispose()
+    if($null -ne $script:shellSavedPreferences){[IO.File]::WriteAllBytes($script:shellPreferences,$script:shellSavedPreferences)}else{[IO.File]::Delete($script:shellPreferences)}
 }

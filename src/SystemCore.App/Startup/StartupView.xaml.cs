@@ -47,10 +47,11 @@ public sealed partial class StartupView : UserControl, IDisposable
         Loaded += OnLoaded; Unloaded += OnUnloaded;
         model.PropertyChanged += OnChanged; Render();
     }
-    private void OnLoaded(object sender, RoutedEventArgs args)
+    private async void OnLoaded(object sender, RoutedEventArgs args)
     {
         if (disposed) return;
         active = true; ResetIconLifetime(); foreach (var row in rows) row.Model = null; Render();
+        await model.InitializeAsync();
     }
     private void OnUnloaded(object sender, RoutedEventArgs args) { active = false; iconLifetime.Cancel(); }
     private void ResetIconLifetime() { iconLifetime.Cancel(); iconLifetime.Dispose(); iconLifetime = new(); }

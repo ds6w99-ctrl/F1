@@ -62,6 +62,13 @@ if (args.Contains("--inventory"))
         UnavailableSources = result.UnavailableSources, Milliseconds = clock.ElapsedMilliseconds }, new JsonSerializerOptions { WriteIndented = true }));
     return 0;
 }
+// Everything below this point is the main suite. Two copies of it must not interleave: each case
+// is a timing observation on a thread-pool callback, and two copies competing for the same cores
+// make a healthy case look failed. Temp roots and registry fixtures are already per-run unique, so
+// this is a load guard, not a data guard. The argument modes above return before this point, and
+// the child process spawned for the parent-uninstall case returns there too, so nothing waits on
+// a lock its own parent holds.
+using var suite = new SuiteLock("SystemCore-Suite-UninstallerTests", TimeSpan.FromMinutes(30));
 var checks = new List<(string Name, bool Passed)>();
 void Check(string name, bool ok) { checks.Add((name, ok)); Console.WriteLine($"{(ok ? "PASS" : "FAIL")}: {name}"); }
 var source = new RegistryApplicationSource(InventoryHive.CurrentUser, InventoryView.Registry64, "Synthetic-a");
@@ -109,6 +116,7 @@ await BoundaryTests.Run(Check);
 await InventoryPresentationTests.Run(Check);
 await GameDiscoveryTests.Run(Check);
 await AutomaticLeftoverTests.Run(Check);
+await InventoryAutoLoadTests.Run(Check);
 Check("Unified library model distinguishes games without replacing native type", typeof(InstalledApplication).GetProperty("ItemKind") is not null && typeof(InstalledApplication).GetProperty("Source") is not null);
 if (args.Contains("--leftover-scan")) await LeftoverScannerTests.Run(Check);
 if (args.Contains("--leftover-delete")) await LeftoverScannerTests.Run(Check, true);
@@ -146,4 +154,27 @@ sealed class FixtureInventory(IWin32ApplicationProvider provider, string keyName
         var result = await provider.ReadAsync(token);
         return result with { Applications = result.Applications.Where(a => a.RegistrySource is { Hive: InventoryHive.CurrentUser, View: InventoryView.Registry64 } source && source.KeyName == keyName).ToArray() };
     }
+}
+// A cross-process gate, so a second copy of a suite waits instead of running beside the first.
+// A named Semaphore rather than a Mutex: the suite spans awaits, so release may happen on a
+// different thread than acquisition, and ReleaseMutex rejects that. The wait is bounded, so a
+// holder that dies without releasing surfaces as a named failure instead of a silent hang.
+sealed class SuiteLock : IDisposable
+{
+    private readonly Semaphore gate; private readonly bool held;
+    public SuiteLock(string name, TimeSpan bound)
+    {
+        gate = new(1, 1, name);
+        bool acquired;
+        try { acquired = gate.WaitOne(TimeSpan.Zero); }
+        catch (UnauthorizedAccessException) { throw new InvalidOperationException($"Suite gate {name} exists with incompatible access; another run may be active."); }
+        if (!acquired)
+        {
+            Console.WriteLine($"Waiting for the concurrent run of {name} to finish (bound {bound}).");
+            acquired = gate.WaitOne(bound);
+        }
+        if (!acquired) { gate.Dispose(); throw new TimeoutException($"Another run of {name} held the suite for longer than {bound}."); }
+        held = true;
+    }
+    public void Dispose() { if (held) gate.Release(); gate.Dispose(); }
 }

@@ -2,11 +2,23 @@ using CommunityToolkit.Mvvm.Input;
 using SystemCore.App.Services;
 using SystemCore.App.ViewModels;
 using SystemCore.Core.Uninstaller;
+using SystemCore.Core.Orchestration;
+using SystemCore.Core.Diagnostics;
 
 namespace SystemCore.App.Uninstaller;
 
 public sealed class UninstallerViewModel : LocalizedViewModel
 {
+    // Installs are infrequent, but can occur while F1 stays open.
+    public static readonly TimeSpan ApplicationsFreshness = TimeSpan.FromMinutes(10);
+    // Games share the applications inventory's update cadence.
+    public static readonly TimeSpan GamesFreshness = TimeSpan.FromMinutes(10);
+    private readonly IApplicationDataOrchestrator orchestrator;
+    private readonly IAppDiagnostics diagnostics;
+    private Task? load;
+    private bool loadFailed;
+    private bool inventoryActionable;
+    private ApplicationsSummarySnapshot? cachedSummary;
     private readonly IUninstallExecutor executor;
     private readonly ILeftoverScanner leftovers;
     private readonly ILeftoverDeletionService deletion;
@@ -20,24 +32,75 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private CancellationTokenSource? activeOperation;
     private CancellationToken BeginOperation()
     {
+        // After Dispose the lifetime token throws. A late UI click must not fault the dispatcher
+        // with an unhandled ObjectDisposedException, so it is refused here, at the single place
+        // every operation token is minted.
+        if (disposed) return new CancellationToken(true);
         activeOperation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         return activeOperation.Token;
     }
     private void EndOperation() { activeOperation?.Dispose(); activeOperation = null; Busy = false; OnPropertyChanged(string.Empty); }
     public void CancelOperation() => activeOperation?.Cancel();
+    // A cancellation is genuine only when a token this operation was actually given is cancelled:
+    // the caller's own or the view model's lifetime (Dispose). Shutdown alone is never evidence
+    // of cancellation: only a cancelled token is.
+    private bool GenuineCancel(CancellationToken token) => token.IsCancellationRequested || lifetime.IsCancellationRequested;
+    // An ObjectDisposedException is expected only once teardown has genuinely begun: this view
+    // model disposed, or the orchestrator it depends on shutting down. Shutting down is read
+    // without a lock, so it is safe to call from an exception filter.
+    private bool ShuttingDown => disposed || lifetime.IsCancellationRequested || orchestrator.IsShutdown;
     private ApplicationInventorySession? session;
     private string search = "", selectedId = "";
     private int filter, sort, page, kindFilter;
     private bool busy;
+    private bool disposed;
     private UninstallState state = UninstallState.Ready;
-    public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion, IGameLauncher launcher) : base(localizer)
+    public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion, IGameLauncher launcher,
+        IApplicationDataOrchestrator orchestrator, IAppDiagnostics diagnostics) : base(localizer)
     {
         this.executor = executor;
         this.leftovers = leftovers;
         this.deletion = deletion;
         this.launcher = launcher;
+        this.orchestrator = orchestrator;
+        this.diagnostics = diagnostics;
         RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !Busy);
+        orchestrator.RegisterBackgroundWarmup(DataDataset.InstalledApplications, LoadTier.Background,
+            async token => await ReadApplicationsAsync(false, token), ApplicationsFreshness);
+        orchestrator.RegisterBackgroundWarmup(DataDataset.Games, LoadTier.Background,
+            async token => await ReadGamesAsync(false, token), GamesFreshness);
     }
+    // Read-only inventory refresh, not execution. Only counts are persisted.
+    private async Task<ApplicationInventorySession> ProduceAsync(CancellationToken token)
+    {
+        var value = await executor.RefreshAsync(token).ConfigureAwait(false);
+        orchestrator.CacheApplicationsSummary(Summarize(value));
+        return value;
+    }
+    private static ApplicationsSummarySnapshot Summarize(ApplicationInventorySession value) => new(
+        value.Inventory.Applications.Count(i => i.ItemKind != ItemKind.Game),
+        value.Inventory.Applications.Count(i => i.ItemKind == ItemKind.Game), value.Inventory.Complete, DateTimeOffset.UtcNow);
+    private Task<ApplicationInventorySession> ReadApplicationsAsync(bool force, CancellationToken token) => force
+        ? orchestrator.RefreshAsync(DataDataset.InstalledApplications, LoadTier.Background, ProduceAsync, token)
+        : orchestrator.GetAsync(DataDataset.InstalledApplications, LoadTier.Background, ApplicationsFreshness, ProduceAsync, token);
+    // Games are a separate summary dataset, projected from the same single-flight source.
+    // No second call to the native applications/launcher enumerator is made.
+    private async Task<ApplicationsSummarySnapshot> ProduceGamesAsync(CancellationToken token) => Summarize(await ReadApplicationsAsync(false, token).ConfigureAwait(false));
+    private Task<ApplicationsSummarySnapshot> ReadGamesAsync(bool force, CancellationToken token) => force
+        ? orchestrator.RefreshAsync(DataDataset.Games, LoadTier.Background, ProduceGamesAsync, token)
+        : orchestrator.GetAsync(DataDataset.Games, LoadTier.Background, GamesFreshness, ProduceGamesAsync, token);
+    private async Task<ApplicationInventorySession> ReadAsync(bool force, CancellationToken token)
+    {
+        var value = await ReadApplicationsAsync(force, token);
+        await ReadGamesAsync(force, token);
+        return value;
+    }
+    public Task RefreshIfStaleAsync() => orchestrator.IsStale(DataDataset.InstalledApplications, ApplicationsFreshness)
+        || orchestrator.IsStale(DataDataset.Games, GamesFreshness) ? InitializeAsync() : Task.CompletedTask;
+    public Task InitializeAsync() => StartLoad(false);
+    public Task RefreshAsync() => StartLoad(true);
+    private Task StartLoad(bool force) => disposed ? Task.CompletedTask
+        : load is { IsCompleted: false } ? load : Busy ? Task.CompletedTask : load = LoadAsync(force);
     public AsyncRelayCommand RefreshCommand { get; }
     public string Text(string key) => L[key];
     public string FormatSize(long? bytes) => bytes is >= 0
@@ -47,6 +110,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     // date marks otherwise split a numeric date into reordered RTL fragments.
     public string FormatDate(DateOnly? value) => value is { } date ? SystemCore.Core.SystemInformation.InfoFormatting.Date(date, L.Culture).Replace("\u200f", "").Replace("\u200e", "") : L["UnUnknown"];
     public string Title => L["NavUninstaller"];
+    public bool InventoryLoadFailed => loadFailed;
     public int RawCount => session?.Inventory.Applications.Count ?? 0;
     public int RemovableCount => session?.Inventory.Applications.Count(RemovableApplications.IsVisible) ?? 0;
     public int ManagedCount => session?.Inventory.Applications.Count(UnifiedLibraryPresentation.IsLauncherManaged) ?? 0;
@@ -57,9 +121,22 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public async Task OpenLauncherAsync()
     {
         if (!CanOpenLauncher || Selected is not { } app) return;
-        Busy = true;
-        try { launcherFailed = !await launcher.OpenAsync(app.Source, BeginOperation()); }
-        catch (OperationCanceledException) { }
+        // See LoadAsync: Busy is set inside the guarding try, and the token is declared outside
+        // it so the catches can ask whether a token was really cancelled.
+        CancellationToken token = default;
+        try
+        {
+            Busy = true;
+            token = BeginOperation();
+            launcherFailed = !await launcher.OpenAsync(app.Source, token);
+        }
+        // The launcher reports a user-cancelled start the same way it reports any cancellation.
+        // Only a token that was actually cancelled makes it one.
+        catch (OperationCanceledException) when (GenuineCancel(token)) { }
+        catch (ObjectDisposedException) when (ShuttingDown) { }
+        // A fault the launcher did not ask for is a real failure: it is shown as unavailable and
+        // recorded, never silently read as "the user changed their mind".
+        catch (Exception e) { launcherFailed = true; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
         finally { EndOperation(); }
     }
     public IReadOnlyList<InstalledApplication> Inventory => session?.Inventory.Applications ?? [];
@@ -114,8 +191,9 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public int KindFilter { get => kindFilter; set { kindFilter = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
     public int Sort { get => sort; set { sort = value; page = 0; selectedId = ""; OnPropertyChanged(nameof(Rows)); } }
     public string SelectedId { get => selectedId; set { selectedId = value; OnPropertyChanged(nameof(Selected)); } }
-    public InstalledApplication? Selected => session?.Inventory.Applications.FirstOrDefault(a => a.Id == selectedId && UnifiedLibraryPresentation.IsVisible(a));
-    public string Status => (launcherFailed ? L["UnLauncherUnavailable"] : state == UninstallState.Ready ? L[Busy ? "UnLoading" : session is not null ? "UnLoaded" : "UnStateReady"] : L["UnState" + state])
+    public InstalledApplication? Selected => inventoryActionable ? session?.Inventory.Applications.FirstOrDefault(a => a.Id == selectedId && UnifiedLibraryPresentation.IsVisible(a)) : null;
+    public string Status => (loadFailed ? L["UnLoadFailed"] : launcherFailed ? L["UnLauncherUnavailable"] : state == UninstallState.Ready ? L[Busy || session is null ? "UnLoading" : "UnLoaded"] : L["UnState" + state])
+        + (session is null && cachedSummary is { } cached ? $" — {L["UnApplicationsKind"]}: {cached.Applications}; {L["UnGamesKind"]}: {cached.Games}" : "")
         + (session?.Inventory.Complete == false ? " — " + L["UnPartial"] : "")
         + (!Busy && !ShowLeftovers && state == UninstallState.Ready && session is { Inventory.Complete: true } && Count == 0 ? "\n" + L[RemovableCount + ManagedCount == 0 ? "UnRemovableEmpty" : "ProductNoMatches"] : "");
     private IEnumerable<InstalledApplication> Filtered()
@@ -141,15 +219,38 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public bool HasPrevious => page > 0;
     public bool HasNext => (page + 1) * 20 < Count;
     public void MovePage(int offset) { page = Math.Clamp(page + offset, 0, Math.Max(0, (Count - 1) / 20)); selectedId = ""; OnPropertyChanged(nameof(Rows)); }
-    public async Task RefreshAsync()
+    private async Task LoadAsync(bool force)
     {
-        if (Busy) return;
-        selectedId = ""; session = null; state = UninstallState.Ready; launcherFailed = false;
-        receipt = null; leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
-        Busy = true;
-        try { session = await executor.RefreshAsync(BeginOperation()); page = 0; }
-        catch (OperationCanceledException) { state = UninstallState.Cancelled; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException or InvalidOperationException) { state = UninstallState.Failed; }
+        // A disposed view model must never start new provider work. Checked before any
+        // lifetime token is read, because CancellationTokenSource.Token throws once disposed.
+        if (disposed) return;
+        // Automatic freshness must not consume a verified receipt or a cleanup review.
+        if (force) { receipt = null; leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); }
+        selectedId = ""; if (!ShowLeftovers) state = UninstallState.Ready; launcherFailed = loadFailed = false;
+        // Declared outside the try so the catches can ask whether a token was really cancelled.
+        // It stays default when BeginOperation never ran, and a default token is never cancelled,
+        // so GenuineCancel then reports only the lifetime, which is the honest answer.
+        CancellationToken token = default;
+        // Busy and the notification that reaches the view's XAML are inside the guarding try.
+        // A subscriber that faults here used to skip the finally, leaving Busy set for the life
+        // of the process: StartLoad refuses every later load while Busy, so the page never
+        // recovered without a restart.
+        try
+        {
+            Busy = true;
+            OnPropertyChanged(string.Empty);
+            token = BeginOperation();
+            if (session is null) { cachedSummary = await Task.Run(() => orchestrator.CacheApplicationsSummary(), token); OnPropertyChanged(string.Empty); }
+            session = await ReadAsync(force, token); inventoryActionable = true; if (!ShowLeftovers) page = 0;
+        }
+        // The UI cancel button cancels the active operation, not the lifetime. A genuine user
+        // cancel must be classified as cancellation, never as a provider failure.
+        catch (OperationCanceledException) when (GenuineCancel(token)) { inventoryActionable = false; state = UninstallState.Cancelled; }
+        // Expected only when teardown has genuinely begun, which is the only reason a live read
+        // would meet a disposed dependency.
+        catch (ObjectDisposedException) when (ShuttingDown) { inventoryActionable = false; }
+        // Retention rows must never authorize a mutation after a failed read.
+        catch (Exception e) { inventoryActionable = false; loadFailed = true; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
         finally { EndOperation(); }
     }
     // Called only after the view's explicit ContentDialog confirmation.
@@ -157,28 +258,59 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     {
         if (Busy || session is null || Selected is not { CanUninstall: true } app || app.Id != confirmedId) return;
         receipt = null; leftoverSession = null; cleanup = null; selectedLeftovers.Clear();
-        Busy = true;
+        // See LoadAsync: Busy is set inside the guarding try so a faulting subscriber cannot
+        // leave the page busy for the life of the process.
         var acceptingProgress = true;
+        CancellationToken token = default;
         try
         {
-            var token = BeginOperation();
+            Busy = true;
+            token = BeginOperation();
+            // The executor consumes its live session even on cancellation/failure.
+            // Expire both read caches before handing it off; a later page entry must
+            // obtain a new service-owned session, not replay the consumed cached ID.
+            inventoryActionable = false;
+            orchestrator.Publish(DataDataset.InstalledApplications, session, TimeSpan.Zero);
+            orchestrator.Publish(DataDataset.Games, Summarize(session), TimeSpan.Zero);
             var result = await executor.UninstallAsync(new(session.Id, app.Id), new Progress<UninstallState>(s => { if (acceptingProgress) { state = s; OnPropertyChanged(nameof(Status)); } }), token);
             acceptingProgress = false;
             state = result.State;
             receipt = result.State == UninstallState.Removed && result.ApplicationId == app.Id && result.Receipt?.ApplicationId == app.Id
                 && app.ItemKind != ItemKind.Game ? result.Receipt : null;
-            session = null; selectedId = ""; // consume the UI's inventory selection as well
+            selectedId = ""; // Keep the last display, but the consumed session is not actionable.
             if (receipt is not null && !token.IsCancellationRequested) await ScanLeftoversCoreAsync(token);
+            if (result.State == UninstallState.Removed && result.ApplicationId == app.Id && !token.IsCancellationRequested)
+                await RefreshAfterMutationAsync(token);
         }
-        catch (OperationCanceledException) { state = UninstallState.Cancelled; session = null; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception) { state = UninstallState.Failed; session = null; }
+        // A cancelled token is a cancellation. The same exception type with no cancelled token
+        // is a provider fault, and must not be reported to the user as a cancel they performed.
+        catch (OperationCanceledException) when (GenuineCancel(token)) { state = UninstallState.Cancelled; inventoryActionable = false; }
+        // Teardown interrupted an uninstall that was still in flight. It did not complete, and
+        // nothing is reading the state because the window is closing, so Cancelled is the honest
+        // reading. It is expected, so it is neither recorded nor shown as a failure.
+        catch (ObjectDisposedException) when (ShuttingDown) { state = UninstallState.Cancelled; inventoryActionable = false; }
+        // ObjectDisposedException derives from InvalidOperationException, so it must be excluded
+        // here: outside shutdown it is an unexpected provider fault and must be recorded below.
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception && e is not ObjectDisposedException) { state = UninstallState.Failed; inventoryActionable = false; }
+        // Anything else is a real defect. It is recorded and stays Failed, rather than escaping
+        // the confirmation handler and taking the UI thread's async void with it.
+        catch (Exception e) { state = UninstallState.Failed; inventoryActionable = false; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
         finally { acceptingProgress = false; EndOperation(); }
+    }
+    private async Task RefreshAfterMutationAsync(CancellationToken token)
+    {
+        try { session = await ReadAsync(true, token); inventoryActionable = true; loadFailed = false; }
+        catch (OperationCanceledException) when (GenuineCancel(token)) { inventoryActionable = false; }
+        catch (ObjectDisposedException) when (ShuttingDown) { inventoryActionable = false; }
+        // A post-mutation read failure is a real fault, not a status to absorb silently.
+        catch (Exception e) { inventoryActionable = false; loadFailed = true; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
     }
     public async Task ScanLeftoversAsync()
     {
         if (!CanScanLeftovers || receipt is null) return;
-        Busy = true;
-        try { await ScanLeftoversCoreAsync(BeginOperation()); }
+        // See LoadAsync: Busy is set inside the guarding try so a faulting subscriber cannot
+        // leave the page busy for the life of the process.
+        try { Busy = true; await ScanLeftoversCoreAsync(BeginOperation()); }
         finally { EndOperation(); }
     }
     // The automatic and retry paths share one read-only operation. Never chain deletion.
@@ -191,10 +323,14 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             token.ThrowIfCancellationRequested();
             leftoverSession = scan; state = UninstallState.LeftoversReady;
         }
-        catch (OperationCanceledException) { state = UninstallState.Removed; }
-        // Scanning is optional/read-only: even an unexpected provider fault must
-        // not escape the async UI handler or authorize a partial deletion session.
-        catch (Exception) { state = UninstallState.Failed; }
+        catch (OperationCanceledException) when (GenuineCancel(token)) { state = UninstallState.Removed; }
+        // An interrupted scan means the optional cleanup review is simply absent, which is the
+        // same state a user skipping it produces. Expected during teardown, so it is not recorded.
+        catch (ObjectDisposedException) when (ShuttingDown) { state = UninstallState.Removed; }
+        // Scanning is optional/read-only: an unexpected provider fault must not escape the async UI
+        // handler or authorize a partial deletion session. It is recorded rather than absorbed,
+        // so a scanner that fails for real is visible instead of silently reading as "no leftovers".
+        catch (Exception e) { state = UninstallState.Failed; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
     }
     public void KeepLeftovers()
     {
@@ -205,13 +341,29 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public async Task DeleteLeftoversConfirmedAsync(Guid[] confirmedIds)
     {
         if (!CanDeleteLeftovers || leftoverSession is null || !selectedLeftovers.SetEquals(confirmedIds)) return;
-        Busy = true;
-        state = UninstallState.CleaningLeftovers; OnPropertyChanged(nameof(Status));
-        try { cleanup = await deletion.DeleteAsync(new(leftoverSession.Id, leftoverSession.ApplicationIdentityId, confirmedIds), BeginOperation()); state = UninstallState.CleanupComplete; }
-        catch (OperationCanceledException) { state = UninstallState.Cancelled; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception) { state = UninstallState.Failed; }
+        // See LoadAsync: Busy is set inside the guarding try so a faulting subscriber cannot
+        // leave the page busy for the life of the process. The token stays outside it so the
+        // catches can ask whether a token was really cancelled.
+        CancellationToken token = default;
+        try
+        {
+            Busy = true;
+            state = UninstallState.CleaningLeftovers; OnPropertyChanged(nameof(Status));
+            token = BeginOperation();
+            cleanup = await deletion.DeleteAsync(new(leftoverSession.Id, leftoverSession.ApplicationIdentityId, confirmedIds), token);
+            state = UninstallState.CleanupComplete;
+            await RefreshAfterMutationAsync(token);
+        }
+        catch (OperationCanceledException) when (GenuineCancel(token)) { state = UninstallState.Cancelled; }
+        catch (ObjectDisposedException) when (ShuttingDown) { state = UninstallState.Cancelled; }
+        // ObjectDisposedException derives from InvalidOperationException, so it must be excluded
+        // here: outside shutdown it is an unexpected provider fault and must be recorded below.
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception && e is not ObjectDisposedException) { state = UninstallState.Failed; }
+        // A deletion is user-confirmed and destructive, so an unclassified fault is recorded and
+        // left Failed. It is never reported as a cancel the user did not request.
+        catch (Exception e) { state = UninstallState.Failed; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
         finally { selectedLeftovers.Clear(); EndOperation(); }
     }
     public Guid[] SelectedLeftoverIds() => selectedLeftovers.ToArray();
-    public override void Dispose() { lifetime.Cancel(); lifetime.Dispose(); session = null; base.Dispose(); }
+    public override void Dispose() { disposed = true; lifetime.Cancel(); lifetime.Dispose(); session = null; base.Dispose(); }
 }

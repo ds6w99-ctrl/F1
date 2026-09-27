@@ -2,8 +2,13 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SystemCore.App.Services;
+using SystemCore.App.Startup;
+using SystemCore.App.SystemInformation;
+using SystemCore.App.Tools;
+using SystemCore.App.Uninstaller;
 using SystemCore.App.ViewModels;
 using SystemCore.App.Views;
+using SystemCore.Core.Orchestration;
 using Windows.Graphics;
 
 namespace SystemCore.App;
@@ -23,13 +28,26 @@ public sealed partial class MainWindow : Window
     private readonly MemoryTools.MemoryToolsView memoryTools;
     private readonly Tools.ToolsView tools;
     private readonly WindowAppearanceController appearance;
+    private readonly IApplicationDataOrchestrator orchestrator;
+    private readonly CancellationTokenSource activationLifetime = new();
+    private readonly DatasetRefreshRequest[] activationRefreshes;
+    private bool shuttingDown;
     private bool ready;
     private readonly LocalizationService localizer;
+    // App-layer timings: the Core orchestrator deliberately does not own UI milestones.
+    public static class StartupTimeline
+    {
+        public static DateTimeOffset? WindowVisibleAt { get; private set; }
+        public static DateTimeOffset? NavigationUsableAt { get; private set; }
+        internal static void WindowVisible() => WindowVisibleAt ??= DateTimeOffset.UtcNow;
+        internal static void NavigationUsable() => NavigationUsableAt ??= DateTimeOffset.UtcNow;
+    }
 
-    public MainWindow(ShellViewModel viewModel, LocalizationService localizer, CompatibilityService compatibility)
+    public MainWindow(ShellViewModel viewModel, LocalizationService localizer, CompatibilityService compatibility, IApplicationDataOrchestrator orchestrator)
     {
         ViewModel = viewModel;
         this.localizer = localizer;
+        this.orchestrator = orchestrator;
         InitializeComponent();
         Title = ViewModel.ProductName;
         AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Brand", "F1.ico"));
@@ -47,6 +65,19 @@ public sealed partial class MainWindow : Window
         memoryTools = new(ViewModel.MemoryTools);
         tools = new(ViewModel.Tools);
         appearance = new(this, Root, SolidBackground, ViewModel.Settings, localizer, compatibility, Scenery, ContentHost);
+        // Activation only decides what is stale. The orchestrator admits one refresh per
+        // dataset and owns the lifetime token, so a burst of restore events cannot fan out into
+        // duplicate provider work. It then runs each admitted action on a thread-pool thread,
+        // and a page view model raises PropertyChanged into live XAML, which rejects a
+        // cross-thread write. So each action is entered on the UI thread by OnUiAsync: the
+        // staleness test and the load it starts both belong to the thread that owns the view.
+        activationRefreshes =
+        [
+            new(DataDataset.InstalledApplications, UninstallerViewModel.ApplicationsFreshness, _ => OnUiAsync(ViewModel.Uninstaller.RefreshIfStaleAsync)),
+            new(DataDataset.Startup, StartupViewModel.StartupFreshness, _ => OnUiAsync(ViewModel.Startup.RefreshIfStaleAsync)),
+            new(DataDataset.SystemInformation, SystemInformationViewModel.SystemInformationFreshness, _ => OnUiAsync(ViewModel.SystemInformation.RefreshIfStaleAsync)),
+            new(DataDataset.Tools, ToolsViewModel.ToolsFreshness, _ => OnUiAsync(ViewModel.Tools.RefreshIfStaleAsync))
+        ];
         ready = true;
         Navigation.SelectedItem = DashboardItem;
         ContentHost.Content = dashboard;
@@ -69,7 +100,7 @@ public sealed partial class MainWindow : Window
         UpdateVisibility();
         // Establish a XAML input focus after the initial resize/layout. UI Automation
         // can otherwise reach controls before this desktop window presents its content.
-        DispatcherQueue.TryEnqueue(() => DashboardItem.Focus(FocusState.Programmatic));
+        DispatcherQueue.TryEnqueue(() => { DashboardItem.Focus(FocusState.Programmatic); StartupTimeline.NavigationUsable(); });
     }
 
     private void OnNavigationChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -146,10 +177,39 @@ public sealed partial class MainWindow : Window
     {
         appearance.Apply();
         UpdateVisibility();
+        if (AppWindow.IsVisible) StartupTimeline.WindowVisible();
+        // Shutdown is announced at BeginShutdown, which runs long before Closed disposes the
+        // page view models. Without this guard a restore event landing inside that window
+        // would start refreshes whose lifetime token is already cancelled or disposed.
+        if (shuttingDown || args.WindowActivationState == WindowActivationState.Deactivated || !AppWindow.IsVisible) return;
+        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized }) return;
+        // Each action performs only IsStale before joining the shared background load.
+        // No full scan and no direct producer call on activation.
+        _ = orchestrator.RefreshStaleAsync(activationRefreshes, activationLifetime.Token);
+    }
+    // The orchestrator awaits each admitted refresh on a thread-pool thread, so the action is
+    // queued onto the window's dispatcher and entered there. A fault is propagated rather than
+    // absorbed, so the orchestrator still records it against the dataset exactly as before the
+    // hop. A dispatcher that refuses the work means the window is already going away: the
+    // dataset is released by the orchestrator either way and a later activation re-checks it.
+    private Task OnUiAsync(Func<Task> action)
+    {
+        if (DispatcherQueue.HasThreadAccess) return action();
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (!DispatcherQueue.TryEnqueue(async () =>
+        {
+            try { await action(); completion.TrySetResult(); }
+            catch (Exception e) { completion.TrySetException(e); }
+        })) completion.TrySetResult();
+        return completion.Task;
     }
     private void OnWindowChanged(AppWindow sender, AppWindowChangedEventArgs args) => UpdateVisibility();
     public void BeginShutdown()
     {
+        shuttingDown = true;
+        // Cancel before anything else so no activation refresh can be admitted from here on.
+        // IsCancellationRequested stays readable after Dispose, unlike the token itself.
+        try { activationLifetime.Cancel(); } catch (ObjectDisposedException) { }
         Navigation.IsEnabled = false;
         ContentHost.IsEnabled = false;
         ViewModel.SetWindowState(false, false);

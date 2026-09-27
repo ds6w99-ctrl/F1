@@ -8,6 +8,20 @@ using SystemCore.Core.Performance;
 
 internal static class OrchestrationTests
 {
+    // Records are counted, not discarded, so a test can prove the orchestration layer reports
+    // a failing caller delegate instead of absorbing it silently.
+    public sealed class SilentDiagnostics : SystemCore.Core.Diagnostics.IAppDiagnostics
+    {
+        public int ProviderFailures;
+        public void Record(SystemCore.Core.Diagnostics.DiagnosticFeature feature, SystemCore.Core.Diagnostics.DiagnosticEvent action, int code = 0)
+        { if (action == SystemCore.Core.Diagnostics.DiagnosticEvent.ProviderFailure) Interlocked.Increment(ref ProviderFailures); }
+        public Task FlushAsync(CancellationToken token = default) => Task.CompletedTask;
+        public SystemCore.Core.Diagnostics.DiagnosticsStatus GetStatus() => new(true, 0, 0, 0);
+        public Task<SystemCore.Core.Diagnostics.DiagnosticOperation> ExportAsync(CancellationToken token) => throw new NotSupportedException();
+        public Task<SystemCore.Core.Diagnostics.DiagnosticOperation> ClearOldAsync(CancellationToken token) => throw new NotSupportedException();
+        public Task<bool> OpenFolderAsync(SystemCore.Core.Diagnostics.DiagnosticFolder folder, CancellationToken token) => throw new NotSupportedException();
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
     public static async Task<bool> Run()
     {
         var passed = 0; var failed = 0;
@@ -22,7 +36,7 @@ internal static class OrchestrationTests
         {
             using var source = new FixtureSource();
             await using var monitor = new PerformanceMonitorService(source);
-            await using var app = new ApplicationDataOrchestrator(monitor, root);
+            await using var app = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), root);
             var statuses = new List<DatasetStatus>();
             app.StatusChanged += (_, status) => { lock (statuses) statuses.Add(status); };
             Check("measurements start without fabricated timings", app.Measurements.StartedAt != default &&
@@ -106,7 +120,7 @@ internal static class OrchestrationTests
             Check("heavy maximum remains bounded", maximum == 2);
             Check("cleaner scan timings recorded", app.Measurements.ToCleanerScanStart.HasValue && app.Measurements.ToCleanerScanComplete.HasValue);
 
-            await using (var warm = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "warm")))
+            await using (var warm = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "warm")))
             {
                 var warmStarted = Signal(); var warmRelease = Signal(); var warmCalls = 0; var replaced = 0;
                 warm.RegisterBackgroundWarmup(DataDataset.InstalledApplications, LoadTier.Expensive, _ => { replaced++; return Task.CompletedTask; }, TimeSpan.FromMinutes(1));
@@ -123,7 +137,7 @@ internal static class OrchestrationTests
                 await warm.StartAsync();
                 Check("startup idempotent", warmCalls == 1);
             }
-            await using (var badWarm = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "bad-warm")))
+            await using (var badWarm = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "bad-warm")))
             {
                 var failedWarm = new TaskCompletionSource<DatasetStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
                 badWarm.StatusChanged += (_, s) => { if (s.DatasetState == DatasetState.Failed) failedWarm.TrySetResult(s); };
@@ -132,7 +146,7 @@ internal static class OrchestrationTests
                 Check("warmup fault cannot escape startup", (await failedWarm.Task.WaitAsync(TimeSpan.FromSeconds(5))).Error is { Length: > 0 });
                 Check("warmup failure permits retry", await badWarm.GetAsync(DataDataset.Tools, LoadTier.Background, TimeSpan.Zero, _ => Task.FromResult(3), default) == 3);
             }
-            await using (var freshWarm = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "fresh-warm")))
+            await using (var freshWarm = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "fresh-warm")))
             {
                 var skippedCalls = 0; var sentinel = Signal();
                 freshWarm.Publish(DataDataset.Tools, 5, TimeSpan.FromMinutes(1));
@@ -141,7 +155,7 @@ internal static class OrchestrationTests
                 await freshWarm.StartAsync(); await sentinel.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 Check("warmup respects ready value freshness", skippedCalls == 0);
             }
-            await using (var voidWarm = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "void-warm")))
+            await using (var voidWarm = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "void-warm")))
             {
                 voidWarm.Publish(DataDataset.Tools, 7, TimeSpan.Zero);
                 var ready = Signal(); var finish = Signal();
@@ -154,7 +168,7 @@ internal static class OrchestrationTests
                 Check("void warmup cannot reauthorize a previous typed value", await typedRequest == 8 && typedCalls == 1);
             }
             var cancellationSeen = Signal(); var cancellationStarted = Signal();
-            var cancelApp = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "cancel"));
+            var cancelApp = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "cancel"));
             DatasetStatus? cancelStatus = null;
             cancelApp.StatusChanged += (_, s) => cancelStatus = s;
             var cancelled = cancelApp.GetAsync<int>(DataDataset.Tools, LoadTier.Background, TimeSpan.Zero, async token =>
@@ -166,7 +180,7 @@ internal static class OrchestrationTests
             await cancelApp.DisposeAsync();
             try { await cancelled; } catch (OperationCanceledException) { }
             Check("lifetime cancellation reaches provider without crash status", cancellationSeen.Task.IsCompleted && cancelled.IsCanceled && cancelStatus is { DatasetState: DatasetState.Empty, Error: null });
-            var stuckApp = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "stuck"));
+            var stuckApp = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "stuck"));
             var stuckStarted = Signal(); var stuckRelease = Signal();
             var stuck = stuckApp.GetAsync(DataDataset.Tools, LoadTier.Expensive, TimeSpan.Zero, async _ => { stuckStarted.TrySetResult(); await stuckRelease.Task; return 1; }, default);
             await stuckStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -176,7 +190,7 @@ internal static class OrchestrationTests
             await app.DisposeAsync();
             Check("telemetry consumer released without stopping shared monitor", monitor.GetLifecycleDiagnostics().Consumers == beforeConsumers && monitor.GetLifecycleDiagnostics().Workers == 1);
 
-            await using var cacheApp = new ApplicationDataOrchestrator(monitor, Path.Combine(root, "cache"));
+            await using var cacheApp = new ApplicationDataOrchestrator(monitor, new SilentDiagnostics(), Path.Combine(root, "cache"));
             var summary = new DashboardSummarySnapshot(12, 3, 1024, DateTimeOffset.UtcNow);
             Check("typed cache round trip", cacheApp.CacheDashboardSummary(summary) == summary && cacheApp.CacheDashboardSummary() == summary);
             Check("missing typed cache is miss", cacheApp.CacheStartupSummary() is null);
@@ -226,14 +240,27 @@ internal static class OrchestrationTests
             write.MakeGenericMethod(typeof(int)).Invoke(invalidCache, ["good", 1]);
             Check("invalid cache root fails closed without throwing", !(bool)read.Invoke(invalidCache, ["good", null, default(DateTimeOffset), null])!);
             var surface = typeof(IApplicationDataOrchestrator).GetMethods();
-            var allowed = new[] { "StartAsync", "GetAsync", "RefreshAsync", "IsStale", "Publish", "StartLiveTelemetry", "get_Measurements", "add_StatusChanged", "remove_StatusChanged", "RegisterBackgroundWarmup",
-                "CacheDashboardSummary", "CacheSystemInformationSummary", "CacheApplicationsSummary", "CacheStartupSummary", "CacheCleanerSummary" };
+            // RefreshStaleAsync is the activation-time sibling of RegisterBackgroundWarmup: both take a
+            // caller-supplied Func, and the layer stores no mutation service to invoke one against.
+            var allowed = new[] { "StartAsync", "GetAsync", "RefreshAsync", "IsStale", "Publish", "StartLiveTelemetry", "get_Measurements", "get_IsShutdown", "add_StatusChanged", "remove_StatusChanged", "RegisterBackgroundWarmup",
+                "RefreshStaleAsync", "CacheDashboardSummary", "CacheSystemInformationSummary", "CacheApplicationsSummary", "CacheStartupSummary", "CacheCleanerSummary" };
             // This proves the orchestrator has no direct mutation capability. Trusted delegate bodies require separate call-graph review.
             Check("R1 own public surface excludes mutation entry points", surface.All(m => allowed.Contains(m.Name)));
             Check("R1 implementation adds no mutation surface", typeof(ApplicationDataOrchestrator).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                 .All(m => allowed.Contains(m.Name) || m.Name == "DisposeAsync"));
             var forbidden = new[] { typeof(SystemCore.Core.Cleaner.ICleanerService), typeof(SystemCore.Core.Startup.IStartupMutationService), typeof(IMemoryOptimizationService),
                 typeof(SystemCore.Core.Uninstaller.IUninstallExecutor), typeof(SystemCore.Core.Uninstaller.ILeftoverDeletionService) };
+            // Allowing RefreshStaleAsync must not become a back door: it may only accept a caller
+            // delegate and a token, and no mutation service may appear among its parameter types.
+            var refreshStale = typeof(IApplicationDataOrchestrator).GetMethod("RefreshStaleAsync")!;
+            Check("R1 activation refresh grants no mutation parameter",
+                refreshStale.ReturnType == typeof(Task<int>) &&
+                refreshStale.GetParameters().Select(p => p.ParameterType)
+                    .All(t => !forbidden.Any(f => f.IsAssignableFrom(t.IsGenericType ? t.GetGenericArguments()[0] : t))));
+            // IsShutdown is a read-only observation, not a capability, but it is still pinned.
+            Check("R1 shutdown flag grants no mutation capability",
+                typeof(IApplicationDataOrchestrator).GetProperty("IsShutdown") is { CanRead: true, CanWrite: false } shutdown
+                    && shutdown.PropertyType == typeof(bool) && !forbidden.Any(f => f.IsAssignableFrom(shutdown.PropertyType)));
             Check("R1 no reachable mutation-service field or constructor dependencies", !HasMutationDependency(typeof(ApplicationDataOrchestrator), forbidden));
             Check("R1 graph detects indirect fields and constructor-only dependencies", HasMutationDependency(typeof(GraphFieldFixture), forbidden) && HasMutationDependency(typeof(GraphConstructorFixture), forbidden));
             Check("R1 graph terminates on safe cycles", !HasMutationDependency(typeof(GraphCycleFixture), forbidden));

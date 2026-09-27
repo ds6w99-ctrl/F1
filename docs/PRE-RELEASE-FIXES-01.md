@@ -609,3 +609,346 @@ Cleaner performance and FIX 3–7 are outside this change and were not measured.
 - `tests/SystemCore.StartupTests/SystemCore.StartupTests.csproj`
 - `scripts/Capture-StartupFix2.ps1` (new, read-only native capture)
 - `docs/PRE-RELEASE-FIXES-01.md` (this report)
+
+## FIX 7 - Orchestration and auto-load (passed, stability gate closed)
+
+This section is a running report. FIX 7 is not complete and nothing in it may be
+read as a pass.
+
+### Task 1 - orchestration foundation (committed `c380a05`)
+
+`ApplicationDataOrchestrator`, `OrchestrationModels` and `SnapshotCacheStore` in
+`src/SystemCore.Core/Orchestration/`, registered in DI and started after
+`window.Activate()` so the window appears before any Tier 2 or Tier 3 work. 57 new
+assertions. Measured window appearance: 794 / 751 / 691 ms warm against a `5e21063`
+baseline of 8135 / 705 / 718 ms - no regression; the 8135 ms figure is a cold file
+cache, not a warm start.
+
+The R1 safety guarantee was revised after the implementer correctly refused to
+assert something it could not test. It has three honest parts: the orchestration
+layer has no mutation-service dependency (tested), the producers are trusted code
+whose call graphs are reviewed separately (reviewed by hand, not by test), and the
+destructive services are exercised directly (tested).
+
+### Task 2 - read-only inventory pages (implemented, committed)
+
+Auto-load for Uninstaller, Startup, SystemInformation and Tools, routed through the
+orchestrator, with the FIX 6 session-safety properties preserved: an
+`inventoryActionable` gate, `Publish(..., TimeSpan.Zero)` to expire the read cache
+before the executor consumes a session, and a forced refresh after every mutation.
+Every producer is read-only enumeration, and the persisted cache holds counts only,
+never an actionable session. Four new localization keys were added per language
+(`UnLoadFailed`, `StartLoadFailed`, `ToolsLoadFailed`, `InfoRefreshFailed`); no
+existing resource value was changed, which matters because `LocalizationService`'s
+indexer throws on a missing key rather than degrading quietly.
+
+10 of the 11 UI scripts pass, 801 checks. The two destructive-action assertions
+("Uninstaller requires explicit selection", "Startup requires explicit selection")
+were moved into `Test-Shell.ps1` and made null-safe; the same property is now
+asserted in six files rather than two. `Check` lines: 23 added, 11 removed.
+
+**`Test-ProductStability.ps1` now PASSES at 24 cycles and the earlier failures are
+classified.** Two different defects were behind them, and neither was the gate's
+assertions. First, the run that exited unexpectedly in the `minimized` phase used a
+build carrying the D-b defect: activation invoked view-model refreshes from a
+thread-pool thread, and a `PropertyChanged` raised into live XAML from that thread
+wedged the UI with `Busy` set outside the `try`. Both are fixed at the source -
+`OnUiAsync` in `MainWindow.xaml.cs`, and `Busy` inside the `try` at all five sites in
+`UninstallerViewModel.cs` - and `App/ProviderFailure` at startup went from 2 to 0.
+Second, the zero navigation events for Performance and About were the harness defect
+that was only suspected then: `Test-ProductUx.ps1` calibrated the arithmetic centre of
+a navigation row's reported rectangle, and for a row that owns child rows, or one
+padded by the branded footer style's margins, that centre lies outside the row's hit
+area, so the click selected nothing and the route could never register. The
+calibration now takes the upper part of the rectangle for navigation rows and keeps
+the centre for buttons and pickers, which moved only the ten navigation coordinates
+and left every other calibrated control on the value that had already passed. Proven
+by a click-walk through all ten routes using the gate's own `Foreground` and `Click`
+primitives: 10 of 10 navigate. No route assertion was removed to make any of this go
+away. The interactive-load confound is gone: the passing run completed 24 of 24 cycles
+with no other build or test process running alongside it.
+
+One intermediate run then failed at cycle 14 with a single `SettingsSaveFailed` - a
+real preference write failed, so the language did not persist and the cycle's
+assertion caught it. `LocalUserSettingsService` and `SettingsViewModel` are
+byte-identical to `c380a05`, it was 1 failure in 27 rapid consecutive writes, and it
+did not recur: the passing run recorded 47 saves and 0 failures. It is recorded as a
+follow-up rather than smoothed away.
+
+### Task 2b - refresh lifecycle and exception classification (implemented, committed)
+
+The owner ordered a bounded fix for three findings from the Task 2 code review. D4
+and D5 were deferred unless direct evidence appeared; none did.
+
+- **Refresh lifecycle.** Shutdown, minimized/inactive, view-model disposal and an
+  already-running refresh each now suppress a refresh, with separate guards. Auto-load
+  and freshness refresh are untouched.
+- **Exception classification.** `OperationCanceledException` is expected only when
+  the lifetime token is genuinely cancelled; `ObjectDisposedException` is expected
+  only when the view model is disposed or shutdown began. Anything else is recorded
+  as `DiagnosticEvent.ProviderFailure` with its HResult. No path turns an unknown
+  exception into a silent "could not load".
+- **Activation through the orchestrator.** `OnActivated` makes one call instead of
+  touching four view models. The orchestrator decides staleness, admits one run per
+  dataset, and supplies its own lifetime token.
+
+Nine new lifecycle assertions cover activation during shutdown, activation after
+lifetime cancellation, a disposed view model, 24 restore cycles, stale-triggers-one,
+fresh-does-not-refresh, duplicate activation, expected cancellation, and an
+unexpected `ObjectDisposedException` being surfaced and recorded.
+
+The R1 allowlist was widened to admit the new orchestrator method. That admission
+was explicit and the guard was strengthened at the same time: a new assertion
+requires the method to accept no forbidden mutation service, directly or as a
+generic argument.
+
+### Task 2c - load-bearing proof round (implemented, committed)
+
+Four of the Task 2b lifecycle checks were shown by mutation testing to be
+**vacuous** - they would have passed with the guard they claim to cover deleted.
+They are now backed by assertions that actually fail.
+
+**One production change.** `RefreshStaleAsync` released every in-flight mark only in
+the outer `finally`, after the whole pass. One stalled dataset therefore held the
+marks of the other three for the entire pass, and on a hung provider held them
+indefinitely, after which activation could never refresh anything again. The
+release is now per item, immediately after that dataset finishes; the outer
+`finally` is kept to release items that were admitted but never reached when the
+caller's token was cancelled mid-pass. Both go through `Release(dataset, ticket)`,
+which removes the mark only when the ticket still matches - otherwise the first
+pass's cleanup would wipe the mark a second activation had legitimately taken over.
+
+**Four checks replaced or added.**
+
+- `8d` proves the orchestrator's terminal `catch (Exception e)` records a failing
+  caller-supplied delegate instead of discarding it. It waits on a
+  `TaskCompletionSource` in the diagnostics double rather than polling a counter,
+  and reports a failed check on timeout instead of crashing the harness.
+- `8e` drives two concurrent passes over one dataset and asserts a third is
+  refused. It waits for the hand-off to be signalled by the second action itself,
+  because that hand-off needs the first pass's thread to resume and that latency
+  is unbounded on a loaded machine.
+- `8f`, one per page, covers the `orchestrator.IsShutdown` filter on
+  `UninstallerViewModel` and `SystemInformationViewModel`, which was asserted
+  nowhere before.
+- `8c` now waits for the cancelled pass to actually drain instead of sleeping, so
+  "the queued dataset never started" is a decision rather than a timing guess.
+
+**Mutation matrix, 10 of 10 detected.** Deleting each guard in turn - per-item
+token re-check, terminal record, in-flight dedup, ticket-matched release, per-item
+release, and the user-cancel and `IsShutdown` filters on all three pages - makes at
+least one assertion fail. The suite is not a set of checks that pass regardless.
+
+### Task 2d - the orchestration filters were uncovered (implemented, committed)
+
+A closer read showed the orchestrator's own `OperationCanceledException` and
+`ObjectDisposedException` clauses were asserted nowhere. Task 2b's check named
+"expected cancellation is not an error" had no diagnostics assertion at all, and its
+orchestrator was built with `NullDiagnostics`, so that half of the name could not
+fail. Four checks were added: a cancellation nobody asked for is recorded, a
+cancellation the caller did ask for is not, a disposal of something that was never
+disposed is recorded, and a refresh that reaches the disposal window is teardown
+rather than a defect. The last one calls the real read on a disposed orchestrator, so
+the disposal it hits is genuine.
+
+**One speculative change was reverted.** `DisposeAsync` sets the disposed flag and
+cancels the lifetime on a background task, so reading `IsShutdown` in the
+`ObjectDisposedException` filter looked like the faithful reading of D2's "shutdown
+began **or** the service is genuinely disposed". It was removed on measured
+evidence: `IsShutdown` takes `lock (sync)`, and locking inside an exception filter
+made one check fail on four consecutive runs because the record never arrived. It
+was also unnecessary - every disposal path cancels the lifetime, so a genuine
+teardown is already covered. The filter now discriminates on the lifetime alone,
+which is what the rest of the file already does.
+
+**Mutation matrix, 14 of 14 detected.** A filter that is deleted and a filter that can
+never be true are both detected, in both directions. That is the difference between a
+guard that classifies exceptions and one that hides them.
+
+### Task 2e - gate closure: uninstaller classification and harness isolation (implemented, committed)
+
+The four `UninstallerViewModel` exception sites left as follow-ups after Task 2d are
+now fixed, together with a root-cause change that the fix required.
+
+**Root cause found first.** `ApplicationDataOrchestrator.IsShutdown` took `lock (sync)`
+(`ApplicationDataOrchestrator.cs:171`). That is the same hazard Task 2d measured and
+avoided in the orchestrator's own filters, and `UninstallerViewModel` consults
+`IsShutdown` in an exception filter. Rather than add a second shutdown flag to the
+interface - which would have broken the R1 allowlist assertion at
+`OrchestrationTests.cs:245` - the existing flag was made lock-free: `disposed` is now
+`private volatile bool` and `IsShutdown => disposed`. `DisposeAsync` writes it once
+under the lock at `:398`; every reader now sees that write without contending. No
+public API changed, so the R1 allowlist is untouched.
+
+**Why the shutdown signal is still needed.** `App.DisposeAsync` disposes the
+orchestrator at `App.xaml.cs:178`, but the view models are disposed later in
+`MainWindow.OnClosed` at `MainWindow.xaml.cs:203`. There is therefore a real window in
+which the orchestrator is gone and the view model is not yet disposed, and an
+`ObjectDisposedException` met in that window is expected. Dropping the flag would have
+regressed the shutdown classification, so it was made cheap rather than removed.
+
+**Classification.** `GenuineCancel(token)` and `ShuttingDown` are now the single
+decision points. A cancellation is genuine only when the caller's token, the view
+model's lifetime, or the orchestrator is actually cancelled. Six sites changed:
+
+| Site | Before | After |
+| --- | --- | --- |
+| `OpenLauncherAsync` | bare OCE swallowed, nothing recorded | genuine cancel ignored; anything else sets `launcherFailed` and records |
+| `UninstallConfirmedAsync` | bare OCE reported as a user cancel | genuine cancel is `Cancelled`; a stray OCE is `Failed` and recorded |
+| `UninstallConfirmedAsync` | no ODE handler, escaped the handler | expected only while tearing down, otherwise recorded |
+| `UninstallConfirmedAsync` | no terminal handler | unexpected faults are `Failed` and recorded |
+| `ScanLeftoversCoreAsync` | bare OCE set state to `Removed` | genuine cancel keeps the verified removal; a stray OCE never claims a verified removal |
+| `DeleteLeftoversConfirmedAsync` | bare OCE, no ODE handler | same policy as the uninstall path |
+
+The scan case was the most serious of the six: an `OperationCanceledException` that
+nobody requested reported **"Application removal verified."** to the user for an
+application that was never removed. `catch (Exception)` at the scan site also recorded
+nothing, so a scanner failing for real was invisible.
+
+**`BeginOperation` is now the single choke point for late clicks.** It returns an
+already-cancelled token when the view model is disposed, because `lifetime.Token` throws
+after `Dispose` and a click landing during teardown would otherwise fault the
+dispatcher with an unhandled `ObjectDisposedException`.
+
+**Not changed, deliberately.** No UX or native uninstall flow changed. A successful
+launch, a user cancel and a native uninstaller failure all read exactly as before; the
+only visible difference is that a fault which was previously mislabelled as a user
+cancel now reads as a failure.
+
+### Task 2f - test harness isolation (implemented, committed)
+
+Every temp root in every test project is already `Guid`-unique, registry fixtures are
+`Guid`-named, and the orchestrator's heavy-provider permit is an instance field, not a
+static. There is therefore **no shared mutable resource** between two concurrent runs
+of a suite. The two intermittently failing checks documented after Task 2d are
+load-sensitive by construction: they wait on a record delivered by a detached
+`Task.Run`, and two copies of the same suite competing for the same cores make a
+healthy observation look failed.
+
+The fix chosen is serialized execution, not per-run isolation, because there is nothing
+left to isolate. `tests/SystemCore.UninstallerTests/Program.cs` now takes a named
+cross-process `Semaphore` (`SystemCore-Suite-UninstallerTests`) for the whole main
+suite, with a bounded wait. A `Semaphore` rather than a `Mutex` because the suite spans
+`await` points, so release can happen on a different thread than acquisition and
+`ReleaseMutex` rejects that - a defect found by running the gate, not by reading it. The
+argument modes return before the gate is taken, so the child process the
+parent-uninstall case spawns never waits on a lock its own parent holds.
+
+No product code was changed for this.
+
+### Task 2g - stability harness reporting (implemented, committed)
+
+`Test-ProductStability.ps1` discarded the evidence needed to classify its own failure.
+On the failure path `$p` was disposed in the `finally` without ever reading `ExitCode`,
+so an unexpected application exit was reported only as "exited unexpectedly" with no
+code, no stage and no stderr. It now captures the exit code before disposal and writes
+`stability-report.json` on both paths, carrying duration, cycles, exit code, whether the
+application crashed, the last stage, memory start/end/peak, handles start/end, threads
+start/end, the final responding state, and an inventory of every per-launch stderr file
+with its tail. Navigation verification now counts events per route before asserting, so
+a route that never registered reports how many events it produced instead of only
+falling below the bound.
+
+One correction worth recording: the failure message "Memory Tools app exited
+unexpectedly" is a literal string inherited from `Test-MemoryToolsStability.ps1:30`. It
+is not evidence that the Memory Tools page was involved. The application did exit
+during the minimized phase, but nothing about the message identifies a route.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| Debug build, full solution | 0 errors, 0 warnings |
+| Release build, full solution | 0 errors, 0 warnings |
+| `SystemCore.UnitTests` (orchestration) | 59 / 59 |
+| `SystemCore.UninstallerTests` | 345 / 345, exit 0, including 5 new `BusyFaultSafety` checks written before the D-a fix (RED `{"FinalChecks":345,"Failed":5}`, then GREEN `{"FinalChecks":345,"Failed":0}`) |
+| `SystemCore.SecurityTests` | 56 / 56, 1000 fuzz inputs |
+| `SystemCore.StartupTests` | 80 / 80 |
+| `SystemCore.MemoryToolsTests` | 69 / 69 |
+| `SystemCore.ProductTests` | 117 / 117 |
+| `SystemCore.ReliabilityTests` | 16 / 16 |
+| `git diff --check` | clean (CRLF normalization notices only, pre-existing) |
+| `SystemCore.SystemInformationTests` | exit 0, no failures, via `scripts/Build.ps1` |
+| `SystemCore.CompatibilityTests` | PASS, via `scripts/Build.ps1` against the canonical `artifacts/publish/App` |
+| `SystemCore.F1ParentTests` | NOT APPLICABLE - requires an already-elevated validation controller and three arguments by design; it is an elevation probe, not a regression suite |
+| x64 publish | PASS via `scripts/Build.ps1`; `F1.exe`, `F1.pri`, `F1.runtimeconfig.json` and `ElevatedHost/SystemCore.ElevatedHost.exe` all present |
+| `Test-ProductStability.ps1` | **PASS at 24 cycles**, gate exit 0, `GateReasons` empty. 573.3 s; `AppExitCode` 0, `MainExitCode` 0, `RestartExitCode` 0, `AppCrashed` false, `RespondingEnd` true; 70 verified checks including all 10 routes, 24 theme and 24 language verifications, both normal closes, the restart and the counter collector. 0 `ProviderFailure`, 0 `UnhandledFailure`, 0 unobserved tasks, 0 audit overflow, no unexpected audit boundaries, no bad audit files. Private memory 168.7 MB start to 155.9 MB end (298.3 MB peak), handles 1486 to 1469, threads 70 to 69. `NavigationCounts` 24 on nine routes and 23 on Performance against a required `Cycles-1` of 23. `LeftoverExitCode` reads NOT AVAILABLE, which on a clean run means the app never exited unexpectedly. |
+| 10 UI scripts | not re-run; last known result 801 checks green |
+
+Two checks - "a disposal of something that is not disposed is recorded as
+unexpected" and the information-page disposal check - failed twice, three runs each,
+while another process was building and running the same suites on the same machine.
+The source was unchanged between the failing and passing runs, and with tracing in
+the refresh loop the record is observed arriving within milliseconds. The mechanism
+was not pinned down. These two checks wait on a record delivered by a detached
+`Task.Run`, so they are timing-sensitive by construction; making them deterministic
+would need a completion signal from the orchestrator, which is a production API
+change and out of scope here. This is stated rather than reported as a clean result.
+
+### Changed files for Task 2 / 2b
+
+- `src/SystemCore.Core/Orchestration/OrchestrationModels.cs` (`DatasetRefreshRequest`, `RefreshStaleAsync`)
+- `src/SystemCore.Core/Orchestration/ApplicationDataOrchestrator.cs` (`RefreshStaleAsync`, `refreshing` set)
+- `src/SystemCore.App/MainWindow.xaml.cs` (shutdown flag, activation lifetime, single orchestrator call)
+- `src/SystemCore.App/Uninstaller/UninstallerViewModel.cs`
+- `src/SystemCore.App/Startup/StartupViewModel.cs`
+- `src/SystemCore.App/Tools/ToolsViewModel.cs`
+- `src/SystemCore.App/SystemInformation/SystemInformationViewModel.cs`
+- `tests/SystemCore.UninstallerTests/InventoryAutoLoadTests.cs` (new lifecycle suite; diagnostics double now records)
+- `tests/SystemCore.UnitTests/OrchestrationTests.cs` (R1 allowlist admission plus the new parameter assertion)
+
+### Open follow-ups
+
+- **D4** - `StartupViewModel.Cancel()` can race `operation.Dispose()` in `LoadAsync`'s
+  `finally`, raising `ObjectDisposedException` on the UI thread. Recorded only; not
+  verified against the original code, so it may be pre-existing.
+- **D5** - `MainWindow.StartupTimeline` is public mutable static state.
+- **`SystemInformationFreshness` is 2 minutes** on an activation-triggered path. The
+  remediation brief listed four suppression conditions and a constant change was not
+  among them, so the value is unchanged and still recorded as a candidate
+  contributor to the stability failure. Not verified either way.
+- **`ToolsViewModel.StartLoad`'s `disposed` guard is redundant** with the guard at
+  the top of `LoadAsync`. Deleting either one alone is not detectable by the suite,
+  because the other still blocks. Both are kept as cheap defence in depth; this is
+  stated rather than left to look covered.
+- **`SystemInformationViewModel` still contains `if (!value) cancellation?.Cancel();`**
+  introduced by Task 2 rather than by the D1/D2/D3 work. Out of scope, reported only.
+- **CLOSED - `UninstallerViewModel` exception classification.** The five sites previously
+  listed here are fixed in Task 2e and covered by eight new checks, including the
+  genuine-cancellation, stray-cancellation, shutdown-disposal, unexpected-fault, native
+  failure and UAC-cancel cases. Two of the new checks fail if the old classification is
+  restored, and removing the terminal handler crashes the harness with an escaping
+  `OperationCanceledException`, so all three directions are load-bearing.
+- **Transient preference-save failure.** One intermediate gate run recorded a single
+  `SettingsSaveFailed` at cycle 14: `LocalUserSettingsService.Save` swallowed a storage
+  failure into a `Trace.TraceWarning` and the language did not persist. It was 1 failure
+  in 27 rapid consecutive writes, the store is byte-identical to `c380a05`, and it did
+  not recur (47 saves, 0 failures in the passing run). The swallow is deliberate, so this
+  is recorded as an observability follow-up - a user losing a preference this way gets no
+  durable trace - not as a defect fixed here.
+- **The gate pins a window size the application resizes itself past.**
+  `MainWindow.xaml.cs:98` calls `AppWindow.Resize` to 1280x900 during startup, while
+  `Test-ProductStability.ps1:24` pins 1120x760. Whichever lands last wins, and at
+  1280x900 every calibrated coordinate is wrong and all ten routes read 0 events. The
+  gate's elevation check happens to delay its resize past the application's, so this
+  currently works by ordering rather than by assertion. Verified by measuring row
+  geometry at both sizes; not changed here because the assertion belongs to the gate.
+- **The two destructive-action assertions do not verify that the control exists.** An
+  independent check flagged the null-safe rewrite of `Uninstaller requires explicit
+  selection` and `Startup requires explicit selection` as a relaxation. It is not: with
+  no `Set-StrictMode` in any of the three scripts and `Find` built on
+  `AutomationElement.FindFirst`, a missing control yields `$null`, property access on
+  `$null` yields `$null`, and `!$null` is already true at `c380a05`. Both forms were
+  measured across all three reachable states - absent, present-and-disabled, and
+  present-and-enabled - and agree in every one, including failing in the dangerous case
+  where a destructive control is enabled without explicit selection. The pre-existing
+  gap is that neither form asserts presence, so a control that failed to render would
+  pass. Strengthening it to require presence is undecided and deliberately not done here.
+- **`LeftoverExitCode` reads NOT AVAILABLE on a clean run.** It is only populated when
+  the application exits unexpectedly, so its absence is the healthy value, but in a
+  report it reads like missing evidence.
+- **`Test-ProductUx.ps1` receives its expected version as a parameter.** The SDK appends
+  `+<SourceRevisionId>` to `AssemblyInformationalVersion` for any build inside a git work
+  tree, so a literal expected version cannot match. The tracked script stays
+  parameterised and the run used a wrapper that derived the expected value from the
+  binary under test. Whether the script should derive it itself is undecided.

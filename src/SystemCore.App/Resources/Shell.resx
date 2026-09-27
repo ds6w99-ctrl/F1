@@ -571,4 +571,8 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnRemovableEmpty" xml:space="preserve"><value>No removable applications found.</value></data>
   <data name="UnSelectDetails" xml:space="preserve"><value>Select an application to view details.</value></data>
   <data name="CleanLiveProgress" xml:space="preserve"><value>{0} · Visited: {1:N0} · Found: {2:N0} · Data: {3} · {4}</value></data>
+  <data name="UnLoadFailed" xml:space="preserve"><value>Could not refresh applications.</value></data>
+  <data name="StartLoadFailed" xml:space="preserve"><value>Could not refresh startup inventory.</value></data>
+  <data name="ToolsLoadFailed" xml:space="preserve"><value>Could not refresh tool availability.</value></data>
+  <data name="InfoRefreshFailed" xml:space="preserve"><value>Could not refresh system information.</value></data>
 </root>

@@ -75,7 +75,10 @@ try {
  do{Start-Sleep -Milliseconds 200;$p.Refresh()}while(!$p.HasExited -and $p.MainWindowHandle -eq [IntPtr]::Zero -and $watch.Elapsed.TotalSeconds -lt 30)
  Check 'Synthetic UI launched' (!$p.HasExited -and $p.MainWindowHandle -ne [IntPtr]::Zero) $null
  $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
- Navigate 'NavStartup'
+  Navigate 'NavStartup'
+  WaitStartup
+  $autoRows=(Find 'StartItems').FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ListItem))
+  Check 'FIX7 synthetic startup populated without refresh' (@($autoRows|Where-Object {$_.Current.Name -like 'SystemCore Synthetic*'}).Count -eq 3) $autoRows.Count
  (Find 'StartRefresh').GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke();WaitStartup
  foreach($name in @('SystemCore Synthetic Registry','SystemCore Synthetic Folder','SystemCore Synthetic Task')) {
   SelectFixture $name

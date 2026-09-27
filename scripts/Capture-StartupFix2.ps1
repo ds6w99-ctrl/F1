@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop'
 $visual=[IO.File]::ReadAllText((Resolve-Path scripts/Test-F1Visual.ps1))
 $entry=[regex]::Match($visual,'(?m)^try\{\r?$').Index
 . ([scriptblock]::Create($visual.Substring(0,$entry))) -AppPath $AppPath -EvidencePath $EvidencePath
+$captureWindow=(Get-Item Function:Save-WindowPicture).ScriptBlock
+function Save-WindowPicture([string]$name){Invoke-ForegroundCapture $captureWindow $name}
 try {
  [IO.File]::WriteAllText($pref,'{"schemaVersion":1,"theme":"Dark","language":"en"}')
  $p=Start-Process (Resolve-Path $AppPath) -PassThru -RedirectStandardError "$EvidencePath/stderr.txt"
@@ -13,7 +15,9 @@ try {
  Start-Sleep -Seconds 3
  $area=[Windows.Forms.Screen]::PrimaryScreen.WorkingArea
  $null=[ShellSmokeNative]::SetWindowPos($p.MainWindowHandle,[IntPtr]::Zero,$area.Left+10,$area.Top+10,[Math]::Min(1360,$area.Width-20),[Math]::Min(1000,$area.Height-20),0x14)
- Route 'Startup'
+  Route 'Startup'
+  Wait-InventoryButton 'StartRefresh'
+  Check 'FIX7 Startup populated without refresh' ((Find 'StartStatus').Current.Name -match '^Inventory loaded|^Some startup sources') (Find 'StartStatus').Current.Name
  Invoke-Control 'StartRefresh'
  $clock.Restart()
  do{Start-Sleep -Milliseconds 200;$ready=(Find 'StartRefresh').Current.IsEnabled}while(!$ready -and $clock.Elapsed.TotalSeconds -lt 40)

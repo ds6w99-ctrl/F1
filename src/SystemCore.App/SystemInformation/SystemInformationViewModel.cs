@@ -3,11 +3,18 @@ using SystemCore.App.Services;
 using SystemCore.App.ViewModels;
 using SystemCore.Core.Dashboard;
 using SystemCore.Core.SystemInformation;
+using SystemCore.Core.Orchestration;
+using SystemCore.Core.Diagnostics;
 
 namespace SystemCore.App.SystemInformation;
 
 public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDisposable
 {
+    // Static details are cheap to re-read; live values already come from telemetry.
+    public static readonly TimeSpan SystemInformationFreshness = TimeSpan.FromMinutes(2);
+    private readonly IApplicationDataOrchestrator orchestrator;
+    private readonly IAppDiagnostics diagnostics;
+    private bool refreshFailed;
     private readonly ISystemInformationService service;
     private readonly DashboardMonitor monitor;
     private readonly UiDispatcher dispatcher;
@@ -24,17 +31,17 @@ public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDispo
     public string LoadingLabel => L["InfoLoading"];
     public Microsoft.UI.Xaml.Visibility LoadingVisibility => IsBusy ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
     public string LiveTitle => L["InfoLive"];
-    public string LiveValues => telemetry is { } t ? string.Join("\n",
+    public string LiveValues => (refreshFailed ? L["InfoRefreshFailed"] + "\n" : IsBusy ? L["InfoLoading"] + "\n" : "") + (telemetry is { } t ? string.Join("\n",
         L["Cpu"] + ": " + (t.CpuPercent.Value is { } c ? L.Format("Percent", c) : L["InfoUnavailable"]),
         t.Memory.Value is { } m ? L.Format("InfoLiveMemory", Size(m.TotalBytes), Size(m.UsedBytes), Size(m.TotalBytes - m.UsedBytes),
             L.Format("Percent", InfoFormatting.Percentage(m.UsedBytes, m.TotalBytes) ?? 0)) : L["InfoUnavailable"],
         t.SystemVolume.Value is { } v ? L.Format("InfoLiveDisk", v.Root, Size(v.UsedBytes), Size(v.TotalBytes), Size(v.AvailableBytes)) : L["InfoUnavailable"],
-        L["Uptime"] + ": " + InfoFormatting.Duration(t.Uptime, L.Culture, L["UptimeValue"])) : L["Collecting"];
+        L["Uptime"] + ": " + InfoFormatting.Duration(t.Uptime, L.Culture, L["UptimeValue"])) : L["Collecting"]);
     private string Size(ulong bytes) => InfoFormatting.Size(bytes, L.Culture);
     public bool IsBusy
     {
         get => busy;
-        private set { if (SetProperty(ref busy, value)) OnPropertyChanged(nameof(LoadingVisibility)); }
+        private set { if (SetProperty(ref busy, value)) { RefreshCommand.NotifyCanExecuteChanged(); OnPropertyChanged(nameof(LoadingVisibility)); OnPropertyChanged(nameof(LiveValues)); } }
     }
     public IReadOnlyList<InformationGroup> Groups
     {
@@ -46,49 +53,64 @@ public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDispo
     public IAsyncRelayCommand RefreshCommand { get; }
 
     public SystemInformationViewModel(LocalizationService localizer, ISystemInformationService service,
-        DashboardMonitor monitor, UiDispatcher dispatcher) : base(localizer)
+        DashboardMonitor monitor, UiDispatcher dispatcher, IApplicationDataOrchestrator orchestrator,
+        IAppDiagnostics diagnostics) : base(localizer)
     {
         this.service = service; this.monitor = monitor; this.dispatcher = dispatcher;
+        this.orchestrator = orchestrator; this.diagnostics = diagnostics;
         presentation = new(localizer);
-        RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+        RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !IsBusy);
         monitor.SampleAvailable += OnSample;
         monitor.SampleFailed += OnSampleFailed;
+        orchestrator.RegisterBackgroundWarmup(DataDataset.SystemInformation, LoadTier.Background,
+            async token => await ReadAsync(false, token), SystemInformationFreshness);
     }
+    private async Task<SystemInformationSnapshot> ProduceAsync(CancellationToken token)
+    {
+        var result = await service.CollectAsync(token).ConfigureAwait(false);
+        orchestrator.CacheSystemInformationSummary(new((int)(result.Cpu.Data?.Sum(c => c.Threads ?? 0) ?? 0),
+            result.Memory.Data?.Aggregate(0UL, (total, item) => total + (item.Capacity ?? 0)) ?? 0,
+            result.Storage.Data?.Disks.Count ?? 0, DateTimeOffset.UtcNow));
+        return result;
+    }
+    private Task<SystemInformationSnapshot> ReadAsync(bool force, CancellationToken token) => force
+        ? orchestrator.RefreshAsync(DataDataset.SystemInformation, LoadTier.Background, ProduceAsync, token)
+        : orchestrator.GetAsync(DataDataset.SystemInformation, LoadTier.Background, SystemInformationFreshness, ProduceAsync, token);
+    public Task RefreshIfStaleAsync() => orchestrator.IsStale(DataDataset.SystemInformation, SystemInformationFreshness) ? InitializeAsync() : Task.CompletedTask;
+    public Task InitializeAsync() => StartLoad(false);
+    private Task RefreshAsync() => StartLoad(true);
+    private Task StartLoad(bool force) => activationLoad is { IsCompleted: false } ? activationLoad : activationLoad = LoadAsync(force);
     public void SetActive(bool value)
     {
         if (disposed) return;
         active = value;
         monitor.SetActive(this, value);
-        if (!value) cancellation?.Cancel();
-        else if (snapshot is null && activationLoad is not { IsCompleted: false }) activationLoad = LoadOnActivationAsync();
+        if (value) _ = InitializeAsync();
     }
-    private async Task LoadOnActivationAsync()
+    private async Task LoadAsync(bool force)
     {
-        try
-        {
-            if (RefreshCommand.ExecutionTask is { IsCompleted: false } pending) await pending;
-            if (active && !disposed && snapshot is null && !RefreshCommand.IsRunning)
-                await RefreshCommand.ExecuteAsync(null);
-        }
-        catch (OperationCanceledException) when (!active || disposed) { }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { ShowFailure(ex); }
-    }
-    private async Task RefreshAsync()
-    {
-        if (disposed || !active) return;
+        if (disposed) return;
         using var source = new CancellationTokenSource();
         cancellation = source;
-        IsBusy = true;
+        refreshFailed = false; IsBusy = true;
         try
         {
-            // Keep all Windows collectors, including synchronous setup, off the UI thread.
-            var result = await Task.Run(() => service.CollectAsync(source.Token), source.Token);
-            if (!active || disposed || source.IsCancellationRequested) return;
+            if (snapshot is null)
+            {
+                var cached = await Task.Run(() => orchestrator.CacheSystemInformationSummary(), source.Token);
+                if (cached is not null && !disposed) Groups = new InformationGroup[] { new(L["InfoOverview"], new InformationRow[] { new(L["InfoThreads"], cached.LogicalProcessors.ToString(L.Culture)),
+                    new(L["InfoMemoryModules"], Size(cached.PhysicalMemoryBytes)), new(L["InfoStorage"], cached.StorageDevices.ToString(L.Culture)) }) };
+            }
+            // The orchestrator runs synchronous collector setup off the UI thread too.
+            var result = await ReadAsync(force, source.Token);
+            if (disposed || source.IsCancellationRequested) return;
             snapshot = result;
             Groups = presentation.Build(result);
         }
         catch (OperationCanceledException) when (source.IsCancellationRequested) { }
-        catch (Exception ex) when (ex is not OutOfMemoryException) { ShowFailure(ex); }
+        // Disposal cancels the in-flight source, so this is the expected teardown race.
+        catch (ObjectDisposedException) when (disposed || orchestrator.IsShutdown) { }
+        catch (Exception ex) { ShowFailure(ex); diagnostics.Record(DiagnosticFeature.SystemInfo, DiagnosticEvent.ProviderFailure, ex.HResult); }
         finally
         {
             cancellation = null;
@@ -97,8 +119,8 @@ public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDispo
     }
     private void ShowFailure(Exception error)
     {
-        SystemCore.Core.Diagnostics.ReliabilityDiagnostics.Log.UnexpectedFailure((int)SystemCore.Core.Diagnostics.ReliabilityComponent.SystemInformation, error.HResult);
-        if (!disposed && active) Groups = new InformationGroup[] { new(L["InfoTitle"], new InformationRow[] { new(L["InfoStatus"], L["InfoFailed"]) }) };
+        // A failed read is not a crash. Keep the last good presentation and never render exception text.
+        if (!disposed) { refreshFailed = true; OnPropertyChanged(nameof(LiveValues)); }
     }
     private void OnSample(object? sender, DashboardSample sample) => dispatcher.Post(() =>
     {

@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop'
 $visual=[IO.File]::ReadAllText((Resolve-Path scripts/Test-F1Visual.ps1))
 $entry=[regex]::Match($visual,'(?m)^try\{\r?$').Index
 . ([scriptblock]::Create($visual.Substring(0,$entry))) -AppPath $AppPath -EvidencePath $EvidencePath
+$captureWindow=(Get-Item Function:Save-WindowPicture).ScriptBlock
+function Save-WindowPicture([string]$name){Invoke-ForegroundCapture $captureWindow $name}
 function Rows { (Find 'UnApplications').FindAll([Windows.Automation.TreeScope]::Children,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty,[Windows.Automation.ControlType]::ListItem)) }
 try {
  [IO.File]::WriteAllText($pref,'{"schemaVersion":1,"theme":"Dark","language":"en"}')
@@ -13,7 +15,9 @@ try {
  $window=[Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
  Start-Sleep -Seconds 5
  $language='en';$theme='Dark'
- Route 'Uninstaller'; Invoke-Control 'UnRefresh'
+  Route 'Uninstaller'; Wait-InventoryButton 'UnRefresh'
+  Check 'FIX7 unified inventory populated without refresh' ((Rows).Count -gt 0) (Find 'UnCount').Current.Name
+  Invoke-Control 'UnRefresh'
  $clock.Restart()
  do { Start-Sleep -Milliseconds 200 } while(!(Find 'UnRefresh').Current.IsEnabled -and $clock.Elapsed.TotalSeconds -lt 120)
  Check 'Read-only game discovery completes' (Find 'UnRefresh').Current.IsEnabled $clock.Elapsed.TotalSeconds
