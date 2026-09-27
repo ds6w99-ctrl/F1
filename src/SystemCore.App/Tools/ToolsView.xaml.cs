@@ -11,7 +11,7 @@ namespace SystemCore.App.Tools;
 public sealed partial class ToolsView : UserControl, IDisposable
 {
     private readonly ToolsViewModel model;
-    private readonly Dictionary<WindowsToolId, (TextBlock Name, TextBlock Description, TextBlock State, Button Open)> rows = [];
+    private readonly Dictionary<WindowsToolId, (TextBlock Name, TextBlock State, Button Open)> rows = [];
     private readonly Dictionary<ToolGroup, TextBlock> headings = [];
     public ToolsView(ToolsViewModel model)
     { this.model = model; InitializeComponent(); model.PropertyChanged += OnChanged; Loaded += OnLoaded; Render(); }
@@ -33,18 +33,18 @@ public sealed partial class ToolsView : UserControl, IDisposable
                     var icon = new FontIcon { Glyph = tool.Icon, FontSize = 28, FontFamily = new FontFamily("Segoe Fluent Icons"), HorizontalAlignment = HorizontalAlignment.Left };
                     AutomationProperties.SetAccessibilityView(icon, AccessibilityView.Raw); grid.Children.Add(icon);
                     var text = new StackPanel { Spacing = 8 }; Grid.SetRow(text, 1); grid.Children.Add(text);
-                    var name = new TextBlock { FontSize = 18, TextWrapping = TextWrapping.Wrap }; var description = new TextBlock { TextWrapping = TextWrapping.Wrap }; var state = new TextBlock { TextWrapping = TextWrapping.Wrap };
-                    text.Children.Add(name); text.Children.Add(description); text.Children.Add(state);
+                    var name = new TextBlock { FontSize = 18, TextWrapping = TextWrapping.Wrap }; var state = new TextBlock { TextWrapping = TextWrapping.Wrap };
+                    text.Children.Add(name); text.Children.Add(state);
                     var button = new Button { Tag = tool.Id, HorizontalAlignment = HorizontalAlignment.Stretch, Style = (Style)Application.Current.Resources["F1PrimaryButtonStyle"] }; button.Click += OnOpen; Grid.SetRow(button, 2); grid.Children.Add(button);
                     AutomationProperties.SetAutomationId(button, "ToolOpen" + tool.Id); AutomationProperties.SetAutomationId(state, "ToolAvailability" + tool.Id);
-                    rows.Add(tool.Id, (name, description, state, button)); groupCards.Children.Add(new Border { Style = (Style)Application.Current.Resources["CardStyle"], Child = grid });
+                    rows.Add(tool.Id, (name, state, button)); groupCards.Children.Add(new Border { Style = (Style)Application.Current.Resources["CardStyle"], Child = grid });
                 }
             }
         }
         foreach (var pair in headings) pair.Value.Text = model.Text("ToolGroup" + pair.Key);
         foreach (var tool in model.Items)
         {
-            var row = rows[tool.Id]; row.Name.Text = model.Text(tool.NameKey); row.Description.Text = model.Text(tool.DescriptionKey);
+            var row = rows[tool.Id]; row.Name.Text = model.Text(tool.NameKey);
             row.State.Text = model.Text("ToolAvailability" + tool.Availability) + (tool.RequiresElevation ? " · " + model.Text("ToolAdministrative") : "");
             row.Open.Content = model.Text("ActionOpen"); row.Open.IsEnabled = !model.Busy && tool.Availability == ToolAvailability.Available;
             AutomationProperties.SetName(row.Open, model.Text("ActionOpen") + " " + row.Name.Text);

@@ -9,7 +9,6 @@
           <StackPanel Spacing="4" FlowDirection="LeftToRight" HorizontalAlignment="Left"><Image Source="ms-appx:///Assets/Brand/F1_Logo.png" Width="64" Height="64" Stretch="Uniform" HorizontalAlignment="Center" AutomationProperties.AccessibilityView="Raw"/><TextBlock Text="{x:Bind ViewModel.ProductName}" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center"/><TextBlock Text="{x:Bind ViewModel.Attribution}" Foreground="{ThemeResource F1BlueBrush}" AutomationProperties.AutomationId="F1Attribution" HorizontalAlignment="Center"/></StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{x:Bind ViewModel.Support.VersionLabel, Mode=OneWay}" /><TextBlock Text="{x:Bind ViewModel.Support.VersionNumber}" FlowDirection="LeftToRight" TextReadingOrder="UseFlowDirection" Language="en-US" AutomationProperties.AutomationId="F1AboutVersion" /></StackPanel>
           <TextBlock Text="{x:Bind ViewModel.Support.Architecture, Mode=OneWay}" AutomationProperties.AutomationId="AboutArchitecture" />
-          <TextBlock Text="{x:Bind ViewModel.AboutDescription, Mode=OneWay}" TextWrapping="Wrap" />
           <TextBlock x:Name="Supported" TextWrapping="Wrap" /><TextBlock x:Name="Privacy" TextWrapping="Wrap" /><TextBlock x:Name="Copyright" TextWrapping="Wrap" />
           <Button x:Name="CopyVersion" Click="OnCopyVersion" AutomationProperties.AutomationId="AboutCopyVersion" />
           <TextBlock Text="{x:Bind ViewModel.Support.Status, Mode=OneWay}" TextWrapping="Wrap" />

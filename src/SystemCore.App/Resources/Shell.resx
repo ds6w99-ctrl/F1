@@ -69,13 +69,13 @@
   <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
-  <data name="SessionSettings" xml:space="preserve"><value>Language and theme apply immediately and are saved locally for your next launch.</value></data>
+  <data name="SessionSettings" xml:space="preserve"><value>Applied now and saved locally</value></data>
   <data name="LaterPhase" xml:space="preserve"><value>Coming in a later development phase</value></data>
-  <data name="PlaceholderDescription" xml:space="preserve"><value>This page is a navigation placeholder. No scan, maintenance action or result is available here yet.</value></data>
+  <data name="PlaceholderDescription" xml:space="preserve"><value>Navigation placeholder · nothing available here yet</value></data>
   <data name="AboutDescription" xml:space="preserve"><value>Development build. Local system information, performance analysis and manually reviewed maintenance tools. Release / Production validation is pending.</value></data>
   <data name="Version" xml:space="preserve"><value>Version {0}</value></data>
   <data name="InfoTitle" xml:space="preserve"><value>System Information</value></data>
-  <data name="InfoDescription" xml:space="preserve"><value>Read-only Windows hardware inventory. Refresh reloads static data; live readings use the shared monitor. Select text to copy. Missing values are not estimated.</value></data>
+  <data name="InfoDescription" xml:space="preserve"><value>Read-only · select text to copy · missing values are not estimated</value></data>
   <data name="InfoRefresh" xml:space="preserve"><value>Refresh system information</value></data>
   <data name="InfoLoading" xml:space="preserve"><value>Reading system information…</value></data>
   <data name="InfoLive" xml:space="preserve"><value>Live system overview</value></data>
@@ -184,7 +184,7 @@
   <data name="PerfDiskScope" xml:space="preserve"><value>All physical disks combined. Activity, not capacity usage.</value></data>
   <data name="PerfDownUp" xml:space="preserve"><value>↓ {0}   ↑ {1}</value></data>
   <data name="PerfNoNetwork" xml:space="preserve"><value>No active IP-bound network adapter.</value></data>
-  <data name="PerfNetworkScope" xml:space="preserve"><value>Total active IP-adapter traffic; VPN/virtual layers can count the same traffic more than once. Loopback and unbound filters excluded.</value></data>
+  <data name="PerfNetworkScope" xml:space="preserve"><value>Total adapter traffic · virtual layers may count twice</value></data>
   <data name="PerfProcesses" xml:space="preserve"><value>Processes</value></data>
   <data name="PerfProcessNotice" xml:space="preserve"><value>Read-only · sampled about every 2 seconds. Memory is working set; shared pages may appear in several processes. CPU is normalized across logical processors. Unavailable fields are not estimated.</value></data>
   <data name="PerfProcessCount" xml:space="preserve"><value>{0} processes shown</value></data>
@@ -198,7 +198,7 @@
   <data name="PerfWorkingSet" xml:space="preserve"><value>Working set</value></data>
   <data name="PerfChart" xml:space="preserve"><value>Last 60 seconds, oldest to newest left-to-right. CPU/memory: 0–100%. Disk/network: total throughput, auto-scaled. Gaps indicate missing samples. History resets after a pause.</value></data>
   <data name="PerfHistoryCount" xml:space="preserve"><value>{0} samples · bounded to 60 seconds</value></data>
-  <data name="CleanDescription" xml:space="preserve"><value>Conservative, local-only scan. Files newer than 24 hours, locked files, links and uncertain targets are skipped.</value></data>
+  <data name="CleanDescription" xml:space="preserve"><value>Local-only · skips files under 24 h, locked files, links and uncertain targets</value></data>
   <data name="CleanScan" xml:space="preserve"><value>Scan</value></data>
   <data name="CleanCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="CleanAction" xml:space="preserve"><value>Clean selected items</value></data>
@@ -228,7 +228,7 @@
   <data name="CleanRecycleBin" xml:space="preserve"><value>Recycle Bin — entire current contents</value></data>
   <data name="CleanDashboardInitial" xml:space="preserve"><value>Run a manual scan from Cleaner to see real results.</value></data>
   <data name="CleanPotential" xml:space="preserve"><value>Potentially reclaimable in the last completed scan; files may have changed.</value></data>
-  <data name="CleanSafety" xml:space="preserve"><value>Manual cleaning permanently removes selected files. Locked, changed or uncertain files are skipped. Cancel stops future file operations; it cannot restore files already removed or interrupt an active Recycle Bin Shell operation. Browser caches and WER are unsupported in V1.</value></data>
+  <data name="CleanSafety" xml:space="preserve"><value>Cleaning permanently removes selected files. Locked, changed or uncertain files are skipped. Cancel cannot undo removals or stop a running Recycle Bin operation. Browser caches and WER are unsupported in V1.</value></data>
   <data name="CleanPrevious" xml:space="preserve"><value>Previous 100</value></data>
   <data name="CleanNext" xml:space="preserve"><value>Next 100</value></data>
   <data name="CleanFailure" xml:space="preserve"><value>The operation could not finish. Scan again before cleaning.</value></data>
@@ -402,7 +402,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="MemReady" xml:space="preserve"><value>Live data uses the shared performance monitor.</value></data>
   <data name="MemAnalyze" xml:space="preserve"><value>Analyze</value></data>
   <data name="MemAnalyzed" xml:space="preserve"><value>Analysis updated from the shared measurements.</value></data>
-  <data name="MemEducation" xml:space="preserve"><value>Windows may use RAM for caching. High memory usage alone does not prove a performance problem.</value></data>
+  <data name="MemEducation" xml:space="preserve"><value>Windows may use RAM for cache · high usage alone is not a problem</value></data>
   <data name="MemPhysicalValues" xml:space="preserve"><value>{0} / {1} RAM · {2} used&#10;{3} available</value></data>
   <data name="MemCommitValues" xml:space="preserve"><value>Commit: {0} / {1} · {2}</value></data>
   <data name="MemCommitTip" xml:space="preserve"><value>Committed memory is memory Windows has promised, backed by RAM or the page file. It is not the same as physical RAM usage.</value></data>
@@ -456,7 +456,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="MemMeasurementNotice" xml:space="preserve"><value>These are shared-monitor observations. A no-action result may use the same sample twice. Cache bytes describe references released by their owner, not an immediate physical RAM reduction. Windows and other applications can change these measurements; no speed improvement is inferred.</value></data>
   <data name="ActionRefresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="ActionOpen" xml:space="preserve"><value>Open</value></data>
-  <data name="ToolsDescription" xml:space="preserve"><value>Open official Windows tools. Windows manages their permissions and may request administrator approval. Organization policy can restrict some pages.</value></data>
+  <data name="ToolsDescription" xml:space="preserve"><value>Official Windows tools · may request administrator approval</value></data>
   <data name="ToolsReady" xml:space="preserve"><value>Select a Windows tool to open.</value></data>
   <data name="ToolsLoading" xml:space="preserve"><value>Checking Windows tool availability…</value></data>
   <data name="ToolsOpening" xml:space="preserve"><value>Opening the selected Windows tool…</value></data>
@@ -506,12 +506,12 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="ToolOptionalFeatures" xml:space="preserve"><value>Optional Features</value></data>
   <data name="ToolOptionalFeaturesDescription" xml:space="preserve"><value>Open the Windows optional-features settings page.</value></data>
   <data name="SettingsGeneral" xml:space="preserve"><value>General</value></data>
-  <data name="SettingsGeneralNotice" xml:space="preserve"><value>{Brand} opens on Dashboard. Scans and maintenance start only when requested. This version does not register itself at startup or check for updates automatically.</value></data>
-  <data name="SettingsBehavior" xml:space="preserve"><value>Behavior and confirmations</value></data>
+  <data name="SettingsGeneralNotice" xml:space="preserve"><value>{Brand} opens on Dashboard · no startup registration, no automatic update checks</value></data>
+  <data name="SettingsBehavior" xml:space="preserve"><value>Safety</value></data>
   <data name="SettingsSafetyNotice" xml:space="preserve"><value>Mandatory safety confirmations are always on for Cleaner cleanup, uninstall, leftover deletion (including Registry leftovers) and startup changes. They cannot be disabled.</value></data>
-  <data name="SettingsCleanerNotice" xml:space="preserve"><value>File-cleanup categories use a minimum age of 24 hours. Protected paths, links and locked files retain their safety rules. These policies are not user-adjustable in this version.</value></data>
+  <data name="SettingsCleanerNotice" xml:space="preserve"><value>Minimum age 24 hours · protected paths, links and locked files are skipped · not adjustable</value></data>
   <data name="SettingsPrivacy" xml:space="preserve"><value>Privacy</value></data>
-  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>No account, cloud, analytics or telemetry. System data stays on this device. Diagnostic export is manual and never uploads automatically.</value></data>
+  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>No account, cloud, analytics or telemetry · data stays on this device · diagnostics never upload automatically</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance and language</value></data>
   <data name="SettingsSaved" xml:space="preserve"><value>Settings saved locally.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>The change applies to this session, but could not be saved. Check access to the application data folder and try again.</value></data>
@@ -535,8 +535,8 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="DiagnosticsOpenFailed" xml:space="preserve"><value>The folder could not be opened. Check access and try again.</value></data>
   <data name="DiagnosticsClearConfirm" xml:space="preserve"><value>Delete closed {Brand} diagnostic logs? The active log, exports, preferences, backups and recovery state are kept.</value></data>
   <data name="AboutArchitecture" xml:space="preserve"><value>Architecture: {0}</value></data>
-  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · Home, Pro, Enterprise and Education. Technical minimum: build 22631. Release certification is pending.</value></data>
-  <data name="AboutCopyright" xml:space="preserve"><value>Third-party components are copyrighted by their respective owners. Product publisher is not yet assigned. See the original license notices below.</value></data>
+  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · minimum build 22631 · release certification pending</value></data>
+  <data name="AboutCopyright" xml:space="preserve"><value>Third-party components belong to their owners · publisher not yet assigned</value></data>
   <data name="AboutCopyVersion" xml:space="preserve"><value>Copy App Version</value></data>
   <data name="AboutLicenses" xml:space="preserve"><value>Third-party license notices (original language)</value></data>
   <data name="VersionCopied" xml:space="preserve"><value>App version copied.</value></data>
@@ -560,7 +560,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="F1Processors" xml:space="preserve"><value>{0} logical processors</value></data>
   <data name="F1PhysicalMemory" xml:space="preserve"><value>Physical memory · used / total</value></data>
   <data name="F1Capacity" xml:space="preserve"><value>System drive · capacity used</value></data>
-  <data name="F1History" xml:space="preserve"><value>Measured history · up to 60 seconds</value></data>
+  <data name="F1History" xml:space="preserve"><value>Last 60 seconds</value></data>
   <data name="F1CleanupTitle" xml:space="preserve"><value>System cleanup</value></data>
   <data name="F1CleanupBody" xml:space="preserve"><value>Review temporary files before selecting what to remove.</value></data>
   <data name="F1UninstallBody" xml:space="preserve"><value>Review installed programs and their original uninstall options.</value></data>

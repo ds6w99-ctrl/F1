@@ -69,13 +69,13 @@
   <data name="ThemeSystem" xml:space="preserve"><value>النظام</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>فاتح</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
-  <data name="SessionSettings" xml:space="preserve"><value>تُطبّق اللغة والمظهر فورًا ويُحفظ الاختيار محليًا للتشغيل القادم.</value></data>
+  <data name="SessionSettings" xml:space="preserve"><value>تُطبّق فورًا وتُحفظ محليًا</value></data>
   <data name="LaterPhase" xml:space="preserve"><value>سيتوفر في مرحلة تطوير لاحقة</value></data>
-  <data name="PlaceholderDescription" xml:space="preserve"><value>هذه صفحة مبدئية للتنقل. لا يتوفر هنا فحص أو إجراء صيانة أو نتائج حتى الآن.</value></data>
+  <data name="PlaceholderDescription" xml:space="preserve"><value>صفحة مبدئية للتنقل · لا يتوفر شيء هنا بعد</value></data>
   <data name="AboutDescription" xml:space="preserve"><value>نسخة تطوير. معلومات نظام محلية وتحليل للأداء وأدوات صيانة تُراجع يدويًا. التحقق النهائي للإصدار والإنتاج قيد الانتظار.</value></data>
   <data name="Version" xml:space="preserve"><value>الإصدار {0}</value></data>
   <data name="InfoTitle" xml:space="preserve"><value>معلومات النظام</value></data>
-  <data name="InfoDescription" xml:space="preserve"><value>معلومات عتاد Windows للقراءة فقط. التحديث يعيد جمع البيانات الثابتة، والقراءات الحية تستخدم المراقبة المشتركة. حدد النص لنسخه. لا تُقدّر البيانات المفقودة.</value></data>
+  <data name="InfoDescription" xml:space="preserve"><value>للقراءة فقط · حدد النص لنسخه · لا تُقدَّر القيم المفقودة</value></data>
   <data name="InfoRefresh" xml:space="preserve"><value>تحديث معلومات الجهاز</value></data>
   <data name="InfoLoading" xml:space="preserve"><value>جارٍ قراءة معلومات الجهاز…</value></data>
   <data name="InfoLive" xml:space="preserve"><value>نظرة مباشرة على النظام</value></data>
@@ -184,7 +184,7 @@
   <data name="PerfDiskScope" xml:space="preserve"><value>مجموع الأقراص الفعلية. نشاط الإدخال والإخراج وليس استخدام السعة.</value></data>
   <data name="PerfDownUp" xml:space="preserve"><value>↓ {0}   ↑ {1}</value></data>
   <data name="PerfNoNetwork" xml:space="preserve"><value>لا يوجد محول شبكة نشط مرتبط بعنوان IP.</value></data>
-  <data name="PerfNetworkScope" xml:space="preserve"><value>مجموع حركة محولات IP النشطة؛ قد تحتسب طبقات VPN والمحولات الافتراضية الحركة نفسها أكثر من مرة. تُستثنى الواجهة المحلية والمرشحات غير المرتبطة.</value></data>
+  <data name="PerfNetworkScope" xml:space="preserve"><value>مجموع حركة المحولات · قد تُحتسب الطبقات الافتراضية مرتين</value></data>
   <data name="PerfProcesses" xml:space="preserve"><value>العمليات</value></data>
   <data name="PerfProcessNotice" xml:space="preserve"><value>للقراءة فقط · تحديث كل ثانيتين تقريبًا. الذاكرة هي مجموعة العمل وقد تتكرر الصفحات المشتركة بين العمليات. استخدام المعالج محسوب نسبةً لكل المعالجات المنطقية. لا تُقدّر الحقول غير المتاحة.</value></data>
   <data name="PerfProcessCount" xml:space="preserve"><value>عدد العمليات المعروضة: {0}</value></data>
@@ -198,7 +198,7 @@
   <data name="PerfWorkingSet" xml:space="preserve"><value>مجموعة العمل</value></data>
   <data name="PerfChart" xml:space="preserve"><value>آخر 60 ثانية من الأقدم إلى الأحدث يسارًا إلى يمين. المعالج والذاكرة: 0–100٪. الأقراص والشبكة: إجمالي النقل بمقياس تلقائي. الفراغات تعني عينات مفقودة. يُعاد بدء السجل بعد الإيقاف المؤقت.</value></data>
   <data name="PerfHistoryCount" xml:space="preserve"><value>{0} عينة · السجل محدود بآخر 60 ثانية</value></data>
-  <data name="CleanDescription" xml:space="preserve"><value>فحص محلي محافظ. تُتجاوز الملفات الأحدث من 24 ساعة والملفات المقفلة والروابط والأهداف غير المؤكدة.</value></data>
+  <data name="CleanDescription" xml:space="preserve"><value>فحص محلي · تتجاوز الملفات الأقل من 24 ساعة والملفات المقفلة والروابط والأهداف غير المؤكدة</value></data>
   <data name="CleanScan" xml:space="preserve"><value>فحص</value></data>
   <data name="CleanCancel" xml:space="preserve"><value>إلغاء</value></data>
   <data name="CleanAction" xml:space="preserve"><value>تنظيف العناصر المحددة</value></data>
@@ -228,7 +228,7 @@
   <data name="CleanRecycleBin" xml:space="preserve"><value>سلة المحذوفات — جميع المحتويات الحالية</value></data>
   <data name="CleanDashboardInitial" xml:space="preserve"><value>ابدأ فحصًا يدويًا من صفحة التنظيف لعرض نتائج حقيقية.</value></data>
   <data name="CleanPotential" xml:space="preserve"><value>المساحة المحتملة وفق آخر فحص مكتمل؛ قد تكون الملفات تغيرت منذ ذلك الحين.</value></data>
-  <data name="CleanSafety" xml:space="preserve"><value>يحذف التنظيف اليدوي الملفات المحددة نهائيًا. تُتجاوز الملفات المقفلة أو المتغيرة أو غير المؤكدة. يوقف الإلغاء عمليات الملفات اللاحقة؛ لا يستعيد المحذوفات ولا يوقف عملية إفراغ سلة بدأت في Shell. ذاكرة المتصفحات وWER غير مدعومتين في V1.</value></data>
+  <data name="CleanSafety" xml:space="preserve"><value>يحذف التنظيف الملفات المحددة نهائيًا. تُتجاوز الملفات المقفلة أو المتغيرة أو غير المؤكدة. لا يستعيد الإلغاء المحذوفات ولا يوقف عملية إفراغ سلة جارية. ذاكرة المتصفحات وWER غير مدعومتين في V1.</value></data>
   <data name="CleanPrevious" xml:space="preserve"><value>الـ100 السابقة</value></data>
   <data name="CleanNext" xml:space="preserve"><value>الـ100 التالية</value></data>
   <data name="CleanFailure" xml:space="preserve"><value>تعذر إكمال العملية. أعد الفحص قبل التنظيف.</value></data>
@@ -402,7 +402,7 @@
   <data name="MemReady" xml:space="preserve"><value>تستخدم البيانات الحية خدمة مراقبة الأداء المشتركة.</value></data>
   <data name="MemAnalyze" xml:space="preserve"><value>تحليل</value></data>
   <data name="MemAnalyzed" xml:space="preserve"><value>حُدّث التحليل من القياسات المشتركة.</value></data>
-  <data name="MemEducation" xml:space="preserve"><value>قد يستخدم Windows الذاكرة للتخزين المؤقت. ارتفاع استخدام الذاكرة وحده لا يثبت وجود مشكلة أداء.</value></data>
+  <data name="MemEducation" xml:space="preserve"><value>قد يستخدم Windows الذاكرة للتخزين المؤقت · ارتفاع الاستخدام وحده لا يعني مشكلة</value></data>
   <data name="MemPhysicalValues" xml:space="preserve"><value>{0} / {1} RAM · المستخدم {2}&#10;المتاح {3}</value></data>
   <data name="MemCommitValues" xml:space="preserve"><value>الذاكرة الملتزم بها: {0} / {1} · {2}</value></data>
   <data name="MemCommitTip" xml:space="preserve"><value>الذاكرة الملتزم بها هي ذاكرة وعد Windows بتوفيرها، وتدعمها RAM أو ملف ترحيل الصفحات. تختلف عن استخدام الذاكرة الفعلية.</value></data>
@@ -456,7 +456,7 @@
   <data name="MemMeasurementNotice" xml:space="preserve"><value>هذه ملاحظات من المراقبة المشتركة. قد تستخدم نتيجة عدم التنفيذ العينة نفسها مرتين. يصف حجم الذاكرة المؤقتة المراجع التي حررها مالكها، وليس انخفاضًا فوريًا في RAM الفعلية. قد يغيّر Windows والتطبيقات الأخرى القياسات؛ لا يُستنتج تحسن في السرعة.</value></data>
   <data name="ActionRefresh" xml:space="preserve"><value>تحديث</value></data>
   <data name="ActionOpen" xml:space="preserve"><value>فتح</value></data>
-  <data name="ToolsDescription" xml:space="preserve"><value>افتح أدوات Windows الرسمية. يدير Windows صلاحياتها وقد يطلب موافقة المسؤول. قد تقيّد سياسة المؤسسة بعض الصفحات.</value></data>
+  <data name="ToolsDescription" xml:space="preserve"><value>أدوات Windows الرسمية · قد تطلب موافقة المسؤول</value></data>
   <data name="ToolsReady" xml:space="preserve"><value>اختر أداة Windows لفتحها.</value></data>
   <data name="ToolsLoading" xml:space="preserve"><value>جارٍ التحقق من توفر أدوات Windows…</value></data>
   <data name="ToolsOpening" xml:space="preserve"><value>جارٍ فتح أداة Windows المحددة…</value></data>
@@ -506,12 +506,12 @@
   <data name="ToolOptionalFeatures" xml:space="preserve"><value>الميزات الاختيارية</value></data>
   <data name="ToolOptionalFeaturesDescription" xml:space="preserve"><value>افتح صفحة الميزات الاختيارية في إعدادات Windows.</value></data>
   <data name="SettingsGeneral" xml:space="preserve"><value>عام</value></data>
-  <data name="SettingsGeneralNotice" xml:space="preserve"><value>يفتح {Brand} على الرئيسية. لا تبدأ الفحوص والصيانة إلا بطلب منك. لا يسجّل هذا الإصدار نفسه لبدء التشغيل ولا يبحث عن تحديثات تلقائيًا.</value></data>
-  <data name="SettingsBehavior" xml:space="preserve"><value>السلوك والتأكيدات</value></data>
+  <data name="SettingsGeneralNotice" xml:space="preserve"><value>يفتح {Brand} على الرئيسية · لا تسجيل لبدء التشغيل ولا بحث تلقائي عن تحديثات</value></data>
+  <data name="SettingsBehavior" xml:space="preserve"><value>السلامة</value></data>
   <data name="SettingsSafetyNotice" xml:space="preserve"><value>تأكيدات السلامة الإلزامية مفعّلة دائمًا للتنظيف وإلغاء التثبيت وحذف البقايا، بما فيها بقايا Registry، وتغييرات بدء التشغيل. لا يمكن تعطيلها.</value></data>
-  <data name="SettingsCleanerNotice" xml:space="preserve"><value>تستخدم فئات تنظيف الملفات حدًا أدنى للعمر يبلغ 24 ساعة. تبقى قواعد حماية المسارات والروابط والملفات المقفلة نافذة. لا يمكن تعديل هذه السياسات في هذا الإصدار.</value></data>
+  <data name="SettingsCleanerNotice" xml:space="preserve"><value>حد أدنى للعمر 24 ساعة · المسارات المحمية والروابط والملفات المقفلة متجاوزة · غير قابلة للتعديل</value></data>
   <data name="SettingsPrivacy" xml:space="preserve"><value>الخصوصية</value></data>
-  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>لا حسابات أو خدمات سحابية أو تحليلات أو قياس استخدام. تبقى بيانات النظام على الجهاز. تصدير التشخيصات يدوي ولا يرفع أي بيانات تلقائيًا.</value></data>
+  <data name="SettingsPrivacyNotice" xml:space="preserve"><value>لا حسابات أو سحابة أو تحليلات أو قياس · تبقى البيانات على هذا الجهاز · لا تُرفع التشخيصات تلقائيًا</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>المظهر واللغة</value></data>
   <data name="SettingsSaved" xml:space="preserve"><value>حُفظت الإعدادات محليًا.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>طُبق التغيير لهذه الجلسة لكن تعذّر حفظه. راجع صلاحية الوصول إلى مجلد بيانات التطبيق وحاول مجددًا.</value></data>
@@ -535,8 +535,8 @@
   <data name="DiagnosticsOpenFailed" xml:space="preserve"><value>تعذّر فتح المجلد. راجع الصلاحيات وحاول مجددًا.</value></data>
   <data name="DiagnosticsClearConfirm" xml:space="preserve"><value>هل تريد حذف سجلات تشخيص {Brand} المغلقة؟ سيُحتفظ بالسجل النشط والصادرات والتفضيلات والنسخ الاحتياطية وحالة الاسترداد.</value></data>
   <data name="AboutArchitecture" xml:space="preserve"><value>المعمارية: {0}</value></data>
-  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · Home وPro وEnterprise وEducation. الحد التقني: البناء 22631. اعتماد الإصدار النهائي قيد الانتظار.</value></data>
-  <data name="AboutCopyright" xml:space="preserve"><value>حقوق المكونات الخارجية محفوظة لأصحابها. لم يُعيّن ناشر المنتج بعد. راجع إشعارات الترخيص الأصلية أدناه.</value></data>
+  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · الحد الأدنى للبناء 22631 · اعتماد الإصدار قيد الانتظار</value></data>
+  <data name="AboutCopyright" xml:space="preserve"><value>المكونات الخارجية ملك لأصحابها · لم يُعيّن ناشر المنتج بعد</value></data>
   <data name="AboutCopyVersion" xml:space="preserve"><value>نسخ إصدار التطبيق</value></data>
   <data name="AboutLicenses" xml:space="preserve"><value>إشعارات تراخيص المكونات الخارجية بلغتها الأصلية</value></data>
   <data name="VersionCopied" xml:space="preserve"><value>نُسخ إصدار التطبيق.</value></data>
@@ -560,7 +560,7 @@
   <data name="F1Processors" xml:space="preserve"><value>{0} معالجًا منطقيًا</value></data>
   <data name="F1PhysicalMemory" xml:space="preserve"><value>الذاكرة الفعلية · المستخدم / الإجمالي</value></data>
   <data name="F1Capacity" xml:space="preserve"><value>قرص النظام · السعة المستخدمة</value></data>
-  <data name="F1History" xml:space="preserve"><value>سجل القياسات · حتى 60 ثانية</value></data>
+  <data name="F1History" xml:space="preserve"><value>آخر 60 ثانية</value></data>
   <data name="F1CleanupTitle" xml:space="preserve"><value>تنظيف النظام</value></data>
   <data name="F1CleanupBody" xml:space="preserve"><value>راجع الملفات المؤقتة قبل اختيار ما تريد حذفه.</value></data>
   <data name="F1UninstallBody" xml:space="preserve"><value>راجع البرامج المثبتة وخيارات إزالتها الأصلية.</value></data>

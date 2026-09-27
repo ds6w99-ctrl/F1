@@ -4,11 +4,9 @@
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel Padding="{StaticResource F1PagePadding}" Spacing="20" MaxWidth="1000" HorizontalAlignment="Stretch">
       <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" AutomationProperties.AutomationId="PageTitle" Style="{StaticResource F1PageTitleStyle}" />
-      <TextBlock Text="{x:Bind ViewModel.Description, Mode=OneWay}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
       <TextBlock Text="{x:Bind ViewModel.SessionNotice, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.AutomationId="SettingsSaveStatus" />
       <Border Style="{StaticResource CardStyle}">
         <StackPanel Spacing="24">
-          <TextBlock Text="{x:Bind ViewModel.AppearanceLabel, Mode=OneWay}" FontSize="20" />
           <ComboBox Header="{x:Bind ViewModel.LanguageLabel, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.LanguageIndex, Mode=TwoWay}"
                     AutomationProperties.Name="{x:Bind ViewModel.LanguageLabel, Mode=OneWay}" AutomationProperties.AutomationId="LanguagePicker" HorizontalAlignment="Stretch">
             <ComboBoxItem Content="{x:Bind ViewModel.EnglishLabel, Mode=OneWay}" />
@@ -23,7 +21,7 @@
       <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12"><TextBlock Text="{x:Bind ViewModel.CleanerLabel, Mode=OneWay}" FontSize="20" /><TextBlock Text="{x:Bind ViewModel.CleanerNotice, Mode=OneWay}" TextWrapping="Wrap" /></StackPanel></Border>
       <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12"><TextBlock Text="{x:Bind ViewModel.PrivacyLabel, Mode=OneWay}" FontSize="20" /><TextBlock Text="{x:Bind ViewModel.PrivacyNotice, Mode=OneWay}" TextWrapping="Wrap" /></StackPanel></Border>
       <ContentControl x:Name="DiagnosticsHost" />
-      <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12"><TextBlock Text="{x:Bind ViewModel.AboutLabel, Mode=OneWay}" FontSize="20" /><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{x:Bind ViewModel.Support.VersionLabel, Mode=OneWay}" /><TextBlock Text="{x:Bind ViewModel.Support.VersionNumber}" FlowDirection="LeftToRight" TextReadingOrder="UseFlowDirection" Language="en-US" /></StackPanel><TextBlock Text="{x:Bind ViewModel.AboutNotice, Mode=OneWay}" TextWrapping="Wrap" /><Button Content="{x:Bind ViewModel.AboutLabel, Mode=OneWay}" Command="{x:Bind ViewModel.AboutCommand}" AutomationProperties.AutomationId="F1SettingsAbout"/></StackPanel></Border>
+      <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="12"><TextBlock Text="{x:Bind ViewModel.AboutLabel, Mode=OneWay}" FontSize="20" /><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="{x:Bind ViewModel.Support.VersionLabel, Mode=OneWay}" /><TextBlock Text="{x:Bind ViewModel.Support.VersionNumber}" FlowDirection="LeftToRight" TextReadingOrder="UseFlowDirection" Language="en-US" /></StackPanel><Button Content="{x:Bind ViewModel.AboutLabel, Mode=OneWay}" Command="{x:Bind ViewModel.AboutCommand}" AutomationProperties.AutomationId="F1SettingsAbout"/></StackPanel></Border>
     </StackPanel>
   </ScrollViewer>
 </UserControl>
