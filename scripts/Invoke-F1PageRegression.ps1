@@ -3,8 +3,7 @@ $ErrorActionPreference='Stop'
 $app='artifacts/f1-ui/publish/F1.exe'
 $source=[IO.File]::ReadAllText((Resolve-Path scripts/Test-MemoryToolsPage.ps1)).Replace('Released from SystemCore caches:','Released from F1 caches:')
 & ([scriptblock]::Create($source)) -AppPath $app -EvidencePath "$EvidencePath/memory"
-$source=[IO.File]::ReadAllText((Resolve-Path scripts/Test-ThemeLocalization.ps1)).Replace('artifacts/phase8/app/SystemCore.App.exe',$app).Replace('artifacts/phase8/completion',"$EvidencePath/themes")
-& ([scriptblock]::Create($source))
+& "$PSScriptRoot/Test-ThemeLocalization.ps1" -AppPath $app -EvidencePath "$EvidencePath/themes"
 $source=[IO.File]::ReadAllText((Resolve-Path scripts/Test-Shell.ps1))
 $source=$source.Replace("SetValue('SystemCore')","SetValue('F1')")
 $source=$source.Replace("Check 'Arabic dashboard' ((Find 'PageTitle').Current.Name -eq (`$arabic | Where-Object name -eq 'NavDashboard').value)","Check 'Arabic dashboard' ((Find 'PageTitle').Current.Name -eq (`$arabic | Where-Object name -eq 'F1Welcome').value)")

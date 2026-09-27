@@ -1,9 +1,9 @@
-param([string]$AppPath, [string]$EvidencePath)
+param([string]$AppPath, [string]$EvidencePath, [int]$CleanerScanWatchdogSeconds = 900)
 $ErrorActionPreference='Stop'
 # Reuse the checked native UI helpers, without running the full regression suite.
 $source=[IO.File]::ReadAllText((Resolve-Path 'scripts/Test-Shell.ps1'))
 $prefix=$source.Substring(0,$source.IndexOf('$p=Start-Process'))
-. ([scriptblock]::Create($prefix)) -AppPath $AppPath -EvidencePath $EvidencePath
+. ([scriptblock]::Create($prefix)) -AppPath $AppPath -EvidencePath $EvidencePath -CleanerScanWatchdogSeconds $CleanerScanWatchdogSeconds
 $pref=Join-Path $env:LOCALAPPDATA 'SystemCore/preferences.json'
 $saved=if(Test-Path $pref){[IO.File]::ReadAllBytes($pref)}else{$null}
 $p=$null
@@ -36,8 +36,14 @@ try {
  Capture-Visible 'cleaner-en-light-before-scan'
  (Find 'CleanerScan').GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
  Start-Sleep -Milliseconds 400;$clock.Restart()
- while(!(Find 'CleanerScan').Current.IsEnabled -and $clock.Elapsed.TotalSeconds -lt 180){Start-Sleep -Milliseconds 300}
- Check 'Focused real scan completed' ((Find 'CleanerScan').Current.IsEnabled) (Find 'CleanerSummary').Current.Name
+ # Hang watchdog, not a speed budget: the real-device scan took 195.4s on one run and 279.3s on
+ # another for the same commit, purely from user data and machine load. Only a genuine hang fails
+ # here; Test-CleanerBenchmark.ps1 owns performance pass/fail on a fixed synthetic fixture.
+ while(!(Find 'CleanerScan').Current.IsEnabled -and $clock.Elapsed.TotalSeconds -lt $CleanerScanWatchdogSeconds){Start-Sleep -Milliseconds 300}
+ $realScanSeconds=$clock.Elapsed.TotalSeconds
+ Check 'Focused real scan returned (hang watchdog, not a speed budget)' ((Find 'CleanerScan').Current.IsEnabled) ("{0:N1}s within {1}s watchdog" -f $realScanSeconds,$CleanerScanWatchdogSeconds)
+ [pscustomobject]@{DurationSeconds=[Math]::Round($realScanSeconds,2);WatchdogSeconds=$CleanerScanWatchdogSeconds;Summary=(Find 'CleanerSummary').Current.Name;RecordedUtc=[DateTime]::UtcNow.ToString('o')} |
+  ConvertTo-Json | Set-Content "$EvidencePath/cleaner-real-scan.json" -Encoding UTF8
  Capture-Visible 'cleaner-en-light-results'
  Check 'Foreground window matches capture target' ([ShellSmokeNative]::GetForegroundWindow() -eq $p.MainWindowHandle) $null
  (Find 'CleanerClean').GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
