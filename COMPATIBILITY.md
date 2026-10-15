@@ -75,7 +75,7 @@ closure and runtime network behavior still require review.
 
 ## Evidence and sources
 
-Actual results: `TEST-RESULTS.md`, `artifacts/phase0-validation/`.
+Actual results are recorded in the release QA notes: [docs/RELEASE-QA.md](docs/RELEASE-QA.md).
 Sources retrieved/reviewed 2026-09-24:
 
 - https://learn.microsoft.com/en-us/lifecycle/products/windows-11-home-and-pro

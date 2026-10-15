@@ -48,6 +48,7 @@ Desktop.ini
 
 # Local agent / editor tooling (generated, not part of the product)
 .enola/
+.serena/
 opencode.json
 
 # NuGet

@@ -85,8 +85,7 @@ is mandatory before commit. Failure cannot fall back to generic recursive deleti
 All items default unselected; Registry selection adds an explicit warning about recovery.
 Current-token permissions apply: Access denied is skipped. No elevated leftover broker,
 generic Registry cleaner, service/driver/task deletion or automatic restoration is provided.
-Release threat-model testing and real installer matrices remain pending. See
-[Phase 5 report](docs/PHASE-5-REPORT.md) for evidence and actual limitations.
+Release threat-model testing and real installer matrices remain pending.
 
 ## Assets and adversaries
 

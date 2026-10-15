@@ -9,8 +9,7 @@ edition lifecycle at shipping time, independently of the technical minimum.
 The owner accepted Phase 8 Development PASS and authorized Phase 9 only.
 Sequential gates: 9A exception/reliability audit, then 9B security hardening, then
 9C full regression. All three gates and Phase 9 Development now PASS; stopped for
-owner review. Current evidence: `artifacts/phase9/summary.json` and
-[Phase 9 report](docs/PHASE-9-REPORT.md). Phase 10 is not authorized.
+owner review. Phase 10 is not authorized.
 Release / Production remains PENDING. Accepted Phase 4/5/6/7 evidence is preserved.
 The phase descriptions below preserve earlier planning/history.
 
@@ -32,14 +31,14 @@ Stop after the Phase 1 report for owner review; do not begin Phase 2 automatical
 
 Phase 3 Performance Monitoring is complete: a shared read-only sampler, bounded live history
 and process CPU/working-set views. Development Gate PASS, including 149 unit checks, 72 native
-UI checks and a 20-minute development soak. Evidence is in docs/PHASE-3-REPORT.md.
+UI checks and a 20-minute development soak.
 Phase 4 Safe Cleaner was authorized and implemented; final development validation
-is tracked in docs/PHASE-4-COMPLETION-REPORT.md and the final memory isolation report.
+is complete.
 The later explicit Phase 5 authorization superseded its previous wait-for-review instruction.
 
 Owner-authorized Phase 2 (System Information only) is now implemented; Development Gate PASS.
-See docs/PHASE-2-REPORT.md. Application/startup management, cleanup and optimization remain
-future scopes requiring separate authorization. Stop for review before Phase 3.
+Application/startup management, cleanup and optimization remain
+future scopes requiring separate authorization.
 
 2. Detailed read-only system/application/startup inventories and performance/memory diagnostics.
 3. Narrow versioned Cleaner scanner; review/exclusion plans only, no deletion.

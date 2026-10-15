@@ -110,4 +110,4 @@ Save human observations/audio with permission; a running Narrator process is not
 
 For each execution add UTC, OS/UBR, account role, snapshot, artifact hashes, expected/actual,
 native exit code, log path and screenshot/audio reference. Do not overwrite failures with
-later successes; retain both with the fix identified. Current gate is in TEST-RESULTS.md.
+later successes; retain both with the fix identified. Current gate policy is in [GATES.md](GATES.md).

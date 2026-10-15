@@ -36,4 +36,4 @@ The observed runtime evidence is workload-specific, not a general leak-free clai
 Unexpected native/provider hangs are not forcibly killed. Hard termination can leave
 bounded pending export files; use the local Exports folder to inspect/remove them.
 Real distinct Standard User/UAC credential matrix and final production validation
-remain pending. See `docs/PHASE-9-REPORT.md` for current gates and exact evidence.
+remain pending. See [docs/GATES.md](docs/GATES.md) for current gates.

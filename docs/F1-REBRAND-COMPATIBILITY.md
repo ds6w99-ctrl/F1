@@ -46,4 +46,4 @@ Asset suppression and clean rebuild probes did not resolve the failure; isolatin
 Dashboard rendering and correcting native geometry ownership did. No exception was
 suppressed, no forced GC or dependency upgrade introduced.
 
-Final verification results are recorded in `F1-UI-IMPLEMENTATION-REPORT.md`.
+Final verification results are captured by the product UX harness (`scripts/Invoke-F1ProductUx.ps1`).

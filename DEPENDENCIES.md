@@ -8,14 +8,11 @@ final payload/SBOM review remains Release QA.
 Phase-2 additions: **System.Management 10.0.12** (Microsoft, MIT) for WMI firmware/CPU/RAM/
 GPU/storage metadata unavailable in base .NET APIs, and its **System.CodeDom 10.0.12**
 transitive dependency (Microsoft, MIT). SystemCore does not generate or execute code using
-CodeDom. Hashes/source/license metadata: `docs/dependencies.phase2-additions.json` and
-`docs/licenses/`. Seven projects now have lock files; locked restore passed. Earlier SBOMs
+CodeDom. Hashes/source/license metadata: `docs/licenses/`. Seven projects now have lock files; locked restore passed. Earlier SBOMs
 are historical scopes, not a complete phase-2 distribution SBOM. Final closure remains Release QA.
 
 Phase-1 additions: CommunityToolkit.Mvvm **8.4.2**, Microsoft.Extensions.DependencyInjection
-**10.0.12**, and its Abstractions **10.0.12** dependency, all declaring MIT. Exact package
-hashes and source are in `docs/dependencies.phase1-additions.json`; restored nuspec/license
-files are retained under `docs/licenses/`. Six project lock files are now present.
+**10.0.12**, and its Abstractions **10.0.12** dependency, all declaring MIT. Restored nuspec/license files are retained under `docs/licenses/`. Six project lock files are now present.
 The older resolved inventory and SBOM below describe phase 0, not the complete phase-1 payload.
 
 This is a phase-0 inventory, not a completed distribution audit. Restore and publish
@@ -59,7 +56,6 @@ record package name/version/purpose/source/license/redistribution obligations, r
 texts, review mixed licenses, and produce a complete CycloneDX/SPDX SBOM with hashes and
 relationships. Include .NET native components, App SDK framework, CRT if distributed,
 installer and any artwork. An empty or declared-only SBOM is not a release SBOM.
-`docs/sbom.phase0.cdx.json` preserves the initial declared-only scope; the resolved NuGet
-SBOM is separate and explicitly does not claim to cover all embedded native components.
+The resolved NuGet SBOM is separate and explicitly does not claim to cover all embedded native components.
 `docs/sbom.tooling.cdx.json` records the exact experimental installer compiler archive,
 source and SHA256. Its exact license is retained under `docs/licenses/InnoSetup/7.1.0`.

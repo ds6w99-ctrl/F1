@@ -21,7 +21,7 @@ Release / Production Gate: **PENDING**.
 - Final NuGet/runtime/native/license payload SBOM refresh and notices, full Windows
   edition/DPI/Narrator/high-contrast/install lifecycle matrix. `0.9.0-dev` is development.
 
-Phase 9 review: [PHASE-9-REPORT.md](PHASE-9-REPORT.md). Phase 10 requires owner approval.
+Phase 10 requires owner approval.
 
 ## Phase 8 additions
 
@@ -38,8 +38,6 @@ Phase 9 review: [PHASE-9-REPORT.md](PHASE-9-REPORT.md). Phase 10 requires owner 
 - Broader storage-failure/low-disk/interrupted-write environments and simultaneous
   instances; redacted logs intentionally omit raw payloads and stack traces. Deeper
   diagnostic capture requires separate authorization and explicit data review.
-
-Phase 8 implementation/evidence: [PHASE-8-REPORT.md](PHASE-8-REPORT.md).
 
 ## Phase 7 additions
 
@@ -58,8 +56,6 @@ Phase 8 implementation/evidence: [PHASE-8-REPORT.md](PHASE-8-REPORT.md).
   signed final installation. Signing and install lifecycle remain release work.
 - Per-process disk/network attribution and page-file configured/current usage are
   explicitly unavailable in V1; do not infer them from process I/O or commit totals.
-
-Phase 7 implementation/evidence: [PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 
 ## Phase 6 additions
 
@@ -81,8 +77,6 @@ Phase 7 implementation/evidence: [PHASE-7-REPORT.md](PHASE-7-REPORT.md).
 - Protect saved disabled files and receipts throughout signed installation upgrades;
   never delete recovery state as ordinary installer cleanup. Bound both state count
   and file sizes; document the 256-live-receipt-per-scope capacity to support teams.
-
-Phase 6 development evidence: [PHASE-6-REPORT.md](PHASE-6-REPORT.md).
 
 ## Phase 5 additions
 
@@ -107,8 +101,6 @@ Phase 6 development evidence: [PHASE-6-REPORT.md](PHASE-6-REPORT.md).
   payload on machines without SDKs or developer tools.
 - Optional shortcut discovery is unsupported in V1; maintain Review/default-off if added.
 
-Phase 5 implementation/test details: [PHASE-5-REPORT.md](PHASE-5-REPORT.md).
-
 ## Earlier phase backlog
 
 Phase 4 Development is **PASS** under the owner's final no-UIA isolation rule.
@@ -122,7 +114,7 @@ as separate measurements. Complete the broader production native UI regression;
 historical interrupted UIA attempts do not become passes through this gate change.
 Investigate the three negative GC.GetTotalMemory(false) readings in the isolated
 Core cooldown and cross-check runtime counters/last-GC heap data before relying
-on that metric. See `artifacts/debug/no-uia-final/` and the final memory report.
+on that metric.
 Phase 4 adds **DEFERRED TO CLEAN VM / RELEASE QA**: real destructive Recycle Bin
 emptying, Windows Temp elevated fixture/full cleaning, genuine Standard User
 and same-user UAC consent/denial. The broker uses a current-user-only pipe;
@@ -138,12 +130,11 @@ counters, genuine Standard User process/counter access, high process churn and l
 counts, processor groups, longer performance/memory soak and chart/list accessibility validation.
 Status: **DEFERRED TO RELEASE VALIDATION**; the development soak is tracked separately.
 Phase-3 development soak completed: 20 minutes, bounded history, no observed crash. Longer
-soak must follow the modest private-byte growth and late handle increase documented in
-PHASE-3-REPORT.md; this observation does not certify long-term leak freedom.
+soak must follow the modest private-byte growth and late handle increase observed during development; this observation does not certify long-term leak freedom.
 Phase 2 adds hardware-diversity validation: absent/denied/slow WMI providers, multiple CPU/GPU
 configurations, firmware omissions, >64 active processors, device/network changes, volume
 mount points and storage permissions; extended System Info RTL/Narrator/copy/layout and soak.
-Status: **DEFERRED TO RELEASE VALIDATION**. See PHASE-2-REPORT.md for actual-host evidence.
+Status: **DEFERRED TO RELEASE VALIDATION**.
 Default status for every open row: **DEFERRED TO RELEASE VALIDATION**.
 These items do not block development solely because a VM, device or certificate is unavailable.
 Actual phase-specific failures remain visible in development reports.

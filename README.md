@@ -1,21 +1,17 @@
 # F1 — Made By Falcone
 
-**ابدأ المحادثة الجديدة من [NEW_CHAT_START_HERE](docs/NEW_CHAT_START_HERE.md).**
-الحالة الحالية: [CURRENT-STATUS](docs/CURRENT-STATUS.md). إصلاحات ما قبل الإصدار جزئية؛ النسخة ليست Production.
+**نسخة تطوير `0.9.0-dev` — ليست Production.** سياسة البوابات: [docs/GATES.md](docs/GATES.md).
 
 واجهة WinUI 3 بهوية **Gaming / Premium** فوق خدمات SystemCore الحالية. نسخة التطوير:
 `artifacts/current/F1/F1.exe` — الإصدار `0.9.0-dev`، CURRENT DEVELOPMENT BUILD.
-تقرير التنفيذ والتحقق: [F1 UI Report](docs/F1-UI-IMPLEMENTATION-REPORT.md)،
-والخطة: [F1 UI](docs/F1-UI-IMPLEMENTATION-PLAN.md)، وسجل الأصول:
-[F1 Assets](docs/F1-ASSETS.md). الخلفية المحلية مؤقتة باختيار المالك؛ أصل الجبال
-النظيف غير متوفر، واعتماد المطابقة البصرية ما زال Pending.
+سجل الأصول: [F1 Assets](docs/F1-ASSETS.md). الخلفية المحلية مؤقتة باختيار المالك؛
+أصل الجبال النظيف غير متوفر، واعتماد المطابقة البصرية ما زال Pending.
 
 **Windows 11 فقط — x64.** الحد التقني build 22631؛ الدعم الرسمي يتبع دورة حياة كل إصدار عند إطلاق المنتج.
 الإصدارات المستهدفة: Home / Pro / Enterprise / Education.
 Windows 10 غير مدعوم صراحةً، وأُزيلت متطلبات واختبارات توافقه.
 
 هذا نموذج تحقق أصلي C# / .NET 10 / WinUI 3، وليس إصدار المنتج.
-حالة البوابة والأدلة: [TEST-RESULTS.md](TEST-RESULTS.md).
 
 ## ما يوجد الآن
 
@@ -35,7 +31,7 @@ Windows 10 غير مدعوم صراحةً، وأُزيلت متطلبات واخ
 
 Dashboard تقرأ CPU وRAM وسعة قرص النظام والجهاز ومدة التشغيل وعدد تسجيلات البرامج وبدء التشغيل.
 تُحفظ تفضيلات اللغة والثيم وبيانات الاستعادة محليًا. بيانات Startup للمستخدم في `%LOCALAPPDATA%\SystemCore\StartupState`؛ وحالة المصادر المرتفعة الصلاحيات في `%PROGRAMDATA%\SystemCore-StartupState-v1` بصلاحيات كتابة مقيدة.
-تفاصيل التقوية السابقة: [تقرير المرحلة 9](docs/PHASE-9-REPORT.md). حزمة المرحلة 9 في `artifacts/phase9/app/SystemCore.App.exe` محفوظة كخط أساس سابق؛ هوية F1 الجديدة في المسار أعلاه. قد تنتهي عملية تحسين الذاكرة دون تنفيذ إجراء؛ لا توجد حاليًا cache إنتاجية ثبتت أهليتها للتحرير المستقل.
+قد تنتهي عملية تحسين الذاكرة دون تنفيذ إجراء؛ لا توجد حاليًا cache إنتاجية ثبتت أهليتها للتحرير المستقل.
 
 ## بناء قابل للإعادة
 
@@ -71,12 +67,8 @@ dotnet run --project tests/SystemCore.ProductTests -c Release --no-build -- --in
 ## وثائق التسليم
 
 [COMPATIBILITY.md](COMPATIBILITY.md) · [ARCHITECTURE.md](ARCHITECTURE.md) ·
-[SECURITY.md](SECURITY.md) · [TEST-RESULTS.md](TEST-RESULTS.md) ·
-[ROADMAP.md](ROADMAP.md) · [DEPENDENCIES.md](DEPENDENCIES.md) ·
-[تقرير المرحلة](docs/PHASE-0-REPORT.md) · [Signing](docs/SIGNING.md).
+[SECURITY.md](SECURITY.md) · [ROADMAP.md](ROADMAP.md) ·
+[DEPENDENCIES.md](DEPENDENCIES.md) · [Signing](docs/SIGNING.md).
 
 الهوية الظاهرة F1 وتوقيع Made By Falcone؛ الناشر التجاري وهوية التوقيع غير معينين. لا شهادة أو جاهزية تجارية مُدّعاة.
-Phase 0 Development Gate: **PASS**. Release Gate: **PENDING** وفق [سياسة البوابات](docs/GATES.md).
-Phase 2 Development Gate: **PASS**. [تقرير المرحلة 2](docs/PHASE-2-REPORT.md).
-Phase 3 Development Gate: **PASS**؛ [تقرير المرحلة 3](docs/PHASE-3-REPORT.md).
-Phase 4 وPhase 5 وPhase 6 Development: **PASS**. Phase 7A وPhase 7 Development: **PASS**. **Phase 8 Development: PASS ومعتمدة من المالك**؛ أدلتها محفوظة في `artifacts/phase8/summary.json`. **Phase 9A و9B و9C وPhase 9 Development: PASS** بعد 1,291 فحصًا و1,000 مدخل اختبار مشوّه وثبات 24 دورة. توقف العمل لمراجعة المالك؛ التفاصيل في [تقرير المرحلة 9](docs/PHASE-9-REPORT.md) و`artifacts/phase9/summary.json`. Release / Production: **PENDING**. لم تبدأ Phase 10. المثبت وحزمة المرحلة 0 أدلة تاريخية لا تحتوي الواجهة الحالية.
+Release Gate: **PENDING** وفق [سياسة البوابات](docs/GATES.md)؛ هذه نسخة تطويرية وليست إصدار إنتاج.

@@ -17,7 +17,6 @@ Settings retains only real language/theme preferences with a bounded extensible 
 schema and atomic persistence. ProductSupportViewModel serves the retained Settings/
 About views; version metadata and embedded original notices require no web service.
 Shared date/time/duration/size/rate formatting follows the selected application culture.
-See [Phase 8 report](docs/PHASE-8-REPORT.md) for verification and scope.
 
 ## Phase 7 additions
 
@@ -41,7 +40,6 @@ return their directly known released bytes. No forced GC, native memory purge,
 process mutation, helper endpoint or background optimizer exists. Before/after
 observations use the shared monitor, with a temporary event subscription and a
 three-second timeout after real actions; no new polling worker is introduced.
-See [Phase 7 report](docs/PHASE-7-REPORT.md).
 
 ## Phase 6 additions
 
@@ -65,7 +63,7 @@ it accepts no command, Registry address, task path or source/destination filenam
 User-source operations remain in the application. The main manifest remains asInvoker.
 The `StartupValidation=true` build property compiles isolated UI fixtures into a
 separate validation publication; production has no runtime test-root selector.
-See [Phase 6 report](docs/PHASE-6-REPORT.md) and [Startup protocol](docs/STARTUP-PROTOCOL.md).
+See [Startup protocol](docs/STARTUP-PROTOCOL.md).
 
 ## Phase 5 additions
 
@@ -81,7 +79,7 @@ operation semaphore and a single consumable plan. File deletion uses the same pi
 ancestry/exact-handle implementation as Cleaner, extended with empty-directory disposal.
 Registry mutation requires a typed durable backup and a matching transactional snapshot
 including last-write metadata. Current-token permission failures are per-item results.
-No elevated leftover-delete operation is exposed. See [Phase 5 report](docs/PHASE-5-REPORT.md).
+No elevated leftover-delete operation is exposed.
 
 ## Phase 4 additions
 
@@ -98,7 +96,7 @@ delta trackers and the sole sampling task. Infrastructure/Performance adds nativ
 native charts and reused process rows. DashboardMonitor is now a timer-free adapter to the
 shared service, not a second polling engine. Detailed collection is requested only by the
 visible Performance or Memory Tools page; all provider reads pause without visible telemetry consumers.
-UI updates are coalesced. See docs/PHASE-3-REPORT.md for rate/identity/failure semantics.
+UI updates are coalesced.
 
 ## Phase 2 additions
 
@@ -118,8 +116,6 @@ CPU/memory/uptime/system-volume sample. Windows identity and volume capacity rea
 Dashboard does not wait for hardware inventory. Shared `InfoFormatting` retains 1024-based
 scaling with UI labels B/KB/MB/GB/TB and B/s/KB/s/MB/s/GB/s across all pages.
 
-See docs/PHASE-2-REPORT.md for exact sources, unavailable fields and validation evidence.
-
 ## Modular monolith
 
 The solution has four production projects:
@@ -132,7 +128,7 @@ The solution has four production projects:
 Phase 0 creates App/Core and the **token-only** ElevatedHost probe plus executable
 unit and actual-host compatibility test runners. Infrastructure and IntegrationTests are introduced when they contain
 real work. The production broker protocol is designed in SECURITY.md, not implemented.
-Compatibility's WinUI adapter is temporarily in App; policy math is in Core.
+Compatibility policy math is in Core.
 Phase 1 adds Infrastructure, CommunityToolkit.Mvvm view models and a Microsoft DI composition
 root. MainWindow handles window lifecycle and view composition. View models own presentation
 state; Core defines sampler/inventory contracts and tested math; Infrastructure performs reads.
