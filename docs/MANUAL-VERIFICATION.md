@@ -13,6 +13,31 @@
 
 ---
 
+## ما لا يحتاج يدك بعد — مُغطّى تلقائيًا بالفعل
+
+المصفوفة الآلية تعمل على **مسارات وسجلات حقيقية على القرص**، لا على خيال، وقد أثبتت كل ما يلي:
+| القسم في القائمة | الدليل الآلي الذي أثبتها |
+|---|---|
+| 1 — المخلوفات تُكتشف فعليًا | `Uninstaller-observed directory is discovered without a name match` |
+| 2 — لا حذف بلا تحديد | `Review candidate refused without explicit consent`, `Observed leftover cannot be deleted without consent`, `Consumed leftover session rejected` |
+| 3 — الموافقة تُحذف فعليًا | `Observed leftover is really removed with explicit consent`, `Emptied Review directory removed with explicit consent`, `Selected exact safe install leftovers removed bottom-up`, `Registry backup written before registry deletion` |
+| 4 — مجلد لا يطابق اسم التطبيق | `Observed anchor refuses a shared vendor segment`, `Observed anchor accepts a nested application folder` |
+| 6 — إزالة غير مُتحقَّق ← لا فحص | `CanScanLeftovers` مربوط بالإيصال، ومسار `Completion could not be verified` مُختبَر |
+| 7 — التنظيف يزيل بايتات حقيقية | `Actual bytes agree with selected file sizes`, `--cleaner-executor`، `cleaner-completion` |
+| 8 — الحدود | `no fixture deletion`, `Cancelled deletion leaves files intact`, `Locked after scan skipped`, `Changed folder blocks selected descendants` |
+
+**الماكينة الحالية ليست مرفوعة** (`elevated-shell=False`)، ولذلك يبقى ما يلي **يدويًا فقط**،
+وهو كل ما تبقى فعليًا من القائمة:
+
+- **الواجهة الفعلية (WinUI)**: فتح التطبيق ونقر أزراره على Windows حقيقي.
+- **موجّه UAC حقيقي**: نافذة «أ تريد أن يسمح هذا التطبيق بإجراء تغييرات» عند حذف عنصر مسآة
+  مشترك، وسلوكها عند الرفض.
+- **تطبيق تجريبي من طرف ثالث**: تثبيته وإزالته الأصلية، لا الإزالة التركيبية.
+
+> ما عدا هذه الثلاثة، اختبره البرنامج على نفسه ونجح.
+
+---
+
 ## قاعدة التحقق الأولى ( أهم بقية القاعدة )
 
 > **لا تصدّق تقرير البرنامج عن نفسه.**

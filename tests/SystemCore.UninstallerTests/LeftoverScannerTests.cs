@@ -176,7 +176,20 @@ static class LeftoverScannerTests
             var observedResult = await new LeftoverDeletionService(observedScanner, observedStore, inventory, new RegistryBackupWriter())
                 .DeleteAsync(new(observedScan.Id, app.Id, [observedFile.Id]), default);
             check("Observed leftover cannot be deleted without consent", observedResult.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && File.Exists(Path.Combine(observed, "kept.dll")));
-            Directory.Delete(observed, true);
+            if (deletion)
+            {
+                // Refusal alone would not prove removal. The same observed file is then deleted
+                // for real on disk through the exact consent path the page sends. Every delete
+                // attempt consumes its session, so the consent step scans a fresh one first.
+                var consentObservedScan = await observedScanner.ScanAsync(observedReceipt.Id, default);
+                var consentObservedFile = consentObservedScan.Items.Single(i => i.DisplayLocation == Path.Combine(observed, "kept.dll"));
+                var consentObserved = await new LeftoverDeletionService(observedScanner, observedStore, inventory, new RegistryBackupWriter())
+                    .DeleteAsync(new(consentObservedScan.Id, app.Id, [consentObservedFile.Id], IncludePersonalData: true), default);
+                check("Observed leftover is really removed with explicit consent",
+                    consentObserved.Items.Single().Status == LeftoverDeletionStatus.Deleted
+                    && !File.Exists(Path.Combine(observed, "kept.dll")));
+            }
+            if (Directory.Exists(observed)) Directory.Delete(observed, true);
             if (deletion)
             {
                 var deleteStore = new ApplicationRemovalEvidence();
