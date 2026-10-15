@@ -134,7 +134,7 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                         || (type == LeftoverType.File && !LeftoverSafety.HasApplicationBinaryExtension(path)))) confidence = LeftoverConfidence.Review;
                     var id = Guid.NewGuid();
                     var item = new LeftoverItem(id, receipt.Application.Id, type, path, reason, confidence, confidence == LeftoverConfidence.Safe ? "Application-owned" : confidence == LeftoverConfidence.Review ? "May contain personal data" : "Safety rejected", size,
-                        false, false, confidence.ToString());
+                        LeftoverSafety.IsElevatedRoot(root), false, confidence.ToString());
                     items.Add(id, new(item, path, identity, root));
                 }
             }, token).ConfigureAwait(false);

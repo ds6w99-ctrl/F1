@@ -331,6 +331,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnEvidenceSharedGame" xml:space="preserve"><value>Shared game data; ownership not exclusive.</value></data>
   <data name="UnOwnedRisk" xml:space="preserve"><value>Application-owned data. Deletion is permanent.</value></data>
   <data name="UnElevationScope" xml:space="preserve"><value>Machine-wide item: current-user permissions apply; access-denied items are skipped.</value></data>
+  <data name="UnElevationRetry" xml:space="preserve"><value>Machine-wide item: removed directly when permitted, otherwise retried with elevation.</value></data>
   <data name="StartReady" xml:space="preserve"><value>Refresh to read startup sources. Commands are never executed here.</value></data>
   <data name="StartLoading" xml:space="preserve"><value>Loading startup inventory…</value></data>
   <data name="StartLoaded" xml:space="preserve"><value>Inventory loaded. Source status is shown; Windows startup approval settings are not interpreted.</value></data>

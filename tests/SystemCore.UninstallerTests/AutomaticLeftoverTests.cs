@@ -50,7 +50,7 @@ static class AutomaticLeftoverTests
                 check($"Localized evidence and safety warning {language}/{confidence}/{evidenceCase.Key}",
                     label.Contains(Expected(evidenceCase.Key), StringComparison.Ordinal)
                     && label.Contains(vm.Text(warningKey), StringComparison.Ordinal)
-                    && label.Contains(vm.Text("UnElevationScope"), StringComparison.Ordinal)
+                    && label.Contains(vm.Text(evidenceCase.Type == LeftoverType.RegistryKey ? "UnElevationScope" : "UnElevationRetry"), StringComparison.Ordinal)
                     && (confidence != LeftoverConfidence.Review || label.Contains(vm.Text("UnPersonalData"), StringComparison.Ordinal))
                     && !label.Contains(item.Evidence, StringComparison.Ordinal) && !label.Contains(item.Risk, StringComparison.Ordinal));
             }

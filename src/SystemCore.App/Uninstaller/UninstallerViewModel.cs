@@ -178,7 +178,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
         return $"{SystemCore.Core.SystemInformation.InfoFormatting.Technical(item.DisplayLocation)}\n{L["UnType" + item.Type]} | {L["UnConfidence" + item.Confidence]} | {FormatSize(item.Size)}"
             + $"\n{L[evidenceKey]} {L[warningKey]}"
             + (item.Confidence == LeftoverConfidence.Review ? "\n" + L["UnPersonalData"] : "")
-            + (item.RequiresElevation ? "\n" + L["UnElevationScope"] : "") + "\n" + LeftoverResult(item.Id);
+            + (item.RequiresElevation ? "\n" + L[item.Type == LeftoverType.RegistryKey ? "UnElevationScope" : "UnElevationRetry"] : "") + "\n" + LeftoverResult(item.Id);
     }
     public string CleanupSummary => cleanup is null ? "" : $"{L["UnCleanupComplete"]}: {cleanup.Items.Count(i => i.Status == LeftoverDeletionStatus.Deleted)} / {cleanup.Items.Count}; {FormatSize(cleanup.RemovedBytes)}\n"
         + string.Join("\n", cleanup.Items.GroupBy(i => i.Status).Select(g => $"{L["UnDelete" + g.Key]}: {g.Count()}"));

@@ -331,6 +331,7 @@
   <data name="UnEvidenceSharedGame" xml:space="preserve"><value>بيانات ألعاب مشتركة؛ الملكية غير حصرية.</value></data>
   <data name="UnOwnedRisk" xml:space="preserve"><value>بيانات مملوكة للتطبيق. الحذف دائم.</value></data>
   <data name="UnElevationScope" xml:space="preserve"><value>عنصر على مستوى الجهاز: تُستخدم صلاحيات المستخدم الحالي ويُتجاوز العنصر عند رفض الوصول.</value></data>
+  <data name="UnElevationRetry" xml:space="preserve"><value>عنصر على مستوى الجهاز: يُحذف مباشرةً عند السماح، وإلا يُعاد بصلاحيات مرتفعة.</value></data>
   <data name="StartReady" xml:space="preserve"><value>حدّث لقراءة مصادر بدء التشغيل. لا تُنفذ الأوامر من هذه الصفحة.</value></data>
   <data name="StartLoading" xml:space="preserve"><value>جارٍ تحميل عناصر بدء التشغيل…</value></data>
   <data name="StartLoaded" xml:space="preserve"><value>اكتمل الجرد. تُعرض حالة المصدر؛ لا تُفسّر إعدادات موافقة بدء التشغيل في Windows.</value></data>
