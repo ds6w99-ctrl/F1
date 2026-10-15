@@ -50,6 +50,20 @@ public static class LeftoverSafety
         if (string.Equals(canonical, windows, StringComparison.OrdinalIgnoreCase) || CleanerSafety.IsChild(windows, canonical)) return false;
         return !inventory.Where(a => a.Id != application.Id).Any(a => a.InstallLocation is { } other && Conflicts(canonical, other));
     }
+    // An observed directory is not derived from the application's own registration, so every
+    // segment below the shared root must be free of reserved vendor names, not only the leaf.
+    public static bool CanOwnObservedDirectory(InstalledApplication application, string path, IEnumerable<InstalledApplication> inventory)
+    {
+        if (!CanOwnDirectory(application, path, inventory)) return false;
+        var canonical = CleanerSafety.Canonical(path)!;
+        var roots = new[] { Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolder.ApplicationData, Environment.SpecialFolder.CommonApplicationData };
+        var root = roots.Select(Environment.GetFolderPath).FirstOrDefault(candidate => candidate.Length > 0 && CleanerSafety.IsChild(candidate, canonical));
+        if (root is null) return false;
+        // The observation only ever looks beneath these three roots, so the remainder is the
+        // application-specific part of the path.
+        return canonical[root.Length..].Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries)
+            .All(segment => !SharedNames.Contains(segment, StringComparer.OrdinalIgnoreCase));
+    }
     // Roots a standard user cannot normally mutate. Only these are routed through the elevated
     // helper; user-writable trees must never be handed to a privileged process.
     public static bool IsElevatedRoot(string path)

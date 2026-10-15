@@ -79,7 +79,18 @@ operation semaphore and a single consumable plan. File deletion uses the same pi
 ancestry/exact-handle implementation as Cleaner, extended with empty-directory disposal.
 Registry mutation requires a typed durable backup and a matching transactional snapshot
 including last-write metadata. Current-token permission failures are per-item results.
-No elevated leftover-delete operation is exposed.
+
+Ownership is established before removal, never guessed after it. The pre-uninstall receipt
+records the registered install location, the registry data path, and the application's data
+directories under the shared roots. A second layer observes the directories beneath those
+roots immediately before and immediately after the native uninstaller runs: removing any
+direct child moves its parent's last-write time, so a moved directory is provably one the
+uninstaller worked on. That names an application-owned folder whose own name resembles
+nothing, which no amount of name matching can do. Name-linked and observed items are always
+Review and require explicit personal-data consent; only an exact pre-uninstall receipt fact
+can be Safe. Admin-only trees (Program Files, ProgramData) are routed through the elevated
+helper behind a closed operation allow-list, and the helper never receives a user-writable
+tree.
 
 ## Phase 4 additions
 

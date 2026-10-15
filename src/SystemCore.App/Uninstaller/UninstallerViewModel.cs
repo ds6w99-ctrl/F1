@@ -172,6 +172,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             "Shared game data rejected" => "UnEvidenceSharedGame",
             "Name-derived candidate; not verified by a pre-uninstall receipt" => "UnEvidenceNameDerived",
             "Pre-uninstall footprint recorded under a non-shared application directory" => "UnEvidenceFootprint",
+            "Modified by the native uninstaller; ownership observed during removal" => "UnEvidenceObserved",
             _ => "UnEvidenceUnsupported"
         };
         var warningKey = item.Confidence == LeftoverConfidence.Ignore || (item.Confidence == LeftoverConfidence.Review && !allowPersonalData) ? "UnDeleteSafetyRejected"

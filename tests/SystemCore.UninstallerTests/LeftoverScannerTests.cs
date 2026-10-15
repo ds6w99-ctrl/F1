@@ -150,6 +150,33 @@ static class LeftoverScannerTests
             var deep = await deepScanner.ScanAsync(deepReceipt.Id, true, default);
             check("Deep scan discovers name-derived candidate", deep.Items.Any(i => i.DisplayLocation == Path.Combine(roaming, "settings.cfg")));
             check("Name-derived candidates are always Review and unselected", deep.Items.Where(i => i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)).All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));
+            // Observed anchors are the only signal that can prove ownership of a data directory
+            // whose name does not resemble the application, so they are part of the conservative
+            // scan. A shared vendor segment is still refused.
+            var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            check("Observed anchor refuses a shared vendor segment", !LeftoverSafety.CanOwnObservedDirectory(app, Path.Combine(local, "Google", "Synthetic"), []));
+            check("Observed anchor accepts a nested application folder", LeftoverSafety.CanOwnObservedDirectory(app, Path.Combine(local, "SyntheticVendor", "SyntheticProduct"), []));
+            var observed = Path.Combine(local, "SystemCoreObserved-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(observed);
+            File.WriteAllText(Path.Combine(observed, "removed.tmp"), "removed");
+            Directory.SetLastWriteTimeUtc(observed, DateTime.UtcNow.AddMinutes(-5));
+            var observedStore = new ApplicationRemovalEvidence();
+            await observedStore.CaptureAsync(app, before, default);
+            // Simulate the native uninstaller pruning one child and leaving another behind.
+            File.Delete(Path.Combine(observed, "removed.tmp"));
+            File.WriteAllText(Path.Combine(observed, "kept.dll"), "leftover");
+            var observedReceipt = observedStore.ConfirmRemoved(app.Id)!;
+            var observedScanner = new LeftoverScanner(observedStore, inventory);
+            var observedScan = await observedScanner.ScanAsync(observedReceipt.Id, default);
+            var observedItems = observedScan.Items.Where(i => i.DisplayLocation == observed || i.DisplayLocation == Path.Combine(observed, "kept.dll")).ToArray();
+            check("Uninstaller-observed directory is discovered without a name match", observedItems.Any(i => i.DisplayLocation == Path.Combine(observed, "kept.dll")));
+            check("Observed leftovers carry observation evidence and stay Review", observedItems.Length == 2
+                && observedItems.All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault && i.Evidence == "Modified by the native uninstaller; ownership observed during removal"));
+            var observedFile = observedScan.Items.Single(i => i.DisplayLocation == Path.Combine(observed, "kept.dll"));
+            var observedResult = await new LeftoverDeletionService(observedScanner, observedStore, inventory, new RegistryBackupWriter())
+                .DeleteAsync(new(observedScan.Id, app.Id, [observedFile.Id]), default);
+            check("Observed leftover cannot be deleted without consent", observedResult.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && File.Exists(Path.Combine(observed, "kept.dll")));
+            Directory.Delete(observed, true);
             if (deletion)
             {
                 var deleteStore = new ApplicationRemovalEvidence();

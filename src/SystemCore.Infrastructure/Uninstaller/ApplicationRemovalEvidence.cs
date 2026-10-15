@@ -5,7 +5,7 @@ using SystemCore.Infrastructure.Cleaner;
 namespace SystemCore.Infrastructure.Uninstaller;
 
 internal sealed record DirectoryEvidence(string Path, CleanerIdentity Identity, string Reason);
-internal sealed record RemovalEvidence(InstalledApplication Application, IReadOnlyList<DirectoryEvidence> Directories, IReadOnlyList<RegistryEvidence> Registry, DateTimeOffset CreatedAt, RemovalReceipt? Receipt);
+internal sealed record RemovalEvidence(InstalledApplication Application, IReadOnlyList<DirectoryEvidence> Directories, IReadOnlyList<RegistryEvidence> Registry, DateTimeOffset CreatedAt, RemovalReceipt? Receipt, LeftoverFootprint? Footprint = null, IReadOnlyList<string>? Touched = null);
 
 // In-memory only, bounded and short-lived. A receipt is issued only after native
 // uninstall completion is independently verified by the executor.
@@ -102,11 +102,15 @@ public sealed class ApplicationRemovalEvidence
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
             }
         }
+        // Observed last, so the window between the observation and the native uninstaller is as
+        // short as the surrounding code allows. Only an application that already has a verified
+        // pre-uninstall fact is observed; an unidentifiable registration never anchors anything.
+        var footprint = directories.Count == 0 && registry.Count == 0 ? null : LeftoverFootprint.Snapshot(token);
         lock (sync)
         {
             Expire();
             if (pending.Count >= 16 && !pending.ContainsKey(app.Id)) pending.Remove(pending.MinBy(p => p.Value.CreatedAt).Key);
-            pending[app.Id] = new(app, directories, registry, DateTimeOffset.UtcNow, null);
+            pending[app.Id] = new(app, directories, registry, DateTimeOffset.UtcNow, null, footprint);
         }
     }, token);
     internal RemovalReceipt? ConfirmRemoved(string applicationId)
@@ -116,7 +120,12 @@ public sealed class ApplicationRemovalEvidence
             Expire();
             if (!pending.TryGetValue(applicationId, out var evidence)) return null;
             var receipt = new RemovalReceipt(Guid.NewGuid(), applicationId, evidence.Application.DisplayName, DateTimeOffset.UtcNow);
-            pending[applicationId] = evidence with { Receipt = receipt };
+            // The post-uninstall observation must never turn an already verified removal into a
+            // failure: an unobserved removal degrades to no anchors, not to a lost result.
+            IReadOnlyList<string> touched = Array.Empty<string>();
+            try { if (evidence.Footprint is not null) touched = evidence.Footprint.Modified(LeftoverFootprint.Snapshot(CancellationToken.None)); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or System.Security.SecurityException) { }
+            pending[applicationId] = evidence with { Receipt = receipt, Footprint = null, Touched = touched };
             return receipt;
         }
     }
