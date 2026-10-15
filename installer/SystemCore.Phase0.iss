@@ -21,7 +21,7 @@ OutputDir={#RepoRoot}\artifacts\installer
 OutputBaseFilename=SystemCore-Phase0-0.0.1-win-x64-setup
 Compression=lzma2
 SolidCompression=yes
-UninstallDisplayIcon={app}\App\SystemCore.App.exe
+UninstallDisplayIcon={app}\App\F1.exe
 UninstallFilesDir={app}\Uninstall
 CloseApplications=no
 RestartApplications=no
@@ -38,7 +38,7 @@ Source: "{#RepoRoot}\THIRD-PARTY-NOTICES"; DestDir: "{app}\Notices"; Flags: igno
 Source: "{#RepoRoot}\docs\licenses\*"; DestDir: "{app}\Notices\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{commonprograms}\{#ProbeName}"; Filename: "{app}\App\SystemCore.App.exe"; WorkingDir: "{app}\App"
+Name: "{commonprograms}\{#ProbeName}"; Filename: "{app}\App\F1.exe"; WorkingDir: "{app}\App"
 
 ; No post-install elevated launch. Start from the standard user's Start menu.
 ; No UninstallDelete wildcard: uninstall only the files recorded by this installer.

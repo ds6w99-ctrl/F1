@@ -86,8 +86,10 @@ Phase 10 requires owner approval.
 - Large/rare installer inventories, incomplete source permissions, duplicate identities,
   multiple products sharing directories or app-specific registry storage.
 - Current-token leftover cleanup skips access denied. An explicit elevated leftover
-  broker is not implemented; any future addition needs independently authenticated
-  app-evidence/session/item authorization, bounded IPC and a dedicated safety gate.
+  broker is now implemented: a fixed protocol version with bounded item count, a
+  nonce/timestamp-validated request, and a CurrentUserOnly pipe that fails closed to
+  SafetyRejected. Remaining release work is the actual elevated accept/deny behaviour
+  on disposable VMs, not the broker's existence.
 - Registry transaction availability/conflicts/ancestor rename races, damaged or full
   backup storage, typed JSON backup recovery procedure and key-security metadata.
   Backup is mandatory for removal, but automatic restoration is not guaranteed.
