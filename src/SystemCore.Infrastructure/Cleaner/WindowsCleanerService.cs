@@ -111,26 +111,21 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
             if (token.IsCancellationRequested) { results.Add(new(item.Id, CleanerItemOutcome.Cancelled, 0)); continue; }
             try
             {
-                var matches = definitions.Where(t => t.Category == item.Category).ToArray();
-                var target = matches.Length == 1 ? matches[0] : null;
-                if (target is not null && (!target.RequiresElevation || (allowWindowsTemp && target.Category == CleanerCategory.WindowsTemp)) && WindowsCleanerTargets.IsAllowed(target) &&
-                    !Path.IsPathRooted(item.RelativePath))
+                var target = definitions
+                    .Where(t => t.Category == item.Category && CleanerSafety.IsChild(t.Root, item.DisplayPath))
+                    .OrderByDescending(t => CleanerSafety.Canonical(t.Root)?.Length ?? 0)
+                    .FirstOrDefault(t => ValidTarget(t, item, allowWindowsTemp));
+                if (target is not null)
                 {
                     var path = Path.Combine(target.Root, item.RelativePath);
-                    if (CleanerSafety.IsChild(target.Root, path) &&
-                        string.Equals(CleanerSafety.Canonical(path), CleanerSafety.Canonical(item.DisplayPath), StringComparison.OrdinalIgnoreCase) &&
-                        (target.Recurse || string.Equals(Path.GetDirectoryName(path), target.Root.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) &&
-                        FileSystemName.MatchesSimpleExpression(target.Pattern, Path.GetFileName(path), true))
+                    using (var file = PinnedCleanerPath.Open(path, false, deleteAccess: true))
                     {
-                        using (var file = PinnedCleanerPath.Open(path, false, deleteAccess: true))
-                        {
-                            if (file.Identity != item.Identity) outcome = CleanerItemOutcome.Changed;
-                            else if (!CleanerSafety.SafeFileAttributes(file.Attributes, file.Identity.Links) ||
-                                !CleanerSafety.Eligible(file.Identity.Size, file.Identity.LastWriteFileTime, DateTimeOffset.UtcNow, target.MinimumAge))
-                                outcome = CleanerItemOutcome.SafetyRejected;
-                            else if (token.IsCancellationRequested) outcome = CleanerItemOutcome.Cancelled;
-                            else { file.MarkFileForDeletion(); outcome = CleanerItemOutcome.Deleted; }
-                        }
+                        if (file.Identity != item.Identity) outcome = CleanerItemOutcome.Changed;
+                        else if (!CleanerSafety.SafeFileAttributes(file.Attributes, file.Identity.Links) ||
+                            !CleanerSafety.Eligible(file.Identity.Size, file.Identity.LastWriteFileTime, DateTimeOffset.UtcNow, target.MinimumAge))
+                            outcome = CleanerItemOutcome.SafetyRejected;
+                        else if (token.IsCancellationRequested) outcome = CleanerItemOutcome.Cancelled;
+                        else { file.MarkFileForDeletion(); outcome = CleanerItemOutcome.Deleted; }
                     }
                 }
             }
@@ -151,5 +146,19 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
             results.Add(new(item.Id, outcome, outcome == CleanerItemOutcome.Deleted ? item.Size : 0));
         }
         return new(true, results.AsReadOnly());
+    }
+    // A single category may now carry several disjoint roots; the caller-supplied path must
+    // match exactly one allowed definition before any handle with delete access is opened.
+    private static bool ValidTarget(CleanerTarget target, CleanerItem item, bool allowWindowsTemp)
+    {
+        if (target.RequiresElevation && !(allowWindowsTemp && target.Category == CleanerCategory.WindowsTemp)) return false;
+        if (!WindowsCleanerTargets.IsAllowed(target)) return false;
+        if (Path.IsPathRooted(item.RelativePath)) return false;
+        var path = Path.Combine(target.Root, item.RelativePath);
+        if (!CleanerSafety.IsChild(target.Root, path)) return false;
+        if (!string.Equals(CleanerSafety.Canonical(path), CleanerSafety.Canonical(item.DisplayPath), StringComparison.OrdinalIgnoreCase)) return false;
+        if (!target.Recurse && !string.Equals(Path.GetDirectoryName(path), target.Root.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) return false;
+        if (!FileSystemName.MatchesSimpleExpression(target.Pattern, Path.GetFileName(path), true)) return false;
+        return true;
     }
 }

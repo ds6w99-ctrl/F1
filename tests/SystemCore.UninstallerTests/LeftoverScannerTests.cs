@@ -14,6 +14,7 @@ static class LeftoverScannerTests
         var outside = root + "-outside";
         var data = root + "-data";
         var keyPath = "Software\\" + name;
+        var roaming = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), name);
         Directory.CreateDirectory(root); Directory.CreateDirectory(outside); Directory.CreateDirectory(data);
         File.Copy(Path.Combine(AppContext.BaseDirectory, "SystemCore.UninstallerTests.exe"), Path.Combine(root, "uninstall.exe"));
         File.WriteAllText(Path.Combine(root, "owned.dll"), "owned");
@@ -122,6 +123,19 @@ static class LeftoverScannerTests
             var profileResult = await new LeftoverDeletionService(profileScanner, profileStore, inventory, new RegistryBackupWriter()).DeleteAsync(new(profileScan.Id, app.Id, [profileItem.Id]), default);
             using (var key = user.OpenSubKey(keyPath)) check("Review registry cannot be deleted even by forged request", profileResult.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && (string?)key?.GetValue("ProfileName") == "Synthetic personal profile");
             using (var key = user.OpenSubKey(keyPath, true)) key!.DeleteValue("ProfileName");
+            // Deep discovery is read-only and opt-in: the conservative scan must never see a
+            // name-derived candidate, and the deep scan must classify every one as Review.
+            Directory.CreateDirectory(roaming);
+            File.WriteAllText(Path.Combine(roaming, "settings.cfg"), "cfg");
+            var deepStore = new ApplicationRemovalEvidence();
+            await deepStore.CaptureAsync(app, before, default);
+            var deepReceipt = deepStore.ConfirmRemoved(app.Id)!;
+            var deepScanner = new LeftoverScanner(deepStore, inventory);
+            var conservative = await deepScanner.ScanAsync(deepReceipt.Id, default);
+            check("Conservative scan ignores name-derived candidates", conservative.Items.All(i => !i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)));
+            var deep = await deepScanner.ScanAsync(deepReceipt.Id, true, default);
+            check("Deep scan discovers name-derived candidate", deep.Items.Any(i => i.DisplayLocation == Path.Combine(roaming, "settings.cfg")));
+            check("Name-derived candidates are always Review and unselected", deep.Items.Where(i => i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)).All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));
             if (deletion)
             {
                 var deleteStore = new ApplicationRemovalEvidence();
@@ -199,6 +213,31 @@ static class LeftoverScannerTests
                 injectionRejected = false;
                 try { await deletionService.DeleteAsync(request, default); } catch (InvalidOperationException) { injectionRejected = true; }
                 check("Consumed leftover session rejected", injectionRejected);
+                // Explicit personal-data consent is the only path that makes a Review item
+                // deletable; without it the item stays refused and the file survives.
+                var roamingFile = Path.Combine(roaming, "settings.cfg");
+                Directory.CreateDirectory(roaming); File.WriteAllText(roamingFile, "cfg");
+                var consentStore = new ApplicationRemovalEvidence();
+                await consentStore.CaptureAsync(app, before, default);
+                var consentReceipt = consentStore.ConfirmRemoved(app.Id)!;
+                var consentScanner = new LeftoverScanner(consentStore, inventory);
+                var consentDeletion = new LeftoverDeletionService(consentScanner, consentStore, inventory, new RegistryBackupWriter());
+                var consentScan = await consentScanner.ScanAsync(consentReceipt.Id, true, default);
+                var roamingItem = consentScan.Items.Single(i => i.DisplayLocation == roamingFile);
+                var refused = await consentDeletion.DeleteAsync(new(consentScan.Id, app.Id, [roamingItem.Id]), default);
+                check("Review candidate refused without explicit consent", refused.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && File.Exists(roamingFile));
+                consentScan = await consentScanner.ScanAsync(consentReceipt.Id, true, default);
+                roamingItem = consentScan.Items.Single(i => i.DisplayLocation == roamingFile);
+                var accepted = await consentDeletion.DeleteAsync(new(consentScan.Id, app.Id, [roamingItem.Id], IncludePersonalData: true), default);
+                check("Review candidate deleted with explicit consent", accepted.Items.Single().Status == LeftoverDeletionStatus.Deleted && !File.Exists(roamingFile));
+                consentScan = await consentScanner.ScanAsync(consentReceipt.Id, true, default);
+                var roamingDirectory = consentScan.Items.Single(i => i.DisplayLocation == roaming && i.Type == LeftoverType.Directory);
+                var directoryRefused = await consentDeletion.DeleteAsync(new(consentScan.Id, app.Id, [roamingDirectory.Id]), default);
+                check("Review directory refused without explicit consent", directoryRefused.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && Directory.Exists(roaming));
+                consentScan = await consentScanner.ScanAsync(consentReceipt.Id, true, default);
+                roamingDirectory = consentScan.Items.Single(i => i.DisplayLocation == roaming && i.Type == LeftoverType.Directory);
+                var directoryAccepted = await consentDeletion.DeleteAsync(new(consentScan.Id, app.Id, [roamingDirectory.Id], IncludePersonalData: true), default);
+                check("Emptied Review directory removed with explicit consent", directoryAccepted.Items.Single().Status == LeftoverDeletionStatus.Deleted && !Directory.Exists(roaming));
             }
         }
         finally
@@ -207,6 +246,7 @@ static class LeftoverScannerTests
             var link = Path.Combine(root, "escape"); if (Directory.Exists(link)) Directory.Delete(link);
             user.DeleteSubKeyTree(keyPath, false);
             if (Directory.Exists(root)) Directory.Delete(root, true);
+            if (Directory.Exists(roaming)) Directory.Delete(roaming, true);
             Directory.Delete(outside, true); if (Directory.Exists(data)) Directory.Delete(data, true);
         }
     }

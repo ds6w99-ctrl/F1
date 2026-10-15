@@ -73,6 +73,11 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             OpenLauncher.Content = ViewModel.Text("UnOpenLauncher"); OpenLauncher.IsEnabled = ViewModel.CanOpenLauncher;
             ToolTipService.SetToolTip(OpenLauncher, ViewModel.Text(ViewModel.CanOpenLauncher ? "UnOpenLauncher" : "UnLauncherUnavailable"));
             ScanLeftovers.Content = ViewModel.Text("UnScanLeftovers"); ScanLeftovers.IsEnabled = ViewModel.CanScanLeftovers;
+            AllowPersonalData.Content = ViewModel.Text("UnAllowPersonalData");
+            AllowPersonalData.Visibility = ViewModel.ShowLeftovers && ViewModel.Leftovers.Any(i => i.Confidence == LeftoverConfidence.Review) ? Visibility.Visible : Visibility.Collapsed;
+            AllowPersonalData.IsChecked = ViewModel.AllowPersonalData;
+            AllowPersonalData.IsEnabled = ViewModel.CanChangeLeftoverSelection;
+            ToolTipService.SetToolTip(AllowPersonalData, ViewModel.Text("UnPersonalData"));
             LeftoverSummary.Text = ViewModel.LeftoverSummary;
             DeleteLeftovers.Content = $"{ViewModel.Text("UnDeleteLeftovers")} ({ViewModel.SelectedLeftoverCount})";
             DeleteLeftovers.IsEnabled = ViewModel.CanDeleteLeftovers;
@@ -99,6 +104,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     private void OnCancelOperation(object sender, RoutedEventArgs args) => ViewModel.CancelOperation();
     private async void OnScanLeftovers(object sender, RoutedEventArgs args) => await ViewModel.ScanLeftoversAsync();
     private void OnKeepLeftovers(object sender, RoutedEventArgs args) => ViewModel.KeepLeftovers();
+    private void OnAllowPersonalData(object sender, RoutedEventArgs args) { if (!rendering) ViewModel.AllowPersonalData = AllowPersonalData.IsChecked == true; }
     private void OnLeftoverToggle(object sender, RoutedEventArgs args)
     {
         if (!rendering && sender is CheckBox { Tag: Guid id } choice) ViewModel.SelectLeftover(id, choice.IsChecked == true);
@@ -107,9 +113,10 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     {
         if (!ViewModel.CanDeleteLeftovers) return;
         var ids = ViewModel.SelectedLeftoverIds();
+        var personal = ViewModel.AllowPersonalData && ViewModel.Leftovers.Any(i => i.Confidence != LeftoverConfidence.Safe && ViewModel.IsLeftoverSelected(i.Id));
         var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = ViewModel.Text("UnDeleteLeftovers"),
             PrimaryButtonStyle = (Style)Application.Current.Resources["DangerButtonStyle"],
-            Content = $"{ids.Length}\n{ViewModel.Text("UnDeleteConfirm")}" + (ViewModel.HasSelectedRegistry ? "\n" + ViewModel.Text("UnRegistryWarning") : ""),
+            Content = $"{ids.Length}\n{ViewModel.Text("UnDeleteConfirm")}" + (personal ? "\n" + ViewModel.Text("UnPersonalDataConfirm") : "") + (ViewModel.HasSelectedRegistry ? "\n" + ViewModel.Text("UnRegistryWarning") : ""),
             PrimaryButtonText = ViewModel.Text("UnDeleteLeftovers"), CloseButtonText = ViewModel.Text("UnCancel"), DefaultButton = ContentDialogButton.Close, FlowDirection = FlowDirection, RequestedTheme = ActualTheme };
         AutomationProperties.SetAutomationId(dialog, "UnLeftoverConfirmation");
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) await ViewModel.DeleteLeftoversConfirmedAsync(ids);
@@ -152,7 +159,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             var leftover = ViewModel.ShowLeftovers ? currentLeftovers.GetValueOrDefault(id) : null;
             var app = !ViewModel.ShowLeftovers ? currentApps.GetValueOrDefault(id) : null;
             choice.Visibility = leftover is null ? Visibility.Collapsed : Visibility.Visible; choice.Tag = leftover?.Id;
-            choice.IsEnabled = ViewModel.CanChangeLeftoverSelection && leftover?.Confidence == LeftoverConfidence.Safe;
+            choice.IsEnabled = ViewModel.CanChangeLeftoverSelection && leftover is not null && ViewModel.CanSelectLeftover(leftover);
             choice.IsChecked = leftover is not null && ViewModel.IsLeftoverSelected(leftover.Id);
             AutomationProperties.SetName(choice, leftover?.DisplayLocation ?? "");
             text.TextWrapping = leftover is null ? TextWrapping.NoWrap : TextWrapping.Wrap;

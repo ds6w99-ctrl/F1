@@ -51,7 +51,10 @@ public sealed class LeftoverDeletionService(LeftoverScanner scanner, Application
             var selected = request.ItemIds.Select(id => session.Items[id]).OrderBy(i => i.Item.Type == LeftoverType.Directory ? 1 : 0)
                 .ThenByDescending(i => i.Path.Count(c => c == '\\')).ToArray();
             var changedDirectories = new List<string>();
-            foreach (var directory in session.Items.Values.Where(i => i.Item.Type == LeftoverType.Directory && i.Item.Confidence == LeftoverConfidence.Safe))
+            // Review directories join the identity pre-check only when the caller explicitly
+            // acknowledged personal-data destruction; Ignore items are never eligible.
+            foreach (var directory in session.Items.Values.Where(i => i.Item.Type == LeftoverType.Directory
+                && (i.Item.Confidence == LeftoverConfidence.Safe || (request.IncludePersonalData && i.Item.Confidence == LeftoverConfidence.Review))))
             {
                 try
                 {
@@ -65,7 +68,9 @@ public sealed class LeftoverDeletionService(LeftoverScanner scanner, Application
                 if (token.IsCancellationRequested) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.Cancelled, 0)); continue; }
                 if (DateTimeOffset.UtcNow - session.Session.CreatedAt > TimeSpan.FromMinutes(10) || evidence.Get(session.Session.ReceiptId) is null)
                 { results.Add(new(item.Item.Id, LeftoverDeletionStatus.SafetyRejected, 0)); continue; }
-                if (item.Item.Confidence != LeftoverConfidence.Safe) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.SafetyRejected, 0)); continue; }
+                if (item.Item.Confidence == LeftoverConfidence.Ignore
+                    || (item.Item.Confidence == LeftoverConfidence.Review && !request.IncludePersonalData))
+                { results.Add(new(item.Item.Id, LeftoverDeletionStatus.SafetyRejected, 0)); continue; }
                 if (item.Registry is null && changedDirectories.Any(path => path == item.Path || CleanerSafety.IsChild(path, item.Path)))
                 { results.Add(new(item.Item.Id, LeftoverDeletionStatus.Changed, 0)); continue; }
                 try

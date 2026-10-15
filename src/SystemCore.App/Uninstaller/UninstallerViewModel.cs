@@ -28,6 +28,8 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private LeftoverDeletionResult? cleanup;
     private RemovalReceipt? receipt;
     private LeftoverScanSession? leftoverSession;
+    // Explicit, per-session acknowledgement required before any Review item becomes selectable.
+    private bool allowPersonalData;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? activeOperation;
     private CancellationToken BeginOperation()
@@ -168,9 +170,10 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             "Reparse point rejected" => "UnEvidenceReparse",
             "Unsupported file attributes or hard links" => "UnEvidenceAttributes",
             "Shared game data rejected" => "UnEvidenceSharedGame",
+            "Name-derived candidate; not verified by a pre-uninstall receipt" => "UnEvidenceNameDerived",
             _ => "UnEvidenceUnsupported"
         };
-        var warningKey = item.Confidence != LeftoverConfidence.Safe ? "UnDeleteSafetyRejected"
+        var warningKey = item.Confidence == LeftoverConfidence.Ignore || (item.Confidence == LeftoverConfidence.Review && !allowPersonalData) ? "UnDeleteSafetyRejected"
             : item.Type == LeftoverType.RegistryKey ? "UnRegistryWarning" : "UnOwnedRisk";
         return $"{SystemCore.Core.SystemInformation.InfoFormatting.Technical(item.DisplayLocation)}\n{L["UnType" + item.Type]} | {L["UnConfidence" + item.Confidence]} | {FormatSize(item.Size)}"
             + $"\n{L[evidenceKey]} {L[warningKey]}"
@@ -179,9 +182,24 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     }
     public string CleanupSummary => cleanup is null ? "" : $"{L["UnCleanupComplete"]}: {cleanup.Items.Count(i => i.Status == LeftoverDeletionStatus.Deleted)} / {cleanup.Items.Count}; {FormatSize(cleanup.RemovedBytes)}\n"
         + string.Join("\n", cleanup.Items.GroupBy(i => i.Status).Select(g => $"{L["UnDelete" + g.Key]}: {g.Count()}"));
+    // Off by default. Enabling it never selects anything by itself: the user must still tick the
+    // Review rows, so personal-data destruction is always an explicit per-item choice.
+    public bool AllowPersonalData
+    {
+        get => allowPersonalData;
+        set
+        {
+            if (!SetProperty(ref allowPersonalData, value)) return;
+            if (!value) selectedLeftovers.RemoveWhere(id => Leftovers.Any(i => i.Id == id && i.Confidence != LeftoverConfidence.Safe));
+            OnPropertyChanged(string.Empty);
+        }
+    }
+    public bool CanSelectLeftover(LeftoverItem item) => !Busy && cleanup is null
+        && (item.Confidence == LeftoverConfidence.Safe || (allowPersonalData && item.Confidence == LeftoverConfidence.Review));
     public void SelectLeftover(Guid id, bool selected)
     {
-        if (Busy || cleanup is not null || !Leftovers.Any(i => i.Id == id && i.Confidence == LeftoverConfidence.Safe)) return;
+        var item = Leftovers.FirstOrDefault(i => i.Id == id);
+        if (item is null || !CanSelectLeftover(item)) return;
         if (selected) selectedLeftovers.Add(id); else selectedLeftovers.Remove(id);
         OnPropertyChanged(nameof(SelectedLeftoverCount));
     }
@@ -316,10 +334,12 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     // The automatic and retry paths share one read-only operation. Never chain deletion.
     private async Task ScanLeftoversCoreAsync(CancellationToken token)
     {
-        state = UninstallState.ScanningLeftovers; leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); page = 0; OnPropertyChanged(string.Empty);
+        state = UninstallState.ScanningLeftovers; leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); allowPersonalData = false; page = 0; OnPropertyChanged(string.Empty);
         try
         {
-            var scan = await leftovers.ScanAsync(receipt!.Id, token);
+            // Deep scan surfaces name-derived candidates as Review items so a user can still
+            // clean what a receipt missed. Nothing it finds is ever selectable without consent.
+            var scan = await leftovers.ScanAsync(receipt!.Id, true, token);
             token.ThrowIfCancellationRequested();
             leftoverSession = scan; state = UninstallState.LeftoversReady;
         }
@@ -335,7 +355,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public void KeepLeftovers()
     {
         if (Busy || !ShowLeftovers) return;
-        leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); page = 0; state = UninstallState.Removed;
+        leftoverSession = null; cleanup = null; selectedLeftovers.Clear(); allowPersonalData = false; page = 0; state = UninstallState.Removed;
         OnPropertyChanged(string.Empty);
     }
     public async Task DeleteLeftoversConfirmedAsync(Guid[] confirmedIds)
@@ -350,7 +370,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             Busy = true;
             state = UninstallState.CleaningLeftovers; OnPropertyChanged(nameof(Status));
             token = BeginOperation();
-            cleanup = await deletion.DeleteAsync(new(leftoverSession.Id, leftoverSession.ApplicationIdentityId, confirmedIds), token);
+            cleanup = await deletion.DeleteAsync(new(leftoverSession.Id, leftoverSession.ApplicationIdentityId, confirmedIds, allowPersonalData), token);
             state = UninstallState.CleanupComplete;
             await RefreshAfterMutationAsync(token);
         }

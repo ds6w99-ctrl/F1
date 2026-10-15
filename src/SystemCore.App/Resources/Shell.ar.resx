@@ -548,6 +548,9 @@
   <data name="UnLeftoversFound" xml:space="preserve"><value>تم العثور على بقايا</value></data>
   <data name="UnLeftoverCountSize" xml:space="preserve"><value>{0} عناصر • {1}</value></data>
   <data name="UnPersonalData" xml:space="preserve"><value>قد يحتوي بيانات شخصية</value></data>
+  <data name="UnAllowPersonalData" xml:space="preserve"><value>حذف مخلفات البيانات الشخصية أيضًا</value></data>
+  <data name="UnPersonalDataConfirm" xml:space="preserve"><value>قد تُحذف بيانات شخصية نهائيًا.</value></data>
+  <data name="UnEvidenceNameDerived" xml:space="preserve"><value>مرشّح مشتق من الاسم؛ غير مُثبَت بإيصال الإزالة.</value></data>
   <data name="UnKeepLeftovers" xml:space="preserve"><value>إبقاء</value></data>
   <data name="F1Welcome" xml:space="preserve"><value>مرحباً بك</value></data>
   <data name="F1Intro" xml:space="preserve"><value>كل ما تحتاجه لإدارة نظامك من مكان واحد</value></data>

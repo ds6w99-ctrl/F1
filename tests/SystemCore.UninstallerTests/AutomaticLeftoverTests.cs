@@ -59,6 +59,13 @@ static class AutomaticLeftoverTests
             check("Nothing selected automatically " + language, vm.SelectedLeftoverCount == 0 && !vm.CanDeleteLeftovers);
             vm.SelectLeftover(review.Id, true); vm.SelectLeftover(ignored.Id, true);
             check("Review and Ignore cannot be selected " + language, vm.SelectedLeftoverCount == 0);
+            vm.AllowPersonalData = true;
+            vm.SelectLeftover(review.Id, true);
+            check("Consent allows Review selection " + language, vm.SelectedLeftoverCount == 1 && vm.CanSelectLeftover(review));
+            vm.SelectLeftover(ignored.Id, true);
+            check("Consent never allows Ignore selection " + language, vm.SelectedLeftoverCount == 1);
+            vm.SelectLeftover(review.Id, false); vm.AllowPersonalData = false;
+            check("Revoked consent leaves nothing selected " + language, vm.SelectedLeftoverCount == 0);
             check("Review short personal label " + language, vm.LeftoverLabel(review).Contains(language == "en" ? "may contain personal data" : "قد يحتوي بيانات شخصية", StringComparison.Ordinal));
             await vm.DeleteLeftoversConfirmedAsync([safe.Id]);
             check("Unselected confirmation cannot delete " + language, deletion.Calls == 0);
@@ -110,6 +117,16 @@ static class AutomaticLeftoverTests
             check("Wrong-identity receipt cannot scan " + language, scanner.Calls == calls && !vm.CanScanLeftovers);
             executor.ReceiptIdentity = null; executor.App = executor.App with { ItemKind = ItemKind.Game }; await Remove();
             check("Native game cannot scan even with erroneous receipt " + language, scanner.Calls == calls && !vm.CanScanLeftovers);
+            // The consent flag is the only thing that lets a Review row reach the deletion
+            // service; it must be forwarded verbatim with the exact confirmed ids.
+            executor.App = executor.App with { ItemKind = ItemKind.Application };
+            scanner.Items = [safe, review]; await Remove();
+            vm.AllowPersonalData = true; vm.SelectLeftover(review.Id, true);
+            var consentCalls = deletion.Calls;
+            await vm.DeleteLeftoversConfirmedAsync([review.Id]);
+            check("Consent flag forwarded to deletion " + language,
+                deletion.Calls == consentCalls + 1 && deletion.Last!.IncludePersonalData && deletion.Last!.ItemIds.SequenceEqual(new[] { review.Id }));
+            vm.AllowPersonalData = false;
         }
     }
     sealed class Executor : IUninstallExecutor
