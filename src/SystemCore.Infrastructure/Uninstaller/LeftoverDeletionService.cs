@@ -35,9 +35,21 @@ public sealed class RegistryBackupWriter : IRegistryBackupWriter
     }
 }
 
-public sealed class LeftoverDeletionService(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
-    IInstalledApplicationInventory inventory, IRegistryBackupWriter backups) : ILeftoverDeletionService
+public sealed class LeftoverDeletionService : ILeftoverDeletionService
 {
+    private readonly LeftoverScanner scanner;
+    private readonly ApplicationRemovalEvidence evidence;
+    private readonly IInstalledApplicationInventory inventory;
+    private readonly IRegistryBackupWriter backups;
+    private readonly IElevatedLeftoverClient? elevated;
+    public LeftoverDeletionService(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
+        IInstalledApplicationInventory inventory, IRegistryBackupWriter backups)
+        : this(scanner, evidence, inventory, backups, null) { }
+    internal LeftoverDeletionService(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
+        IInstalledApplicationInventory inventory, IRegistryBackupWriter backups, IElevatedLeftoverClient? elevated)
+    {
+        this.scanner = scanner; this.evidence = evidence; this.inventory = inventory; this.backups = backups; this.elevated = elevated;
+    }
     public async Task<LeftoverDeletionResult> DeleteAsync(LeftoverDeletionRequest request, CancellationToken token)
     {
         if (request.ItemIds is null || request.ItemIds.Count is 0 or > 2000) throw new InvalidOperationException("Invalid selection size");
@@ -48,6 +60,10 @@ public sealed class LeftoverDeletionService(LeftoverScanner scanner, Application
             var session = scanner.Take(request);
             var receipt = evidence.Get(session.Session.ReceiptId) ?? throw new InvalidOperationException("Removal receipt expired");
             var results = new List<LeftoverDeletionItemResult>(); long removed = 0;
+            // Items that only failed for lack of privilege are retried once through the elevated
+            // helper. Only admin-only roots are ever eligible; user trees are never escalated.
+            var elevatable = new Dictionary<Guid, ScannedLeftover>();
+            bool Elevatable(ScannedLeftover item) => item.Registry is null && item.Identity is not null && LeftoverSafety.IsElevatedRoot(item.Root);
             var selected = request.ItemIds.Select(id => session.Items[id]).OrderBy(i => i.Item.Type == LeftoverType.Directory ? 1 : 0)
                 .ThenByDescending(i => i.Path.Count(c => c == '\\')).ToArray();
             var changedDirectories = new List<string>();
@@ -122,14 +138,26 @@ public sealed class LeftoverDeletionService(LeftoverScanner scanner, Application
                     results.Add(new(item.Item.Id, LeftoverDeletionStatus.Deleted, bytes));
                 }
                 catch (OperationCanceledException) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.Cancelled, 0)); }
-                catch (UnauthorizedAccessException) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.AccessDenied, 0)); }
+                catch (UnauthorizedAccessException) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.AccessDenied, 0)); if (Elevatable(item)) elevatable[item.Item.Id] = item; }
                 catch (Win32Exception ex)
                 {
                     var status = ex.NativeErrorCode switch { 2 or 3 => LeftoverDeletionStatus.AlreadyGone, 5 => LeftoverDeletionStatus.AccessDenied,
                         32 or 33 => LeftoverDeletionStatus.InUse, 145 => LeftoverDeletionStatus.Skipped, 6800 => LeftoverDeletionStatus.Changed, _ => LeftoverDeletionStatus.Failed };
                     results.Add(new(item.Item.Id, status, 0));
+                    if (status == LeftoverDeletionStatus.AccessDenied && Elevatable(item)) elevatable[item.Item.Id] = item;
                 }
                 catch (IOException) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.SafetyRejected, 0)); }
+            }
+            if (elevated is not null && elevatable.Count > 0 && !token.IsCancellationRequested)
+            {
+                var elevatedResults = await elevated.DeleteAsync(receipt.Application, elevatable.Values.ToArray(), token).ConfigureAwait(false);
+                var replacements = elevatedResults.ToDictionary(r => r.ItemId);
+                for (var index = 0; index < results.Count; index++)
+                {
+                    if (!replacements.TryGetValue(results[index].ItemId, out var replacement)) continue;
+                    removed = checked(removed + replacement.RemovedBytes);
+                    results[index] = replacement;
+                }
             }
             return new(results.AsReadOnly(), removed);
         }

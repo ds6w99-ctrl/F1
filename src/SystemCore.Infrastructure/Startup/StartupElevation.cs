@@ -48,7 +48,7 @@ public sealed class WindowsElevatedStartupClient : IElevatedStartupClient
         {
             token.ThrowIfCancellationRequested();
             using var launch = new HelperLaunchLease();
-            using var helper = Process.Start(launch.StartInfo(true, name, Environment.ProcessId, nonce)) ?? throw new IOException("Helper unavailable");
+            using var helper = Process.Start(launch.StartInfo("startup", name, Environment.ProcessId, nonce)) ?? throw new IOException("Helper unavailable");
             await pipe.WaitForConnectionAsync(connecting.Token).ConfigureAwait(false);
             if (!CleanerPipePeer.GetNamedPipeClientProcessId(pipe.SafePipeHandle, out var pid) || pid != helper.Id) throw new IOException("Wrong helper peer");
             token.ThrowIfCancellationRequested();

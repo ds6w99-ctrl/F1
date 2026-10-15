@@ -63,9 +63,13 @@ try
     var helperFolder = Path.Combine(root, "ElevatedHost"); Directory.CreateDirectory(helperFolder); File.WriteAllText(Path.Combine(helperFolder, "SystemCore.ElevatedHost.exe"), "fixture-never-executed");
     using (var helper = new HelperLaunchLease(root))
     {
-        var start = helper.StartInfo(true, "SystemCore-Startup-" + Guid.NewGuid().ToString("N"), 123, nonce);
+        var start = helper.StartInfo("startup", "SystemCore-Startup-" + Guid.NewGuid().ToString("N"), 123, nonce);
         Check("Helper path and arguments are separate and installation-relative", start.FileName == Path.Combine(helperFolder, "SystemCore.ElevatedHost.exe") && start.ArgumentList.Count == 4 && start.Arguments == "" && start.Verb == "runas");
-        Check("Helper launch injection rejected", Refused(() => helper.StartInfo(true, "pipe & calc", 123, nonce)));
+        Check("Helper launch injection rejected", Refused(() => helper.StartInfo("startup", "pipe & calc", 123, nonce)));
+        var leftover = helper.StartInfo("leftover", "SystemCore-Leftover-" + Guid.NewGuid().ToString("N"), 123, nonce);
+        Check("Leftover helper is a distinct, closed operation", leftover.ArgumentList[0] == "--leftover" && leftover.ArgumentList.Count == 4);
+        Check("Helper operation cannot borrow another prefix", Refused(() => helper.StartInfo("leftover", "SystemCore-Cleaner-" + Guid.NewGuid().ToString("N"), 123, nonce)));
+        Check("Unknown helper operation rejected", Refused(() => helper.StartInfo("update", "SystemCore-Leftover-" + Guid.NewGuid().ToString("N"), 123, nonce)));
     }
     var stateRoot = Path.Combine(root, "state"); Directory.CreateDirectory(stateRoot);
     var states = new StartupStateService(new EmptyLocations(), stateRoot, Path.Combine(root, "machine"));

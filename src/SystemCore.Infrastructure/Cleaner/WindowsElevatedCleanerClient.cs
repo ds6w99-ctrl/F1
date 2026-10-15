@@ -30,7 +30,7 @@ public sealed class WindowsElevatedCleanerClient : IElevatedCleanerClient
             // The only child operation is the fixed application helper through the Windows
             // runas verb. No command interpreter, external cleanup utility or path argument.
             using var launch = new HelperLaunchLease();
-            using var helper = Process.Start(launch.StartInfo(false, name, Environment.ProcessId, nonce)) ?? throw new IOException("Helper unavailable");
+            using var helper = Process.Start(launch.StartInfo("cleaner", name, Environment.ProcessId, nonce)) ?? throw new IOException("Helper unavailable");
             using var connecting = CancellationTokenSource.CreateLinkedTokenSource(token, timeout.Token);
             await pipe.WaitForConnectionAsync(connecting.Token).ConfigureAwait(false);
             if (!CleanerPipePeer.GetNamedPipeClientProcessId(pipe.SafePipeHandle, out var pid) || pid != helper.Id) throw new IOException("Unexpected helper peer");

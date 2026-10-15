@@ -50,6 +50,15 @@ public static class LeftoverSafety
         if (string.Equals(canonical, windows, StringComparison.OrdinalIgnoreCase) || CleanerSafety.IsChild(windows, canonical)) return false;
         return !inventory.Where(a => a.Id != application.Id).Any(a => a.InstallLocation is { } other && Conflicts(canonical, other));
     }
+    // Roots a standard user cannot normally mutate. Only these are routed through the elevated
+    // helper; user-writable trees must never be handed to a privileged process.
+    public static bool IsElevatedRoot(string path)
+    {
+        var canonical = CleanerSafety.Canonical(path);
+        if (canonical is null) return false;
+        var roots = new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86, Environment.SpecialFolder.CommonApplicationData };
+        return roots.Select(Environment.GetFolderPath).Where(root => !string.IsNullOrWhiteSpace(root)).Any(root => CleanerSafety.IsChild(root, canonical));
+    }
     public static bool Conflicts(string first, string second) => string.Equals(CleanerSafety.Canonical(first), CleanerSafety.Canonical(second), StringComparison.OrdinalIgnoreCase)
         || CleanerSafety.IsChild(first, second) || CleanerSafety.IsChild(second, first);
     public static bool SafeRegistryName(string value) => value.Length is > 0 and <= 100 && value != "." && value != ".."

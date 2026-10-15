@@ -109,7 +109,11 @@ public partial class App : Application
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.LeftoverScanner>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.ILeftoverScanner>(s => s.GetRequiredService<SystemCore.Infrastructure.Uninstaller.LeftoverScanner>());
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.IRegistryBackupWriter, SystemCore.Infrastructure.Uninstaller.RegistryBackupWriter>();
-        registrations.AddSingleton<SystemCore.Core.Uninstaller.ILeftoverDeletionService, SystemCore.Infrastructure.Uninstaller.LeftoverDeletionService>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.ILeftoverDeletionService>(s => SystemCore.Infrastructure.Uninstaller.LeftoverDeletionFactory.Create(
+            s.GetRequiredService<SystemCore.Infrastructure.Uninstaller.LeftoverScanner>(),
+            s.GetRequiredService<SystemCore.Infrastructure.Uninstaller.ApplicationRemovalEvidence>(),
+            s.GetRequiredService<SystemCore.Core.Uninstaller.IInstalledApplicationInventory>(),
+            s.GetRequiredService<SystemCore.Infrastructure.Uninstaller.IRegistryBackupWriter>()));
         registrations.AddSingleton<Uninstaller.UninstallerViewModel>();
 #if STARTUP_VALIDATION
         registrations.AddSingleton<SystemCore.Infrastructure.Startup.StartupValidationEnvironment>();
