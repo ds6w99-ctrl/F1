@@ -14,7 +14,7 @@ try {
     $argsList = @('--no-ide-signtools')
     if ($EnableSigning) {
         if (!$SigningCommand -or !$PublisherThumbprint) { throw 'Signing command and expected certificate thumbprint are required.' }
-        foreach ($exe in @('App/F1.exe', 'ElevatedHost/SystemCore.ElevatedHost.exe')) {
+        foreach ($exe in @('App/F1.exe', 'App/ElevatedHost/SystemCore.ElevatedHost.exe')) {
             $signature = Get-AuthenticodeSignature "artifacts/publish/$exe"
             if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Thumbprint -ne $PublisherThumbprint) {
                 throw "Sign and verify the application payload before packaging: $exe"

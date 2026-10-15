@@ -31,9 +31,14 @@ SignTool=systemcore
 SignedUninstaller=yes
 #endif
 
+; The helper must stay inside the app directory. The application resolves it as
+; <app directory>\ElevatedHost\SystemCore.ElevatedHost.exe (HelperLaunchLease), and
+; {app}\App is where F1.exe is installed, so the only location the app looks in is
+; {app}\App\ElevatedHost. The recursive App\* entry below already lays the published
+; helper down there; a separate {app}\ElevatedHost entry would deploy it where
+; nothing can find it, and the old source path never existed anyway.
 [Files]
 Source: "{#RepoRoot}\artifacts\publish\App\*"; DestDir: "{app}\App"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RepoRoot}\artifacts\publish\ElevatedHost\*"; DestDir: "{app}\ElevatedHost"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RepoRoot}\THIRD-PARTY-NOTICES"; DestDir: "{app}\Notices"; Flags: ignoreversion
 Source: "{#RepoRoot}\docs\licenses\*"; DestDir: "{app}\Notices\licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 

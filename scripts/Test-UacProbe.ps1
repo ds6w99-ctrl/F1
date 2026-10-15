@@ -1,9 +1,10 @@
 param([switch]$DedicatedTestMachine)
 $ErrorActionPreference = 'Stop'
 if (!$DedicatedTestMachine) { throw 'Run only in a disposable VM or dedicated test environment; pass -DedicatedTestMachine.' }
-# The probe accepts no input and performs no writes. Install/copy its complete publish
-# folder to this fixed protected location from an administrator session in the VM first.
-$exe = Join-Path $env:ProgramFiles 'SystemCore-Phase0\ElevatedHost\SystemCore.ElevatedHost.exe'
+# The probe is installed into the app's own subdirectory: the application resolves
+# its helper as <app directory>\ElevatedHost\SystemCore.ElevatedHost.exe, and the
+# installer places F1.exe in {app}\App. So the elevated helper lives in {app}\App.
+$exe = Join-Path $env:ProgramFiles 'SystemCore-Phase0\App\ElevatedHost\SystemCore.ElevatedHost.exe'
 if (!(Test-Path -LiteralPath $exe -PathType Leaf)) { throw "Missing probe: $exe" }
 $process = $null
 try {

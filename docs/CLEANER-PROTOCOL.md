@@ -33,7 +33,7 @@ restart/reboot deletion, external engine or command interpreter is involved.
 Production layout:
 
 ```
-App/SystemCore.App.exe
+App/F1.exe
 App/ElevatedHost/SystemCore.ElevatedHost.exe
 ```
 
