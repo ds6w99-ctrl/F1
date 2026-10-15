@@ -13,7 +13,8 @@ make production trust claims or enable privileged mutating operations on this ba
   certificate chain, expected publisher and expiry/timestamp policy.
 - `Build-Installer.ps1 -EnableSigning -SigningCommand <external-command> -PublisherThumbprint <expected>`
   refuses unsigned/unexpected entry executables. No certificate or signing command is embedded
-  in source. Thumbprint is a public selector, not a secret.
+  in source. Thumbprint is a public selector, not a secret. The spec defaults to the product
+  build `installer/F1.iss`; pass `-Spec` to sign a different spec (for example the phase-0 fixture).
 - Inno `#ifdef EnableSigning` enables `SignTool=systemcore` and `SignedUninstaller=yes`.
   The CLI supplies the tool definition via `--signtool=systemcore=<command>`. Inno's `$f`
   placeholder is the file to sign. Prefer a separately controlled signing wrapper executable,

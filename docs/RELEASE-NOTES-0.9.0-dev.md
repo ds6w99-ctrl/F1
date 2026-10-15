@@ -1,8 +1,10 @@
 # SystemCore 0.9.0-dev — release-candidate preparation draft
 
 Development-only, unsigned Windows 11 x64 publication. Phase 9 review candidate;
-not a production release. Installer/signing/clean VM/edition/accessibility/final soak
-belong to Phase 10 after owner authorization.
+not a production release. Installable artifacts now exist — the per-machine installer from
+`installer/F1.iss` and a portable archive, both described in `docs/INSTALL.md` — but
+signing, clean-VM/edition/accessibility validation and the final soak still belong to
+Phase 10 after owner authorization.
 
 ## Reliability
 

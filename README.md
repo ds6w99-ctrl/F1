@@ -27,6 +27,7 @@ Windows 10 غير مدعوم صراحةً، وأُزيلت متطلبات واخ
 - Settings وAbout بالإصدار التطويري `0.9.0-dev`، وسجلات محلية محدودة وتصدير تشخيصي يدوي منقّح دون رفع بيانات.
 - اختبارات Unit وأخرى تفحص الجهاز الحالي وبيانات الحزمة الحقيقية.
 - وصفة مثبت تجريبي EXE في `installer/SystemCore.Phase0.iss`، بمعرّف منفصل ومسار Program Files ثابت.
+- مثبّت المنتج القابل للتوزيع في `installer/F1.iss` (هوية مستقلة ومسار قابل للتغيير)، ونسخة محمولة بلا تثبيت — الدليل: [docs/INSTALL.md](docs/INSTALL.md).
 - توثيق التوافق والأمن والتراخيص وSigning المؤجل إلى Release/Production.
 
 Dashboard تقرأ CPU وRAM وسعة قرص النظام والجهاز ومدة التشغيل وعدد تسجيلات البرامج وبدء التشغيل.
@@ -61,12 +62,22 @@ dotnet run --project tests/SystemCore.ProductTests -c Release --no-build -- --in
 ./scripts/Invoke-F1ProductUx.ps1 -AppPath artifacts/publish/App/F1.exe -EvidencePath artifacts/f1-ui/local-validation/ui
 ```
 
-المثبت مخصص لبيئات الاختبار؛ اتبع [قائمة الاختبارات](docs/SMOKE-TESTS.md) داخل VM قابلة
-للاسترجاع. لا تعتبر نجاح تجميع المثبت نجاحًا في Install/Uninstall أو تشغيل على جهاز نظيف.
+بناء المثبّت والنسخة المحمولة:
+
+```powershell
+./scripts/Build-Installer.ps1 -Compiler <ISCC.exe 7.1.0>
+./scripts/Build-Portable.ps1
+```
+
+مثبّت الاختبار `installer/SystemCore.Phase0.iss` مخصص لبيئات الاختبار؛ اتبع
+[قائمة الاختبارات](docs/SMOKE-TESTS.md) داخل VM قابلة للاسترجاع. أما مثبّت المنتج القابل
+للتوزيع فهو `installer/F1.iss` ([docs/INSTALL.md](docs/INSTALL.md))، وقد جُرّب تثبيته على
+جهاز العمل وتشغيل اختبار الواجهة ضد النسخة المُثبَّتة (118/118). لا يُعد نجاح التجميع ولا
+التثبيت على جهاز العمل دليلًا على Install/Uninstall على جهاز نظيف.
 
 ## وثائق التسليم
 
-[COMPATIBILITY.md](COMPATIBILITY.md) · [ARCHITECTURE.md](ARCHITECTURE.md) ·
+[التثبيت](docs/INSTALL.md) · [COMPATIBILITY.md](COMPATIBILITY.md) · [ARCHITECTURE.md](ARCHITECTURE.md) ·
 [SECURITY.md](SECURITY.md) · [ROADMAP.md](ROADMAP.md) ·
 [DEPENDENCIES.md](DEPENDENCIES.md) · [Signing](docs/SIGNING.md).
 

@@ -25,7 +25,9 @@ OS build, and absence of developer tooling. Take snapshot **before** installing 
 
 1. Run pinned locked restore, Release build, UnitTests, publish both folders, then real-host
    CompatibilityTests. Save native exit codes and full logs.
-2. Run `scripts/Build-Installer.ps1` with verified Inno 7.1.0. Copy the exact same installer
+2. Run `scripts/Build-Installer.ps1 -Spec installer/SystemCore.Phase0.iss` with verified Inno
+   7.1.0. The default spec is the product build (`installer/F1.iss`), so the fixture must be
+   named explicitly. Copy the exact same installer
    and `publish-inventory.json` to every VM. Record SHA256; hashes do not authenticate publisher.
 3. Unsigned phase-0 artifacts are expected. Signing is a documented production deferral.
 4. Start an evidence ledger, one row per case. Allowed statuses: PASS, FAIL,

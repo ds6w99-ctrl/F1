@@ -1,6 +1,20 @@
 # Release QA backlog
 
 Release / Production Gate: **PENDING**.
+
+## Distribution artifacts
+
+Two distribution paths exist for `0.9.0-dev`: the per-machine installer from
+`installer/F1.iss` (built by `scripts/Build-Installer.ps1`) and a no-install portable
+archive from `scripts/Build-Portable.ps1`. Both are described in `docs/INSTALL.md`, and
+both were exercised on the work host — silent install to `%ProgramFiles%\F1`, layout
+inspection, a 118/118 UI regression against the **installed** executable, and portable
+extract-and-run. The record and artifact hashes are in `installer/DECISION.md`.
+
+None of that closes a row below. Neither artifact is signed, no clean machine was used,
+no genuine Standard User account was involved, and no real UAC prompt was answered. The
+work host is the same machine that built the payload, so it is the weakest possible
+environment for the clean-machine and signing rows.
 ## Phase 9 additions
 
 - Separate Standard User account and real UAC accept/deny/cancel/alternate-admin

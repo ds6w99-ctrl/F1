@@ -37,6 +37,10 @@ App/F1.exe
 App/ElevatedHost/SystemCore.ElevatedHost.exe
 ```
 
+`installer/F1.iss` realizes exactly this layout on disk: the application is installed to
+`{app}\App` and the helper to `{app}\App\ElevatedHost`. Any installer that puts the helper
+at `{app}\ElevatedHost` installs it where this code never looks.
+
 The only operational helper mode is `--cleaner <random-pipe-name> <parent-pid>
 <nonce>`. These arguments contain no file paths or commands. The no-argument
 Phase-0 token probe is retained. Arbitrary modes/arguments are rejected.
