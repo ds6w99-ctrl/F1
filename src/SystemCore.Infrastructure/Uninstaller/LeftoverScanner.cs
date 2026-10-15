@@ -128,8 +128,11 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                 void Add(string path, string root, CleanerIdentity? identity, LeftoverType type, LeftoverConfidence confidence, string reason, long? size, bool nameDerived)
                 {
                     // Never downgrade Ignore: reparse/hard-link/attribute rejection wins. Name-derived
-                    // candidates are never receipt-verified, so they can never be Safe.
+                    // candidates are never receipt-verified, so they can never be Safe. A pre-uninstall
+                    // footprint is captured, not guessed, but its link to the application is still only
+                    // the name, so it is held at Review like any other personal-data candidate.
                     if (confidence == LeftoverConfidence.Safe && (nameDerived || reason.StartsWith("Exact DataPath", StringComparison.Ordinal)
+                        || reason.StartsWith("Pre-uninstall footprint", StringComparison.Ordinal)
                         || LeftoverSafety.MayContainPersonalData(path)
                         || (type == LeftoverType.File && !LeftoverSafety.HasApplicationBinaryExtension(path)))) confidence = LeftoverConfidence.Review;
                     var id = Guid.NewGuid();

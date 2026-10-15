@@ -35,6 +35,7 @@ static class AutomaticLeftoverTests
                 ("Reparse point rejected", "UnEvidenceReparse", LeftoverType.Directory),
                 ("Unsupported file attributes or hard links", "UnEvidenceAttributes", LeftoverType.File),
                 ("Shared game data rejected", "UnEvidenceSharedGame", LeftoverType.Directory),
+                ("Pre-uninstall footprint recorded under a non-shared application directory", "UnEvidenceFootprint", LeftoverType.Directory),
                 ("UNRECOGNIZED_RAW_ENGLISH_EVIDENCE", "UnEvidenceUnsupported", LeftoverType.File)
             };
             foreach (var confidence in Enum.GetValues<LeftoverConfidence>())

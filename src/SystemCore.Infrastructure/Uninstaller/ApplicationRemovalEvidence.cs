@@ -72,6 +72,36 @@ public sealed class ApplicationRemovalEvidence
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or System.Security.SecurityException) { }
             }
         }
+        // Root-relative footprint. The application is still installed here, so its data
+        // directories can be recorded with an exact identity instead of being guessed after
+        // removal. Only an application that already has a verified pre-uninstall fact is
+        // extended; a name alone never authorizes anything.
+        if (inventory.Complete && !LeftoverSafety.SharedComponent(app) && (directories.Count != 0 || registry.Count != 0))
+        {
+            var names = new List<string>();
+            if (LeftoverSafety.SafeRegistryName(app.DisplayName)) names.Add(app.DisplayName);
+            if (app.Publisher is { } publisher && LeftoverSafety.SafeRegistryName(publisher)
+                && !string.Equals(publisher, app.DisplayName, StringComparison.OrdinalIgnoreCase)) names.Add(Path.Combine(publisher, app.DisplayName));
+            if (names.Count != 0)
+            foreach (var baseRoot in new[] { Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolder.ApplicationData,
+                Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 }
+                .Select(Environment.GetFolderPath).Where(root => !string.IsNullOrWhiteSpace(root)).Distinct(StringComparer.OrdinalIgnoreCase))
+            foreach (var relative in names)
+            {
+                token.ThrowIfCancellationRequested();
+                var candidate = Path.Combine(baseRoot, relative);
+                // Existence is required: a footprint must be observed, never invented.
+                if (CleanerSafety.Canonical(candidate) is null || !Directory.Exists(candidate)
+                    || !LeftoverSafety.CanOwnDirectory(app, candidate, inventory.Applications)
+                    || directories.Any(d => LeftoverSafety.Conflicts(d.Path, candidate))) continue;
+                try
+                {
+                    using var pinned = PinnedCleanerPath.Open(candidate, true);
+                    directories.Add(new(candidate, pinned.Identity, "Pre-uninstall footprint recorded under a non-shared application directory"));
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
+            }
+        }
         lock (sync)
         {
             Expire();

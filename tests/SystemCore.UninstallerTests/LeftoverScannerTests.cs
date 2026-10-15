@@ -123,16 +123,30 @@ static class LeftoverScannerTests
             var profileResult = await new LeftoverDeletionService(profileScanner, profileStore, inventory, new RegistryBackupWriter()).DeleteAsync(new(profileScan.Id, app.Id, [profileItem.Id]), default);
             using (var key = user.OpenSubKey(keyPath)) check("Review registry cannot be deleted even by forged request", profileResult.Items.Single().Status == LeftoverDeletionStatus.SafetyRejected && (string?)key?.GetValue("ProfileName") == "Synthetic personal profile");
             using (var key = user.OpenSubKey(keyPath, true)) key!.DeleteValue("ProfileName");
-            // Deep discovery is read-only and opt-in: the conservative scan must never see a
-            // name-derived candidate, and the deep scan must classify every one as Review.
+            // The pre-uninstall footprint is captured while the application is still installed,
+            // so the conservative scan sees it without any name guessing. Its link to the
+            // application is still only the name, so every footprint item stays Review.
             Directory.CreateDirectory(roaming);
             File.WriteAllText(Path.Combine(roaming, "settings.cfg"), "cfg");
+            var footStore = new ApplicationRemovalEvidence();
+            await footStore.CaptureAsync(app, before, default);
+            var footScanner = new LeftoverScanner(footStore, inventory);
+            var footScan = await footScanner.ScanAsync(footStore.ConfirmRemoved(app.Id)!.Id, default);
+            check("Pre-uninstall footprint is found by the conservative scan", footScan.Items.Any(i => i.DisplayLocation == Path.Combine(roaming, "settings.cfg")));
+            var footprintItems = footScan.Items.Where(i => i.DisplayLocation == roaming || i.DisplayLocation == Path.Combine(roaming, "settings.cfg")).ToArray();
+            check("Footprint is verified receipt evidence held at Review", footprintItems.Length == 2 && footprintItems.All(i => i.Evidence == "Pre-uninstall footprint recorded under a non-shared application directory" && i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));
+            Directory.Delete(roaming, true);
+            // A name-matched path that did not exist when the receipt was captured is not part of
+            // the verified footprint: the conservative scan must never see it, and only the opt-in
+            // deep scan may surface it, always as Review.
             var deepStore = new ApplicationRemovalEvidence();
             await deepStore.CaptureAsync(app, before, default);
             var deepReceipt = deepStore.ConfirmRemoved(app.Id)!;
             var deepScanner = new LeftoverScanner(deepStore, inventory);
+            Directory.CreateDirectory(roaming);
+            File.WriteAllText(Path.Combine(roaming, "settings.cfg"), "cfg");
             var conservative = await deepScanner.ScanAsync(deepReceipt.Id, default);
-            check("Conservative scan ignores name-derived candidates", conservative.Items.All(i => !i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)));
+            check("Conservative scan ignores a path absent from the receipt", conservative.Items.All(i => !i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)));
             var deep = await deepScanner.ScanAsync(deepReceipt.Id, true, default);
             check("Deep scan discovers name-derived candidate", deep.Items.Any(i => i.DisplayLocation == Path.Combine(roaming, "settings.cfg")));
             check("Name-derived candidates are always Review and unselected", deep.Items.Where(i => i.DisplayLocation.StartsWith(roaming, StringComparison.Ordinal)).All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));

@@ -171,6 +171,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             "Unsupported file attributes or hard links" => "UnEvidenceAttributes",
             "Shared game data rejected" => "UnEvidenceSharedGame",
             "Name-derived candidate; not verified by a pre-uninstall receipt" => "UnEvidenceNameDerived",
+            "Pre-uninstall footprint recorded under a non-shared application directory" => "UnEvidenceFootprint",
             _ => "UnEvidenceUnsupported"
         };
         var warningKey = item.Confidence == LeftoverConfidence.Ignore || (item.Confidence == LeftoverConfidence.Review && !allowPersonalData) ? "UnDeleteSafetyRejected"

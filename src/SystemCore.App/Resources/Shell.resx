@@ -552,6 +552,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnAllowPersonalData" xml:space="preserve"><value>Also delete personal-data leftovers</value></data>
   <data name="UnPersonalDataConfirm" xml:space="preserve"><value>Personal data may be permanently destroyed.</value></data>
   <data name="UnEvidenceNameDerived" xml:space="preserve"><value>Name-derived candidate; not proven by the pre-uninstall receipt.</value></data>
+  <data name="UnEvidenceFootprint" xml:space="preserve"><value>Recorded before removal under an app-owned directory.</value></data>
   <data name="UnKeepLeftovers" xml:space="preserve"><value>Keep</value></data>
   <data name="F1Welcome" xml:space="preserve"><value>Welcome back</value></data>
   <data name="F1Intro" xml:space="preserve"><value>Everything you need to manage your system in one place</value></data>
