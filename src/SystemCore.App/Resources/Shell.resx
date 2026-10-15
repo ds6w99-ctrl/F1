@@ -69,7 +69,8 @@
   <data name="ThemeSystem" xml:space="preserve"><value>System</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
-  <data name="SessionSettings" xml:space="preserve"><value>Applied now and saved locally</value></data>
+  <data name="SessionSettingsActive" xml:space="preserve"><value>Settings apply immediately.</value></data>
+  <data name="StartOpenLocationFailed" xml:space="preserve"><value>The file location could not be opened.</value></data>
   <data name="LaterPhase" xml:space="preserve"><value>Coming in a later development phase</value></data>
   <data name="PlaceholderDescription" xml:space="preserve"><value>Navigation placeholder · nothing available here yet</value></data>
   <data name="AboutDescription" xml:space="preserve"><value>Development build. Local system information, performance analysis and manually reviewed maintenance tools. Release / Production validation is pending.</value></data>
@@ -380,7 +381,6 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="StartFilterRegistry" xml:space="preserve"><value>Registry</value></data>
   <data name="StartFilterFolder" xml:space="preserve"><value>Startup folders</value></data>
   <data name="StartFilterTasks" xml:space="preserve"><value>Scheduled tasks</value></data>
-  <data name="StartFilterProtected" xml:space="preserve"><value>Protected</value></data>
   <data name="StartSortName" xml:space="preserve"><value>Name</value></data>
   <data name="StartSortPublisher" xml:space="preserve"><value>Publisher</value></data>
   <data name="StartSortStatus" xml:space="preserve"><value>Status</value></data>

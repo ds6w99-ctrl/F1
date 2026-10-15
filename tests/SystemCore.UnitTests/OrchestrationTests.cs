@@ -310,6 +310,8 @@ internal static class OrchestrationTests
     }
     private sealed class GraphConstructorFixture
     {
+        // The dependency-graph walker discovers this constructor by reflection; it is never invoked.
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0051:Remove unused private members", Justification = "Reflection-only fixture for the dependency-graph walker.")]
         private GraphConstructorFixture(GraphFieldFixture dependency) { }
     }
     private sealed class GraphDependencyFixture

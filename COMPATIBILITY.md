@@ -51,11 +51,11 @@ Installer checks the same floor/edition and `x64os`, rejecting emulated ARM64 in
 
 ## API and appearance detection
 
-`CompatibilityService` and `FeatureCapabilities` are Windows 11 feature detection, not a
-legacy shim. Mica is requested only when `MicaController.IsSupported`, effects enabled and
-high contrast disabled. A theme-aware solid brush handles Windows 11 accessibility/settings
-and unavailable capabilities. Live theme updates and activation refresh are supported.
-Default native title bar; no undocumented DWM modifications.
+`FeatureCapabilities` and `CompatibilityRules` describe the Windows 11 feature-detection model,
+not a legacy shim. The shell renders deterministic opaque surfaces and does not request Mica or
+desktop glass, so appearance never depends on backdrop availability. A theme-aware solid
+brush handles Windows 11 accessibility/settings; live theme updates and activation refresh
+are supported. Default native title bar; no undocumented DWM modifications.
 
 The two probe tabs and en/ar resource files are a **phase-0 test fixture** for navigation,
 language, theme and focus checks. Production module navigation/MVVM/DI/settings remain phase 1.

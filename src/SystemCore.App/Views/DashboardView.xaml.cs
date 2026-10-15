@@ -20,7 +20,7 @@ public sealed partial class DashboardView : UserControl
         var history = ViewModel.History; var rtl = ViewModel.Culture.TextInfo.IsRightToLeft;
         Cpu.Present(ViewModel.Cards[0], ViewModel.GaugeText(0), ViewModel.CpuMetadata, "\uE950", "F1BlueBrush", history, 0, ViewModel.HistoryLabel, rtl);
         Memory.Present(ViewModel.Cards[1], ViewModel.GaugeText(1), ViewModel.MemoryMetadata, "\uE964", "F1PurpleBrush", history, 1, ViewModel.HistoryLabel, rtl);
-        Disk.Present(ViewModel.Cards[2], ViewModel.GaugeText(2), ViewModel.DiskMetadata, "\uEDA2", "F1TealBrush", ViewModel.CapacityHistory, 0, ViewModel.HistoryLabel, rtl);
+        Disk.Present(ViewModel.Cards[2], ViewModel.GaugeText(2), ViewModel.DiskMetadata, "\uEDA2", "F1TealBrush", ViewModel.CapacityHistory, 2, ViewModel.HistoryLabel, rtl);
     }
     private void OnLayoutChanged(object sender, SizeChangedEventArgs args)
     {

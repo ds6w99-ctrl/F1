@@ -83,7 +83,8 @@ public sealed class NetworkDeltaTracker
             values.Add(new(c.Id, c.Name, c.Speed, down, up));
         }
         previous = next;
-        return new(values, true);
+        // No active adapters means networking is genuinely unavailable, not "0 bytes/second".
+        return new(values, values.Count > 0);
     }
     public void Reset() => previous.Clear();
 }

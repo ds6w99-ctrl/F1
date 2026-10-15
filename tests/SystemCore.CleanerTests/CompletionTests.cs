@@ -125,8 +125,21 @@ internal static class CompletionTests
         var unknownResult = new CleanerCleanResult(true, [new(Guid.NewGuid(), CleanerItemOutcome.Unknown, 0)]);
         Check("Unknown helper outcome not counted as skipped or removed", unknownResult.Failed == 1 && unknownResult.Skipped == 0 && unknownResult.RemovedBytes == 0);
         // Retain the deliberately pathological depth fixture outside real Temp so it does
-        // not make subsequent real-user scans incomplete. Move only this test-created tree.
-        Directory.Move(deepRoot, Path.Combine(AppContext.BaseDirectory, "depth-fixture-" + Guid.NewGuid().ToString("N")));
+        // not make subsequent real-user scans incomplete. Move only this test-created tree,
+        // and keep the destination on the same volume as the source: Directory.Move cannot
+        // cross volumes, and the test binaries can live on a different drive than Temp.
+        var retained = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore-Cleaner-Test-Retained", Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(retained)!);
+            Directory.Move(deepRoot, retained);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // A redirected or foreign temp can still be on another volume; the fixture is
+            // synthetic, so dropping it is an acceptable cleanup-only fallback.
+            try { Directory.Delete(deepRoot, recursive: true); } catch { }
+        }
         Console.WriteLine("All destructive operations used new synthetic files; real Recycle Bin/Windows Temp were not emptied.");
         return ok ? 0 : 1;
     }

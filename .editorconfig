@@ -13,6 +13,16 @@ indent_size = 2
 [*.cs]
 dotnet_style_qualification_for_field = false:suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
+# Surface dead usings (IDE0005) via `dotnet format style` at verification time rather than in the
+# build: enabling it on build forces GenerateDocumentationFile (and its XML output) everywhere.
+dotnet_diagnostic.IDE0005.severity = silent
+# Surface unused / unread private members so they cannot accumulate silently.
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
 
 [*.ps1]
 charset = utf-8-bom
+
+# Batch files are the one text type kept CRLF (see .gitattributes).
+[*.{cmd,bat}]
+end_of_line = crlf

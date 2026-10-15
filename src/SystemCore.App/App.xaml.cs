@@ -69,7 +69,6 @@ public partial class App : Application
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "preferences.json"),
             System.Globalization.CultureInfo.CurrentUICulture));
         registrations.AddSingleton<LocalizationService>();
-        registrations.AddSingleton<CompatibilityService>();
         registrations.AddSingleton(new UiDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()));
         registrations.AddSingleton<IPerformanceSampler, WindowsPerformanceSampler>();
         registrations.AddSingleton<IDashboardInventoryProvider, WindowsDashboardInventory>();

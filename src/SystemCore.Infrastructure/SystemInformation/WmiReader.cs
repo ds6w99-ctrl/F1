@@ -41,6 +41,7 @@ internal static class WmiReader
         var text = Text(row, key);
         if (text is null || text.Contains('*')) return null;
         try { return new DateTimeOffset(ManagementDateTimeConverter.ToDateTime(text)); }
-        catch (ArgumentException) { return null; }
+        // A malformed WMI date must degrade to "unknown", never fail the whole section.
+        catch (Exception ex) when (ex is ArgumentException or FormatException) { return null; }
     }
 }

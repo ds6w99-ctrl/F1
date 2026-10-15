@@ -38,7 +38,7 @@ public sealed partial class F1MetricCard : UserControl
         IReadOnlyList<HistoryPoint> history, int metric, string historyDescription, bool rtl)
     {
         accent = color; ApplyAccent(); this.points = history; this.metric = metric;
-        Icon.Glyph = glyph; Title.Text = card.Title; Value.Text = gauge; Detail.Text = card.Id == "MetricCpu" ? "CPU" : card.Value; Metadata.Text = metadata;
+        Icon.Glyph = glyph; Title.Text = card.Title; Value.Text = gauge; Detail.Text = card.Id == "MetricCpu" ? card.Title : card.Value; Metadata.Text = metadata;
         Title.FlowDirection = Metadata.FlowDirection = rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         AutomationProperties.SetAutomationId(card.Id == "MetricCpu" ? Value : Detail, card.Id);
         AutomationProperties.SetName(this, card.Title + ": " + gauge + "; " + card.Value + "; " + historyDescription);
@@ -66,7 +66,7 @@ public sealed partial class F1MetricCard : UserControl
             var end = points[^1].Timestamp;
             foreach (var sample in points)
             {
-                var value = metric == 0 ? sample.Cpu : sample.Memory;
+                var value = metric switch { 0 => sample.Cpu, 1 => sample.Memory, _ => sample.Disk };
                 if (value is null || before is { } previous && (sample.Timestamp - previous).TotalSeconds > 2.5) segment = null;
                 before = sample.Timestamp;
                 if (value is not { } number) continue;

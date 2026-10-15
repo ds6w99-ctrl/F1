@@ -21,6 +21,7 @@ public sealed class DashboardViewModel : LocalizedViewModel, IAsyncDisposable
     private bool startupFailed;
     private Task? inventoryLoad, startupLoad;
     private bool machineFailed;
+    private bool sampleFailed;
     private string updatedText = "", systemDescription = "", deviceName = "", uptime = "", status = "";
     private Visibility statusVisibility = Visibility.Collapsed;
     private readonly Queue<SystemCore.Core.Performance.HistoryPoint> capacityHistory = new();
@@ -65,7 +66,7 @@ public sealed class DashboardViewModel : LocalizedViewModel, IAsyncDisposable
     public string DeviceLabel => L["DeviceName"];
     public string UptimeLabel => L["Uptime"];
     public string CleanerTitle => L["JunkFiles"];
-    public string CleanerValue => cleaner.Latest is { } scan ? scan.Complete ? SystemCore.Core.SystemInformation.InfoFormatting.Size((ulong)scan.Bytes, L.Culture) : L["CleanPartial"] : L["NotScanned"];
+    public string CleanerValue => cleaner.Latest is { } scan ? scan.Complete ? SystemCore.Core.SystemInformation.InfoFormatting.Size((ulong)Math.Max(0L, scan.Bytes), L.Culture) : L["CleanPartial"] : L["NotScanned"];
     public string CleanerDescription => cleaner.Latest is null ? L["CleanDashboardInitial"] : L[cleaner.Latest.Complete ? "CleanPotential" : "CleanPartialDescription"];
     public string Coverage => L["InventoryCoverage"];
     public string UpdatedText { get => updatedText; private set => SetProperty(ref updatedText, value); }
@@ -120,11 +121,21 @@ public sealed class DashboardViewModel : LocalizedViewModel, IAsyncDisposable
         active = enabled;
         if (!enabled) capacityHistory.Clear();
         monitor.SetActive(this, enabled);
-        if (enabled && !started)
+        if (!enabled) return;
+        if (!started)
         {
             started = true;
             inventoryLoad = LoadInventoryAsync();
             startupLoad = LoadStartupAsync(); // Owned, observed inside the operation; cancellation follows this view model.
+        }
+        else
+        {
+            // A transient first-read failure must stay recoverable instead of latching "Unavailable"
+            // until restart. Never start a second load while the previous one is still in flight.
+            if (machineFailed && inventoryLoad is not { IsCompleted: false })
+            { machineFailed = false; machine = null; inventoryFinished = false; Render(); inventoryLoad = LoadInventoryAsync(); }
+            if (startupFailed && startupLoad is not { IsCompleted: false })
+            { startupFailed = false; Render(); startupLoad = LoadStartupAsync(); }
         }
     }
 
@@ -132,19 +143,19 @@ public sealed class DashboardViewModel : LocalizedViewModel, IAsyncDisposable
     {
         if (disposed || !active) return;
         latest = sample;
+        sampleFailed = false;
         var volume = sample.SystemVolume.Value;
-        capacityHistory.Enqueue(new(sample.Timestamp, volume is { TotalBytes: > 0 } v ? v.UsedBytes * 100.0 / v.TotalBytes : null, null, null, null));
+        capacityHistory.Enqueue(new(sample.Timestamp, null, null, volume is { TotalBytes: > 0 } v ? v.UsedBytes * 100.0 / v.TotalBytes : null, null));
         while (capacityHistory.Count > 60 || capacityHistory.TryPeek(out var first) && sample.Timestamp - first.Timestamp > TimeSpan.FromSeconds(60)) capacityHistory.Dequeue();
         Render();
     });
 
     private void OnSampleFailed(object? sender, EventArgs args) => dispatcher.Post(() =>
     {
-        if (disposed) return;
+        if (disposed || !active) return;
         latest = null;
-        Status = L["ReadError"];
-        StatusVisibility = Visibility.Visible;
-        RenderValues();
+        sampleFailed = true;
+        Render();
     });
 
     private async Task LoadInventoryAsync()
@@ -203,8 +214,9 @@ public sealed class DashboardViewModel : LocalizedViewModel, IAsyncDisposable
             (data.CpuPercent.Status is ReadStatus.Unavailable or ReadStatus.Unsupported || data.Memory.Value is null || data.SystemVolume.Value is null);
         partial |= machineFailed || startupFailed || (inventoryFinished && counts is null) ||
             counts?.InstalledApps.Status == ReadStatus.Partial || startup.Summary?.Complete == false;
-        Status = L["PartialData"];
-        StatusVisibility = partial ? Visibility.Visible : Visibility.Collapsed;
+        // A live-read failure outranks "partial"; it must not be overwritten by an unrelated re-render.
+        Status = L[sampleFailed ? "ReadError" : "PartialData"];
+        StatusVisibility = (partial || sampleFailed) ? Visibility.Visible : Visibility.Collapsed;
         RenderValues();
     }
 

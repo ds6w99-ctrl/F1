@@ -14,7 +14,6 @@ public sealed class WindowAppearanceController : IDisposable
     private readonly Border solid;
     private readonly SettingsViewModel settings;
     private readonly LocalizationService localizer;
-    private readonly CompatibilityService compatibility;
     private readonly UISettings ui = new();
     private readonly AccessibilitySettings accessibility = new();
     private bool disposed;
@@ -22,14 +21,13 @@ public sealed class WindowAppearanceController : IDisposable
     private readonly FrameworkElement scenery, content;
 
     public WindowAppearanceController(Window window, FrameworkElement root, Border solid,
-        SettingsViewModel settings, LocalizationService localizer, CompatibilityService compatibility, FrameworkElement scenery, FrameworkElement content)
+        SettingsViewModel settings, LocalizationService localizer, FrameworkElement scenery, FrameworkElement content)
     {
         this.window = window;
         this.root = root;
         this.solid = solid;
         this.settings = settings;
         this.localizer = localizer;
-        this.compatibility = compatibility;
         this.scenery = scenery; this.content = content;
         settings.PropertyChanged += OnSettingsChanged;
         localizer.Changed += OnLanguageChanged;

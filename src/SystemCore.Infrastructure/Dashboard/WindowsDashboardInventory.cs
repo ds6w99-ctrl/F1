@@ -8,8 +8,6 @@ namespace SystemCore.Infrastructure.Dashboard;
 
 public sealed class WindowsDashboardInventory : IDashboardInventoryProvider
 {
-    private const string VersionKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-
     public MachineOverview ReadMachine()
     {
         var os = SystemInformation.WindowsOperatingSystemInfoProvider.ReadIdentity();

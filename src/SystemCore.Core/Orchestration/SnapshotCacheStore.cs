@@ -55,7 +55,7 @@ public sealed partial class ApplicationDataOrchestrator
                     File.Move(temporary, path, overwrite: true);
                 }
             }
-            catch { }
+            catch { } // Cache writes are best-effort: a cache fault must never fail a load.
         }
 
         private string? PathFor(string key, string extension)

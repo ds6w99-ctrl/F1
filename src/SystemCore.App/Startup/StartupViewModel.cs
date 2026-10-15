@@ -80,7 +80,7 @@ public sealed class StartupViewModel : LocalizedViewModel
             5 => items.Where(i => i.SourceType is StartupSourceType.RegistryRun or StartupSourceType.RegistryRunOnce),
             6 => items.Where(i => i.SourceType is StartupSourceType.StartupFolderUser or StartupSourceType.StartupFolderCommon),
             7 => items.Where(i => i.SourceType is StartupSourceType.ScheduledTaskLogon or StartupSourceType.ScheduledTaskBoot),
-            8 => items.Where(i => i.IsProtected), _ => items
+            _ => items
         };
         return sort switch { 1 => items.OrderBy(i => i.Publisher, StringComparer.CurrentCultureIgnoreCase), 2 => items.OrderBy(i => i.Status),
             3 => items.OrderBy(i => i.SourceType), 4 => items.OrderBy(i => i.Scope), _ => items.OrderBy(i => i.Name, StringComparer.CurrentCultureIgnoreCase) };
@@ -120,6 +120,8 @@ public sealed class StartupViewModel : LocalizedViewModel
         finally { operation.Dispose(); operation = null; busy = false; Notify(); }
     }
     public void Cancel() => operation?.Cancel();
+    // Surface a failed "Open file location" instead of silently doing nothing.
+    public void ReportOpenLocation(bool opened) { if (!opened) { message = "StartOpenLocationFailed"; Notify(); } }
     public async Task ChangeAsync(StartupAction action, string confirmedId)
     {
         if (session is null || confirmedId != SelectedId || !(action == StartupAction.Disable ? CanDisable : CanEnable)) return;

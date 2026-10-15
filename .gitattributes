@@ -1,8 +1,12 @@
-﻿* text=auto
+﻿# The tree is LF-first (matching .editorconfig). Pin it explicitly so a machine with
+# core.autocrlf=true still checks out LF; batch files are the deliberate exception below.
+* text=auto eol=lf
 
-*.cs text eol=crlf
-*.xaml text eol=crlf
-*.ps1 text eol=crlf
+*.cs text eol=lf
+*.xaml text eol=lf
+*.ps1 text eol=lf
+
+# Batch files stay CRLF: some cmd.exe constructs are sensitive to bare LF.
 *.cmd text eol=crlf
 *.bat text eol=crlf
 

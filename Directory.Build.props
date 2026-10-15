@@ -5,9 +5,19 @@
     <LangVersion>14.0</LangVersion>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
+    <!-- Enforce the repository code style in every build so dead usings/members and
+         analyzer diagnostics surface as build output instead of silently rotting. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- The shipped configuration must be warning-clean: any compiler/analyzer warning
+         fails a Release build. Debug builds only warn, keeping local iteration fast. -->
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <Version>0.9.0-dev</Version>
+    <!-- The product version shown and copied from About (and FileVersionInfo) must stay clean.
+         The .NET SDK otherwise appends "+<source-revision>" to InformationalVersion, leaking the
+         internal git commit into the shipped UI and failing the official UX contract. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Company></Company>
     <DefineConstants Condition="'$(StartupValidation)' == 'true'">$(DefineConstants);STARTUP_VALIDATION</DefineConstants>
   </PropertyGroup>

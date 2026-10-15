@@ -57,7 +57,7 @@ public sealed class MemoryToolsViewModel : LocalizedViewModel
     public string RowText(ProcessPerformanceInfo p) => $"\u2068{p.Name}\u2069 · {L["PerfPid"]} {p.Pid}\n{L["PerfWorkingSet"]}: {Size(p.WorkingSet)} · {L["MemPrivate"]}: {Size(p.PrivateBytes)} · {L["Cpu"]}: {Percent(p.CpuPercent)}";
     public string Details => selected is { } p ? RowText(p) + "\n" + L["MemDetailsReadOnly"] : "";
     public string TechnicalDetails => details is { } d ? $"{d.ExecutablePath ?? L["InfoUnavailable"]}\n{d.Publisher ?? L["MemUnknownPublisher"]}" : selected is null ? "" : L["InfoUnavailable"];
-    public bool CanOpenLocation => active && details?.ExecutablePath is not null && selected?.StartTicks == details.StartTicks;
+    public bool CanOpenLocation => active && details is { ExecutablePath: not null } resolved && selected is { } chosen && chosen.Pid == resolved.Pid && chosen.StartTicks == resolved.StartTicks;
     private string Numeric(string text) => L.Culture.TextInfo.IsRightToLeft ? "\u2066" + text + "\u2069" : text;
     private string Size(ulong? bytes) => bytes is { } value ? Numeric(InfoFormatting.Size(value, L.Culture)) : L["InfoUnavailable"];
     private string Percent(double? value) => value is { } p ? Numeric(L.Format("Percent", p)) : L["InfoUnavailable"];
@@ -106,7 +106,7 @@ public sealed class MemoryToolsViewModel : LocalizedViewModel
         detailsOperation?.Cancel(); selected = Rows.FirstOrDefault(p => Key(p) == key); details = null; Notify();
         if (selected is not { StartTicks: { } start } p) return;
         var operation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); detailsOperation = operation;
-        try { var result = await processes.ReadDetailsAsync(p.Pid, start, operation.Token); if (!operation.IsCancellationRequested && active && selected?.Pid == p.Pid && selected.StartTicks == start) { details = result; Notify(); } }
+        try { var result = await processes.ReadDetailsAsync(p.Pid, start, operation.Token); if (!operation.IsCancellationRequested && active && selected?.Pid == p.Pid && selected.StartTicks == start) { details = result; if (result is null) status = "MemProcessChanged"; Notify(); } }
         catch (OperationCanceledException) { }
         finally { if (ReferenceEquals(detailsOperation, operation)) detailsOperation = null; operation.Dispose(); }
     }

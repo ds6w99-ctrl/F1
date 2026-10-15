@@ -75,11 +75,11 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
                             foreach (var (dataset, registration) in warmups.OrderBy(p => p.Value.Tier)) ScheduleWarmup(dataset, registration);
                         }
                     }
-                    catch { }
+                    catch { } // Best-effort startup warmup; a producer fault must not escape the fire-and-forget task.
                 });
             }
         }
-        catch { }
+        catch { } // Start never throws to its caller; per-dataset startup faults surface through the status stream.
         return Task.CompletedTask;
     }
 
@@ -212,12 +212,14 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
                     // Expected only on genuine cancellation. Both the caller's token and our own
                     // lifetime count, because a caller-side cancel tears this pass down.
                     catch (OperationCanceledException) when (lifetime.IsCancellationRequested || token.IsCancellationRequested) { }
-                    // Expected only when teardown is genuinely under way. DisposeAsync cancels the
-                    // lifetime on every disposal path, so this covers a read that is refused
-                    // because the orchestrator is shutting down. IsShutdown would say the same
-                    // thing here, but lifetime cancellation is the condition this file already
-                    // discriminates on, and it is exactly equivalent at this point in the pass.
-                    catch (ObjectDisposedException) when (lifetime.IsCancellationRequested) { }
+                    // Expected only when teardown is genuinely under way. A read is refused with
+                    // ObjectDisposedException exactly when the volatile disposed flag is set (see
+                    // Request), and DisposeAsync sets that flag before it cancels the lifetime on
+                    // a separate thread-pool work item. So teardown must be recognised from the
+                    // disposed flag itself: keying only off lifetime cancellation left a window
+                    // where disposed was true but the token was not yet cancelled, and a genuine
+                    // shutdown read was then misrecorded as a provider failure.
+                    catch (ObjectDisposedException) when (disposed || lifetime.IsCancellationRequested) { }
                     // A caller-supplied delegate that fails for any other reason is a real defect.
                     // It is recorded rather than swallowed, and never rendered to the user.
                     catch (Exception e) { diagnostics.Record(DiagnosticFeature.App, DiagnosticEvent.ProviderFailure, e.HResult); }
@@ -340,7 +342,7 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
         var subscribers = StatusChanged;
         if (subscribers is null) return;
         foreach (EventHandler<DatasetStatus> subscriber in subscribers.GetInvocationList())
-            try { subscriber(this, status); } catch { }
+            try { subscriber(this, status); } catch { } // One faulty subscriber must not stop the remaining notifications.
     }
 
     public void StartLiveTelemetry()
@@ -401,13 +403,13 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
             disposed = true;
             if (telemetryActive)
             {
-                try { monitor.SetActive(telemetryConsumer, false); } catch { }
+                try { monitor.SetActive(telemetryConsumer, false); } catch { } // Best-effort telemetry teardown during dispose.
                 monitor.Updated -= OnTelemetry; telemetryActive = false;
             }
             var tasks = entries.Values.Where(e => e.Flight is not null).Select(e => e.Flight!.Completion.Task).Cast<Task>().ToList();
             if (startup is not null) tasks.Add(startup);
             // A producer's cancellation callback must not block the UI shutdown thread either.
-            tasks.Add(Task.Run(() => { try { lifetime.Cancel(); } catch { } }));
+            tasks.Add(Task.Run(() => { try { lifetime.Cancel(); } catch { } })); // A producer's cancel callback must not fault shutdown.
             disposal = Settle(tasks);
             return new(disposal);
         }
@@ -415,7 +417,7 @@ public sealed partial class ApplicationDataOrchestrator(IPerformanceMonitorServi
     private async Task Settle(List<Task> tasks)
     {
         var all = Task.WhenAll(tasks);
-        try { await all.WaitAsync(ShutdownWait).ConfigureAwait(false); } catch { }
+        try { await all.WaitAsync(ShutdownWait).ConfigureAwait(false); } catch { } // Shutdown is best-effort; in-flight faults are observed on `all` below.
         _ = all.ContinueWith(completed =>
         {
             _ = completed.Exception;

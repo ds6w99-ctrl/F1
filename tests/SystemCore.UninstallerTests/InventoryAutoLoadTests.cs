@@ -276,7 +276,10 @@ static class InventoryAutoLoadTests
         await using (var o = InventoryTestOrchestrator.Create())
         {
             var calls = 0; var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            var cancelled = always with { Refresh = async _ => { Interlocked.Increment(ref calls); entered.TrySetResult(); await Task.Yield(); throw new OperationCanceledException(); } };
+            // The refresh is parked at a gate so "still in flight" is a deterministic fact,
+            // not a race between the delegate's own cancellation and the follow-up admission.
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var cancelled = always with { Refresh = async _ => { Interlocked.Increment(ref calls); entered.TrySetResult(); await release.Task; throw new OperationCanceledException(); } };
             await o.RefreshStaleAsync([cancelled]);
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
             var blocked = await o.RefreshStaleAsync([cancelled]);
@@ -285,6 +288,7 @@ static class InventoryAutoLoadTests
             // Admission and execution are separate facts, so both are observed.
             var ranAgain = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             var second = always with { Refresh = async _ => { Interlocked.Increment(ref calls); ranAgain.TrySetResult(); await Task.Yield(); throw new OperationCanceledException(); } };
+            release.TrySetResult();
             var admitted = 0;
             for (var spin = 0; spin < 100 && admitted == 0; spin++) { admitted = await o.RefreshStaleAsync([second]); if (admitted == 0) await Task.Delay(20); }
             await ranAgain.Task.WaitAsync(TimeSpan.FromSeconds(5));

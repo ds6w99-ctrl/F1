@@ -44,7 +44,7 @@ public sealed class PerformanceViewModel : LocalizedViewModel
     public string DiskValue => Rate(latest?.Disk.TotalBytesPerSecond);
     public string DiskDetail => L.Format("PerfReadWrite", Rate(latest?.Disk.ReadBytesPerSecond), Rate(latest?.Disk.WriteBytesPerSecond));
     public string DiskScope => L["PerfDiskScope"];
-    public string NetworkValue => L.Format("PerfDownUp", Rate(latest?.Network.Download), Rate(latest?.Network.Upload));
+    public string NetworkValue => latest?.Network is { Available: true } n ? L.Format("PerfDownUp", Rate(n.Download), Rate(n.Upload)) : Missing;
     public string NetworkDetail => latest?.Network is { Available: true } n ? n.Adapters.Count == 0 ? L["PerfNoNetwork"] :
         string.Join(" · ", n.Adapters.Select(a => a.Name + (a.LinkBitsPerSecond is { } speed ? " (" + L.Format("InfoMbps", speed / 1000000.0) + ")" : ""))) : Missing;
     public string NetworkScope => L["PerfNetworkScope"];
@@ -67,8 +67,10 @@ public sealed class PerformanceViewModel : LocalizedViewModel
     private string Rate(double? value) => value.HasValue ? PerformanceMath.RateText(value.Value, L.Culture) : Missing;
     private string Size(ulong value) => InfoFormatting.Size(value, L.Culture);
     public string Search { get => search; set { if (SetProperty(ref search, value)) RefreshProcesses(); } }
-    public int Mode { get => mode; set { if (value >= 0 && SetProperty(ref mode, Math.Clamp(value, 0, 2))) RefreshProcesses(); } }
+    public int Mode { get => mode; set { if (value >= 0 && SetProperty(ref mode, Math.Clamp(value, 0, 2))) { RefreshProcesses(); OnPropertyChanged(nameof(SortEnabled)); } } }
     public int Sort { get => sort; set { if (value >= 0 && SetProperty(ref sort, Math.Clamp(value, 0, 1))) RefreshProcesses(); } }
+    // Sorting only applies to the full list; the Top CPU / Top Memory views are ranked by their metric.
+    public bool SortEnabled => mode == 2;
     public PerformanceViewModel(LocalizationService localizer, IPerformanceMonitorService monitor, UiDispatcher dispatcher) : base(localizer)
     {
         this.monitor = monitor; this.dispatcher = dispatcher;

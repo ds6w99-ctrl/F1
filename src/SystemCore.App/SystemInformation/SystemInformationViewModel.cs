@@ -34,7 +34,7 @@ public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDispo
     public string LiveValues => (refreshFailed ? L["InfoRefreshFailed"] + "\n" : IsBusy ? L["InfoLoading"] + "\n" : "") + (telemetry is { } t ? string.Join("\n",
         L["Cpu"] + ": " + (t.CpuPercent.Value is { } c ? L.Format("Percent", c) : L["InfoUnavailable"]),
         t.Memory.Value is { } m ? L.Format("InfoLiveMemory", Size(m.TotalBytes), Size(m.UsedBytes), Size(m.TotalBytes - m.UsedBytes),
-            L.Format("Percent", InfoFormatting.Percentage(m.UsedBytes, m.TotalBytes) ?? 0)) : L["InfoUnavailable"],
+            InfoFormatting.Percentage(m.UsedBytes, m.TotalBytes) is { } used ? L.Format("Percent", used) : L["InfoUnavailable"]) : L["InfoUnavailable"],
         t.SystemVolume.Value is { } v ? L.Format("InfoLiveDisk", v.Root, Size(v.UsedBytes), Size(v.TotalBytes), Size(v.AvailableBytes)) : L["InfoUnavailable"],
         L["Uptime"] + ": " + InfoFormatting.Duration(t.Uptime, L.Culture, L["UptimeValue"])) : L["Collecting"]);
     private string Size(ulong bytes) => InfoFormatting.Size(bytes, L.Culture);
@@ -98,8 +98,15 @@ public sealed class SystemInformationViewModel : LocalizedViewModel, IAsyncDispo
             if (snapshot is null)
             {
                 var cached = await Task.Run(() => orchestrator.CacheSystemInformationSummary(), source.Token);
-                if (cached is not null && !disposed) Groups = new InformationGroup[] { new(L["InfoOverview"], new InformationRow[] { new(L["InfoThreads"], cached.LogicalProcessors.ToString(L.Culture)),
-                    new(L["InfoMemoryModules"], Size(cached.PhysicalMemoryBytes)), new(L["InfoStorage"], cached.StorageDevices.ToString(L.Culture)) }) };
+                if (cached is not null && !disposed)
+                {
+                    // A cached summary reports 0 for a failed provider; never present that as a fact.
+                    var overview = new List<InformationRow>(3);
+                    if (cached.LogicalProcessors > 0) overview.Add(new(L["InfoThreads"], cached.LogicalProcessors.ToString(L.Culture)));
+                    if (cached.PhysicalMemoryBytes > 0) overview.Add(new(L["InfoMemoryModules"], Size(cached.PhysicalMemoryBytes)));
+                    if (cached.StorageDevices > 0) overview.Add(new(L["InfoStorage"], cached.StorageDevices.ToString(L.Culture)));
+                    if (overview.Count > 0) Groups = new InformationGroup[] { new(L["InfoOverview"], overview) };
+                }
             }
             // The orchestrator runs synchronous collector setup off the UI thread too.
             var result = await ReadAsync(force, source.Token);

@@ -8,7 +8,7 @@ public sealed class SettingsViewModel : LocalizedViewModel
     private readonly IUserSettingsService settings;
     private int themeIndex;
     private readonly SystemCore.Core.Diagnostics.IAppDiagnostics diagnostics;
-    private string status = "SessionSettings";
+    private string status = "SessionSettingsActive";
     public ProductSupportViewModel Support { get; }
     public CommunityToolkit.Mvvm.Input.IRelayCommand AboutCommand { get; private set; } = new CommunityToolkit.Mvvm.Input.RelayCommand(() => { }, () => false);
     public void ConfigureNavigation(Action<string> navigate) => AboutCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(() => navigate("About"));

@@ -68,7 +68,7 @@ public sealed partial class StartupView : UserControl, IDisposable
             Refresh.Content = model.Text("StartRefresh"); Cancel.Content = model.Text("UnCancel");
             Previous.Content = model.Text("UnPrevious"); Next.Content = model.Text("UnNext");
             Disable.Content = model.Text("StartDisable"); Enable.Content = model.Text("StartEnable"); OpenLocation.Content = model.Text("StartOpenLocation");
-            UpdateOptions(Filter, new[] { "All", "Enabled", "Disabled", "CurrentUser", "AllUsers", "Registry", "Folder", "Tasks", "Protected" }.Select(k => model.Text("StartFilter" + k)).ToArray());
+            UpdateOptions(Filter, new[] { "All", "Enabled", "Disabled", "CurrentUser", "AllUsers", "Registry", "Folder", "Tasks" }.Select(k => model.Text("StartFilter" + k)).ToArray());
             Filter.SelectedIndex = model.Filter;
             UpdateOptions(Sort, new[] { "Name", "Publisher", "Status", "Source", "Scope" }.Select(k => model.Text("StartSort" + k)).ToArray());
             Sort.SelectedIndex = model.Sort;
@@ -144,7 +144,7 @@ public sealed partial class StartupView : UserControl, IDisposable
         try
         {
             var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = model.Text(action == SystemCore.Core.Startup.StartupAction.Disable ? "StartDisable" : "StartEnable"),
-                PrimaryButtonStyle = (Style)Application.Current.Resources["DangerButtonStyle"],
+                PrimaryButtonStyle = (Style)Application.Current.Resources[action == SystemCore.Core.Startup.StartupAction.Disable ? "DangerButtonStyle" : "F1PrimaryButtonStyle"],
                 Content = new TextBlock { Text = model.Confirmation(action), TextWrapping = TextWrapping.Wrap },
                 PrimaryButtonText = model.Text(action == SystemCore.Core.Startup.StartupAction.Disable ? "StartDisable" : "StartEnable"),
                 CloseButtonText = model.Text("UnCancel"), DefaultButton = ContentDialogButton.Close,
@@ -156,7 +156,7 @@ public sealed partial class StartupView : UserControl, IDisposable
     }
     private void OnOpenLocation(object sender, RoutedEventArgs args)
     {
-        if (model.Selected?.ExecutablePath is { } path) SystemCore.Infrastructure.Startup.StartupFileLocation.Open(path);
+        if (model.Selected?.ExecutablePath is { } path) model.ReportOpenLocation(SystemCore.Infrastructure.Startup.StartupFileLocation.Open(path));
     }
     public void Dispose() { disposed = true; Loaded -= OnLoaded; Unloaded -= OnUnloaded; iconLifetime.Cancel(); iconLifetime.Dispose(); model.PropertyChanged -= OnChanged; foreach (var row in rows) { row.Model = null; row.Item.Tag = null; row.Icon.Source = null; } Items.Items.Clear(); rows.Clear(); }
 }

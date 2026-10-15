@@ -43,7 +43,7 @@ public sealed partial class MainWindow : Window
         internal static void NavigationUsable() => NavigationUsableAt ??= DateTimeOffset.UtcNow;
     }
 
-    public MainWindow(ShellViewModel viewModel, LocalizationService localizer, CompatibilityService compatibility, IApplicationDataOrchestrator orchestrator)
+    public MainWindow(ShellViewModel viewModel, LocalizationService localizer, IApplicationDataOrchestrator orchestrator)
     {
         ViewModel = viewModel;
         this.localizer = localizer;
@@ -64,7 +64,7 @@ public sealed partial class MainWindow : Window
         startup = new(ViewModel.Startup);
         memoryTools = new(ViewModel.MemoryTools);
         tools = new(ViewModel.Tools);
-        appearance = new(this, Root, SolidBackground, ViewModel.Settings, localizer, compatibility, Scenery, ContentHost);
+        appearance = new(this, Root, SolidBackground, ViewModel.Settings, localizer, Scenery, ContentHost);
         // Activation only decides what is stale. The orchestrator admits one refresh per
         // dataset and owns the lifetime token, so a burst of restore events cannot fan out into
         // duplicate provider work. It then runs each admitted action on a thread-pool thread,
@@ -133,7 +133,6 @@ public sealed partial class MainWindow : Window
             Navigation.SelectedItem = Routes().First(item => Equals(item.Tag, ViewModel.SelectedPage));
     }
     private void OpenSettings(object sender, RoutedEventArgs args) => ViewModel.Navigate("Settings");
-    private void OpenAbout(object sender, RoutedEventArgs args) => ViewModel.Navigate("About");
     private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason != AutoSuggestionBoxTextChangeReason.UserInput) return;

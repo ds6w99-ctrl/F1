@@ -46,6 +46,10 @@ Desktop.ini
 *.etlx
 *.gcdump
 
+# Local agent / editor tooling (generated, not part of the product)
+.enola/
+opencode.json
+
 # NuGet
 packages/
 *.nupkg

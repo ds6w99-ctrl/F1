@@ -32,7 +32,7 @@
     <Border Style="{StaticResource CardStyle}"><StackPanel Spacing="16"><TextBlock Text="{x:Bind ViewModel.ProcessTitle, Mode=OneWay}" FontSize="20" FontWeight="SemiBold" />
    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
     <ComboBox x:Name="ModePicker" SelectedIndex="{x:Bind ViewModel.Mode, Mode=TwoWay}" Header="{x:Bind ViewModel.ModeLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfMode" HorizontalAlignment="Stretch" />
-    <ComboBox x:Name="SortPicker" Grid.Column="1" SelectedIndex="{x:Bind ViewModel.Sort, Mode=TwoWay}" Header="{x:Bind ViewModel.SortLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfSort" HorizontalAlignment="Stretch" />
+    <ComboBox x:Name="SortPicker" Grid.Column="1" SelectedIndex="{x:Bind ViewModel.Sort, Mode=TwoWay}" IsEnabled="{x:Bind ViewModel.SortEnabled, Mode=OneWay}" Header="{x:Bind ViewModel.SortLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfSort" HorizontalAlignment="Stretch" />
    </Grid>
    <TextBox Text="{x:Bind ViewModel.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Header="{x:Bind ViewModel.SearchLabel, Mode=OneWay}" AutomationProperties.AutomationId="PerfSearch" />
    <TextBlock Text="{x:Bind ViewModel.ProcessState, Mode=OneWay}" AutomationProperties.AutomationId="PerfProcessState" />

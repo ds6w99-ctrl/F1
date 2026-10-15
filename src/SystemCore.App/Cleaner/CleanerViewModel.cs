@@ -45,7 +45,9 @@ public sealed class CleanerViewModel : LocalizedViewModel
     private CleanerCleanResult? cleanResult;
     private bool cleaning, failed;
     private int previewPage;
+#if CLEANER_VALIDATION
     private int selectionSubscriptions;
+#endif
     private CleanerScanProgress? scanProgress;
     public string ScanProgress => !IsBusy || cleaning || scanProgress is not { } p ? "" :
         L.Format("CleanLiveProgress", L["Clean" + p.Category], p.Visited, p.Eligible,
@@ -153,7 +155,10 @@ public sealed class CleanerViewModel : LocalizedViewModel
         if (session is not null) foreach (var category in session.Categories)
         {
             var row = new CleanerCategoryRow(category, L);
-            row.PropertyChanged += CategoryChanged; selectionSubscriptions++;
+            row.PropertyChanged += CategoryChanged;
+#if CLEANER_VALIDATION
+            selectionSubscriptions++;
+#endif
             Categories.Add(row);
         }
         OnPropertyChanged(string.Empty);
@@ -166,7 +171,10 @@ public sealed class CleanerViewModel : LocalizedViewModel
             foreach (var item in Categories[selectedCategory].Result.Items.Skip(previewPage * 100).Take(100))
             {
                 var row = new CleanerItemRow(item) { Selected = !excluded.Contains(item.Id) };
-                row.PropertyChanged += ItemChanged; selectionSubscriptions++;
+                row.PropertyChanged += ItemChanged;
+#if CLEANER_VALIDATION
+                selectionSubscriptions++;
+#endif
                 Preview.Add(row);
             }
         UpdateCommands();
@@ -178,8 +186,22 @@ public sealed class CleanerViewModel : LocalizedViewModel
         if (sender is CleanerItemRow row) { if (row.Selected) excluded.Remove(row.Item.Id); else excluded.Add(row.Item.Id); }
         UpdateCommands();
     }
-    private void ClearCategories() { foreach (var row in Categories) { row.PropertyChanged -= CategoryChanged; selectionSubscriptions--; } Categories.Clear(); }
-    private void ClearPreview() { foreach (var row in Preview) { row.PropertyChanged -= ItemChanged; selectionSubscriptions--; } Preview.Clear(); }
+    private void ClearCategories()
+    {
+        foreach (var row in Categories) row.PropertyChanged -= CategoryChanged;
+#if CLEANER_VALIDATION
+        selectionSubscriptions -= Categories.Count;
+#endif
+        Categories.Clear();
+    }
+    private void ClearPreview()
+    {
+        foreach (var row in Preview) row.PropertyChanged -= ItemChanged;
+#if CLEANER_VALIDATION
+        selectionSubscriptions -= Preview.Count;
+#endif
+        Preview.Clear();
+    }
     public override void Dispose() { disposed = true; cancellation?.Cancel(); ClearCategories(); ClearPreview(); base.Dispose(); }
 #if CLEANER_VALIDATION
     public Func<string>? ValidationUiDiagnostics { get; set; }
