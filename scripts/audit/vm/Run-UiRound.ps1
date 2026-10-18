@@ -51,14 +51,18 @@ $win = [Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
 Log "window title: $($win.Current.Name)"
 Shot '00-dashboard.png'
 
-# navigate to Uninstaller
+# navigate to Uninstaller (NavigationViewItem exposes SelectionItemPattern)
 $nav = Find $win 'NavUninstaller'
-if ($nav) { $nav.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); Log 'nav -> Uninstaller' } else { Log 'NavUninstaller MISSING' }
-Start-Sleep -Seconds 20
+if ($nav) {
+    try { $nav.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke() }
+    catch { try { $nav.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { Log "nav pattern error: $($_.Exception.Message)" } }
+    Log 'nav -> Uninstaller'
+} else { Log 'NavUninstaller MISSING' }
+$list = $null
+for ($i = 0; $i -lt 18 -and -not $list; $i++) { Start-Sleep 5; $list = Find $win 'UnApplications' }
 Shot '10-uninstaller.png'
 $status = Find $win 'UnStatus'
 Log "status: $($status.Current.Name)"
-$list = Find $win 'UnApplications'
 if ($list) {
     $items = $list.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition)
     Log "list items: $($items.Count)"
