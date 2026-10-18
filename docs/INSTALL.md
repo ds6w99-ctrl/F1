@@ -77,11 +77,17 @@ deferred release work.
 
 ## What is verified, and what is not
 
-`scripts/Test-Shell.ps1` drives the real UI through UI Automation and asserts 118 checks.
-Run against the **installed** artifact (`%ProgramFiles%\F1\App\F1.exe`) it reported
-118 passed, 0 failed — including a real Cleaner scan and a relaunch with saved
-preferences. The work-host install/uninstall lifecycle and the artifact hashes are
-recorded in `installer/DECISION.md`.
+`scripts/Invoke-F1ProductUx.ps1` drives the real UI through UI Automation and asserts 306
+checks (both languages × three themes × navigation × About copy × restart persistence).
+For the fixed `1.0.0` build it reported **306 passed, 0 failed** against the published
+`artifacts/publish/App/F1.exe`; evidence: `artifacts/f1-ui/local-validation/ui-fixed/`.
+`scripts/Test-Shell.ps1` is the second, shorter UI harness (118 checks); against the
+**installed** 0.9.0-dev artifact (`%ProgramFiles%\F1\App\F1.exe`) it reported 118 passed,
+0 failed — including a real Cleaner scan and a relaunch with saved preferences. The
+work-host install/uninstall lifecycle and the historical artifact hashes are recorded in
+`installer/DECISION.md`. The fixed 1.0.0 package additionally passed the end-to-end
+leftover-scan probe (9/9 items, no pollution, delete button enabled) recorded in
+`artifacts/uninstaller-leftover-diagnosis/fixed-verify/` and `F1_TASK_003_REPORT.md`.
 
 That is work-host evidence. It does **not** stand in for a clean machine without SDKs, a
 genuine Standard User account, real UAC accept/deny prompts, or a signed payload. Those
