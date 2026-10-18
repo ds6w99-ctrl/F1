@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using SystemCore.Core.Tools;
 
+using SystemCore.App.Services;
+
 namespace SystemCore.App.Tools;
 
 public sealed partial class ToolsView : UserControl, IDisposable
@@ -15,7 +17,7 @@ public sealed partial class ToolsView : UserControl, IDisposable
     private readonly Dictionary<ToolGroup, TextBlock> headings = [];
     public ToolsView(ToolsViewModel model)
     { this.model = model; InitializeComponent(); model.PropertyChanged += OnChanged; Loaded += OnLoaded; Render(); }
-    private async void OnLoaded(object sender, RoutedEventArgs args) => await model.InitializeAsync();
+    private void OnLoaded(object sender, RoutedEventArgs args) => UiSafety.Run(model.InitializeAsync);
     private void OnChanged(object? sender, PropertyChangedEventArgs args) => Render();
     private void Render()
     {
@@ -50,7 +52,7 @@ public sealed partial class ToolsView : UserControl, IDisposable
             AutomationProperties.SetName(row.Open, model.Text("ActionOpen") + " " + row.Name.Text);
         }
     }
-    private async void OnOpen(object sender, RoutedEventArgs args) { if (sender is Button { Tag: WindowsToolId id }) await model.OpenAsync(id); }
-    private async void OnRefresh(object sender, RoutedEventArgs args) => await model.RefreshAsync();
+    private void OnOpen(object sender, RoutedEventArgs args) { if (sender is Button { Tag: WindowsToolId id }) UiSafety.Run(() => model.OpenAsync(id)); }
+    private void OnRefresh(object sender, RoutedEventArgs args) => UiSafety.Run(model.RefreshAsync);
     public void Dispose() { Loaded -= OnLoaded; model.PropertyChanged -= OnChanged; foreach (var row in rows.Values) row.Open.Click -= OnOpen; rows.Clear(); Cards.Children.Clear(); }
 }

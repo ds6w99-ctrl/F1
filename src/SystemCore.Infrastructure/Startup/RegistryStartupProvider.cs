@@ -10,6 +10,8 @@ public sealed class RegistryStartupProvider : IRegistryStartupProvider
     private readonly StartupSafetyClassifier safety = new();
     public RegistryStartupProvider() : this(new WindowsStartupLocations()) { }
     internal RegistryStartupProvider(IStartupLocations locations) => Locations = locations;
+    // Read is synchronous; the offloaded lambda returns its result directly instead of blocking on a
+    // task, so there is no `.Result` on an asynchronous operation here.
     public Task<StartupInventoryResult> ReadAsync(CancellationToken token) => Task.Run(() => Read(token).Result, token);
     internal (StartupInventoryResult Result, IReadOnlyList<RegistryStartupSnapshot> Snapshots) Read(CancellationToken token)
     {

@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Storage.Streams;
 using SystemCore.Core.Uninstaller;
 
+using SystemCore.App.Services;
+
 namespace SystemCore.App.Uninstaller;
 
 public sealed partial class UninstallerView : UserControl, IDisposable
@@ -31,7 +33,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     private string Label(InstalledApplication a)
     {
         static string Technical(string value) => SystemCore.Core.SystemInformation.InfoFormatting.Technical(value);
-        return $"{DisplayName(a)} — {a.Publisher ?? ViewModel.Text("UnUnknown")}\n{Technical(a.DisplayVersion ?? ViewModel.Text("UnUnknown"))} | {Technical(a.ApplicationType.ToString())} | {Technical(ViewModel.FormatSize(a.EstimatedSize))} | {Technical(ViewModel.FormatDate(a.InstallDate))}";
+        return $"{DisplayName(a)} â€” {a.Publisher ?? ViewModel.Text("UnUnknown")}\n{Technical(a.DisplayVersion ?? ViewModel.Text("UnUnknown"))} | {Technical(a.ApplicationType.ToString())} | {Technical(ViewModel.FormatSize(a.EstimatedSize))} | {Technical(ViewModel.FormatDate(a.InstallDate))}";
     }
     private void Render()
     {
@@ -63,7 +65,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             for (var index = 0; index < displayed.Length; index++)
                 if (Applications.ContainerFromIndex(index) is ListViewItem item) PresentRow(item, displayed[index]);
             Previous.IsEnabled = !ViewModel.Busy && ViewModel.HasPrevious; Next.IsEnabled = !ViewModel.Busy && ViewModel.HasNext;
-            PageNumber.Text = $"{ViewModel.Page} / {Math.Max(1, (ViewModel.Count + 19) / 20)} — {ViewModel.Count}";
+            PageNumber.Text = $"{ViewModel.Page} / {Math.Max(1, (ViewModel.Count + 19) / 20)} â€” {ViewModel.Count}";
             Details.Text = ViewModel.ShowLeftovers ? "" : ViewModel.Selected is { } selected ? (UnifiedLibraryPresentation.IsLauncherManaged(selected) ? ViewModel.ManagedLabel(selected) + "\n" : "") + Label(selected) : ViewModel.Text("UnSelectDetails");
             Details.Visibility = ViewModel.ShowLeftovers ? Visibility.Collapsed : Visibility.Visible;
             AutomationProperties.SetHelpText(Status, $"Raw={ViewModel.RawCount};Hidden={ViewModel.HiddenCount};Removable={ViewModel.RemovableCount};Managed={ViewModel.ManagedCount}");
@@ -111,18 +113,18 @@ public sealed partial class UninstallerView : UserControl, IDisposable
     private void OnSearch(object sender, TextChangedEventArgs args) { if (!rendering) ViewModel.Search = Search.Text; }
     private void OnFilter(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.Filter = Filter.SelectedIndex; }
     private void OnKindFilter(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.KindFilter = KindFilter.SelectedIndex; }
-    private async void OnOpenLauncher(object sender, RoutedEventArgs args) => await ViewModel.OpenLauncherAsync();
+    private void OnOpenLauncher(object sender, RoutedEventArgs args) => UiSafety.Run(ViewModel.OpenLauncherAsync);
     private void OnSort(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.Sort = Sort.SelectedIndex; }
     private void OnSelection(object sender, SelectionChangedEventArgs args) { if (!rendering) ViewModel.SelectedId = Applications.SelectedItem as string ?? ""; }
-    private async void OnRefresh(object sender, RoutedEventArgs args)
+    private void OnRefresh(object sender, RoutedEventArgs args) => UiSafety.Run(async () =>
     {
         CancelIcons();
         icons.Refresh(ViewModel.Inventory);
         await ViewModel.RefreshAsync();
         icons.Refresh(ViewModel.Inventory);
-    }
+    });
     private void OnCancelOperation(object sender, RoutedEventArgs args) => ViewModel.CancelOperation();
-    private async void OnScanLeftovers(object sender, RoutedEventArgs args) => await ViewModel.ScanLeftoversAsync();
+    private void OnScanLeftovers(object sender, RoutedEventArgs args) => UiSafety.Run(ViewModel.ScanLeftoversAsync);
     private void OnKeepLeftovers(object sender, RoutedEventArgs args) => ViewModel.KeepLeftovers();
     private void OnAllowPersonalData(object sender, RoutedEventArgs args) { if (!rendering) ViewModel.AllowPersonalData = AllowPersonalData.IsChecked == true; }
     private void OnLeftoverToggle(object sender, RoutedEventArgs args)
@@ -141,7 +143,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
                 && ReferenceEquals(grid.FindName("Choice"), choice)) return id;
         return null;
     }
-    private async void OnDeleteLeftovers(object sender, RoutedEventArgs args)
+    private void OnDeleteLeftovers(object sender, RoutedEventArgs args) => UiSafety.Run(async () =>
     {
         if (!ViewModel.CanDeleteLeftovers) return;
         var ids = ViewModel.SelectedLeftoverIds();
@@ -152,12 +154,11 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             PrimaryButtonText = ViewModel.Text("UnDeleteLeftovers"), CloseButtonText = ViewModel.Text("UnCancel"), DefaultButton = ContentDialogButton.Close, FlowDirection = FlowDirection, RequestedTheme = ActualTheme };
         AutomationProperties.SetAutomationId(dialog, "UnLeftoverConfirmation");
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) await ViewModel.DeleteLeftoversConfirmedAsync(ids);
-    }
-    private async void OnSelectAll(object sender, RoutedEventArgs args)
+    });
+    private void OnSelectAll(object sender, RoutedEventArgs args)
     {
         if (ViewModel.SelectedApplicationCount > 0) ViewModel.SelectVisibleApplications(false);
         else SelectAllVisible();
-        await Task.CompletedTask;
     }
     private void SelectAllVisible()
     {
@@ -165,9 +166,9 @@ public sealed partial class UninstallerView : UserControl, IDisposable
         ViewModel.SelectVisibleApplications(true);
     }
     private void OnQuietToggle(object sender, RoutedEventArgs args) { if (!rendering) ViewModel.UseQuietUninstaller = QuietToggle.IsChecked == true; }
-    private async void OnScanOrphans(object sender, RoutedEventArgs args) => await ViewModel.ScanOrphansAsync();
-    private async void OnExport(object sender, RoutedEventArgs args) => await ViewModel.ExportAsync(SystemCore.Infrastructure.Uninstaller.UninstallerExportFormat.Csv);
-    private async void OnUninstallSelected(object sender, RoutedEventArgs args)
+    private void OnScanOrphans(object sender, RoutedEventArgs args) => UiSafety.Run(ViewModel.ScanOrphansAsync);
+    private void OnExport(object sender, RoutedEventArgs args) => UiSafety.Run(() => ViewModel.ExportAsync(SystemCore.Infrastructure.Uninstaller.UninstallerExportFormat.Csv));
+    private void OnUninstallSelected(object sender, RoutedEventArgs args) => UiSafety.Run(async () =>
     {
         if (!ViewModel.CanUninstallSelected) return;
         var count = ViewModel.SelectedApplicationCount;
@@ -182,10 +183,10 @@ public sealed partial class UninstallerView : UserControl, IDisposable
         var ids = ViewModel.Rows.Where(a => ViewModel.IsApplicationSelected(a.Id)).Select(a => a.Id)
             .Concat(ViewModel.Inventory.Where(a => ViewModel.IsApplicationSelected(a.Id)).Select(a => a.Id)).Distinct().ToArray();
         await ViewModel.UninstallSelectedConfirmedAsync(ids);
-    }
+    });
     private void OnPrevious(object sender, RoutedEventArgs args) => ViewModel.MovePage(-1);
     private void OnNext(object sender, RoutedEventArgs args) => ViewModel.MovePage(1);
-    private async void OnUninstall(object sender, RoutedEventArgs args)
+    private void OnUninstall(object sender, RoutedEventArgs args) => UiSafety.Run(async () =>
     {
         if (ViewModel.Selected is not { CanUninstall: true } selected) return;
             var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = ViewModel.Text("UnUninstall"), Content = DisplayName(selected) + "\n" + ViewModel.Text("UnConfirm"),
@@ -193,7 +194,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             PrimaryButtonText = ViewModel.Text("UnUninstall"), CloseButtonText = ViewModel.Text("UnCancel"), DefaultButton = ContentDialogButton.Close, FlowDirection = FlowDirection, RequestedTheme = ActualTheme };
         AutomationProperties.SetAutomationId(dialog, "UnConfirmation");
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) await ViewModel.UninstallConfirmedAsync(selected.Id);
-    }
+    });
     public void Dispose()
     {
         disposed = true; CancelIcons();
@@ -227,7 +228,7 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             AutomationProperties.SetName(choice, leftover?.DisplayLocation ?? "");
             text.TextWrapping = leftover is null ? TextWrapping.NoWrap : TextWrapping.Wrap;
             text.MaxLines = leftover is null ? 2 : 0;
-            text.Text = app is not null ? $"{DisplayName(app)}\n{app.Publisher ?? ViewModel.Text("UnUnknown")} · {app.DisplayVersion ?? ViewModel.Text("UnUnknown")}" : leftover is not null ? ViewModel.LeftoverLabel(leftover) : "";
+            text.Text = app is not null ? $"{DisplayName(app)}\n{app.Publisher ?? ViewModel.Text("UnUnknown")} Â· {app.DisplayVersion ?? ViewModel.Text("UnUnknown")}" : leftover is not null ? ViewModel.LeftoverLabel(leftover) : "";
             metadata.Text = app is null ? "" : $"{ViewModel.FormatSize(app.EstimatedSize)}\n{(app.ItemKind == ItemKind.Game ? ViewModel.SourceLabel(app) : app.ApplicationType.ToString())}";
             grid.BorderThickness = app is not null && app.Id == ViewModel.SelectedId ? new Thickness(3, 0, 0, 0) : new Thickness(0);
             AutomationProperties.SetName(item, app is not null ? DisplayName(app) : leftover?.DisplayLocation ?? "");

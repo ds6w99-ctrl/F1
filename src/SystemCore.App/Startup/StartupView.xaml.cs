@@ -8,6 +8,8 @@ using SystemCore.Core.Startup;
 using SystemCore.Infrastructure.Startup;
 using Windows.Storage.Streams;
 
+using SystemCore.App.Services;
+
 namespace SystemCore.App.Startup;
 
 public sealed partial class StartupView : UserControl, IDisposable
@@ -47,11 +49,11 @@ public sealed partial class StartupView : UserControl, IDisposable
         Loaded += OnLoaded; Unloaded += OnUnloaded;
         model.PropertyChanged += OnChanged; Render();
     }
-    private async void OnLoaded(object sender, RoutedEventArgs args)
+    private void OnLoaded(object sender, RoutedEventArgs args)
     {
         if (disposed) return;
         active = true; ResetIconLifetime(); foreach (var row in rows) row.Model = null; Render();
-        await model.InitializeAsync();
+        UiSafety.Run(model.InitializeAsync);
     }
     private void OnUnloaded(object sender, RoutedEventArgs args) { active = false; iconLifetime.Cancel(); }
     private void ResetIconLifetime() { iconLifetime.Cancel(); iconLifetime.Dispose(); iconLifetime = new(); }
@@ -111,10 +113,10 @@ public sealed partial class StartupView : UserControl, IDisposable
     private void OnFilter(object sender, SelectionChangedEventArgs args) { if (!rendering) model.Filter = Filter.SelectedIndex; }
     private void OnSort(object sender, SelectionChangedEventArgs args) { if (!rendering) model.Sort = Sort.SelectedIndex; }
     private void OnSelection(object sender, SelectionChangedEventArgs args) { if (!rendering) model.SelectedId = (Items.SelectedItem as ListViewItem)?.Tag as string ?? ""; }
-    private async void OnRefresh(object sender, RoutedEventArgs args)
+    private void OnRefresh(object sender, RoutedEventArgs args)
     {
         ResetIconLifetime();
-        await model.RefreshAsync();
+        UiSafety.Run(model.RefreshAsync);
     }
     private async Task LoadIconAsync(Row row, StartupItem item, CancellationToken token)
     {
@@ -134,8 +136,8 @@ public sealed partial class StartupView : UserControl, IDisposable
     private void OnCancel(object sender, RoutedEventArgs args) => model.Cancel();
     private void OnPrevious(object sender, RoutedEventArgs args) => model.MovePage(-1);
     private void OnNext(object sender, RoutedEventArgs args) => model.MovePage(1);
-    private async void OnDisable(object sender, RoutedEventArgs args) => await ConfirmAsync(SystemCore.Core.Startup.StartupAction.Disable);
-    private async void OnEnable(object sender, RoutedEventArgs args) => await ConfirmAsync(SystemCore.Core.Startup.StartupAction.Enable);
+    private void OnDisable(object sender, RoutedEventArgs args) => UiSafety.Run(() => ConfirmAsync(SystemCore.Core.Startup.StartupAction.Disable));
+    private void OnEnable(object sender, RoutedEventArgs args) => UiSafety.Run(() => ConfirmAsync(SystemCore.Core.Startup.StartupAction.Enable));
     private bool confirming;
     private async Task ConfirmAsync(SystemCore.Core.Startup.StartupAction action)
     {

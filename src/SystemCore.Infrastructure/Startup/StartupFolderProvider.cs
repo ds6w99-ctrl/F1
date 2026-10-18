@@ -12,6 +12,7 @@ public sealed class StartupFolderProvider : IStartupFolderProvider
     internal IStartupLocations Locations { get; }
     public StartupFolderProvider() : this(new WindowsStartupLocations()) { }
     internal StartupFolderProvider(IStartupLocations locations) => Locations = locations;
+    // Same contract as the registry provider: Read is synchronous, so the lambda returns its result.
     public Task<StartupInventoryResult> ReadAsync(CancellationToken token) => Task.Run(() => Read(token).Result, token);
     internal (StartupInventoryResult Result, IReadOnlyList<StartupFileSnapshot> Snapshots) Read(CancellationToken token)
     {

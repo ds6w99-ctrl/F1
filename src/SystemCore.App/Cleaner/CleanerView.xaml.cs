@@ -1,4 +1,6 @@
 using Microsoft.UI.Xaml.Controls;
+using SystemCore.App.Services;
+
 namespace SystemCore.App.Cleaner;
 public sealed partial class CleanerView : UserControl, IDisposable
 {
@@ -31,7 +33,7 @@ public sealed partial class CleanerView : UserControl, IDisposable
         ContentPanel.Children.Insert(0, status); ContentPanel.Children.Insert(0, prepare);
 #endif
     }
-    private async void ConfirmClean(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void ConfirmClean(object sender, Microsoft.UI.Xaml.RoutedEventArgs e) => UiSafety.Run(async () =>
     {
         var request = ViewModel.Selection();
         if (request is null) return;
@@ -45,7 +47,7 @@ public sealed partial class CleanerView : UserControl, IDisposable
         };
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(dialog, "CleanerConfirmation");
         if (await dialog.ShowAsync() == ContentDialogResult.Primary) await ViewModel.CleanAsync(request);
-    }
+    });
     // Keep managed scan rows out of WinRT ItemsSource/DataContext projection. Only
     // native controls and display strings cross that boundary; callbacks retain an
     // opaque GUID/category, never a previous item/session. The model owns selection.

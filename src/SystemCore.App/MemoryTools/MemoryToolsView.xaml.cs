@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 
+using SystemCore.App.Services;
+
 namespace SystemCore.App.MemoryTools;
 
 public sealed partial class MemoryToolsView : UserControl, IDisposable
@@ -71,9 +73,9 @@ public sealed partial class MemoryToolsView : UserControl, IDisposable
         finally { rendering = false; }
     }
     private void OnAnalyze(object sender, RoutedEventArgs args) => model.Analyze();
-    private async void OnOptimize(object sender, RoutedEventArgs args) => await model.OptimizeAsync();
+    private void OnOptimize(object sender, RoutedEventArgs args) => UiSafety.Run(model.OptimizeAsync);
     private void OnMode(object sender, SelectionChangedEventArgs args) { if (!rendering) model.Mode = Mode.SelectedIndex; }
-    private async void OnSelection(object sender, SelectionChangedEventArgs args) { if (!rendering) await model.SelectAsync((Rows.SelectedItem as ListViewItem)?.Tag as string ?? ""); }
-    private async void OnOpenLocation(object sender, RoutedEventArgs args) => await model.OpenLocationAsync();
+    private void OnSelection(object sender, SelectionChangedEventArgs args) { if (!rendering) UiSafety.Run(() => model.SelectAsync((Rows.SelectedItem as ListViewItem)?.Tag as string ?? "")); }
+    private void OnOpenLocation(object sender, RoutedEventArgs args) => UiSafety.Run(model.OpenLocationAsync);
     public void Dispose() { model.PropertyChanged -= OnChanged; Rows.Items.Clear(); rows.Clear(); UsageChart.Points = AvailableChart.Points = null; }
 }

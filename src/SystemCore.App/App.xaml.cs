@@ -54,6 +54,13 @@ public partial class App : Application
             // This is an observed diagnostic event, not recovery; do not SetObserved.
         };
         InitializeComponent();
+        // Every UI action routed through UiSafety reports here instead of escaping as an unhandled
+        // async void exception. The record carries only the HResult, never paths or arguments.
+        Services.UiSafety.Report = exception =>
+        {
+            SystemCore.Core.Diagnostics.ReliabilityDiagnostics.Log.UnexpectedFailure((int)SystemCore.Core.Diagnostics.ReliabilityComponent.Ui, exception.HResult);
+            diagnostics?.Record(SystemCore.Core.Diagnostics.DiagnosticFeature.App, SystemCore.Core.Diagnostics.DiagnosticEvent.UnhandledFailure, exception.HResult);
+        };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
