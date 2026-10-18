@@ -9,6 +9,7 @@
     <Compile Include="../../src/SystemCore.App/SystemInformation/SystemInformationViewModel.cs" Link="SystemInformationViewModel.cs" />
     <Compile Include="../../src/SystemCore.App/SystemInformation/SystemInformationPresentation.cs" Link="SystemInformationPresentation.cs" />
     <Compile Include="../../src/SystemCore.App/Services/DashboardMonitor.cs" Link="DashboardMonitor.cs" />
+    <Compile Include="../../src/SystemCore.App/Services/PlanService.cs" Link="PlanService.cs" />
     <Compile Include="../../src/SystemCore.App/ViewModels/LocalizedViewModel.cs" Link="LocalizedViewModel.cs" />
     <Compile Include="../../src/SystemCore.App/Services/LocalizationService.cs" Link="LocalizationService.cs" />
     <EmbeddedResource Include="../../src/SystemCore.App/Resources/Shell.resx" LogicalName="SystemCore.App.Resources.Shell.resources" />

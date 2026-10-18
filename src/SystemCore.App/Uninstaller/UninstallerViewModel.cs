@@ -21,6 +21,13 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private bool inventoryActionable;
     private ApplicationsSummarySnapshot? cachedSummary;
     private readonly IUninstallExecutor executor;
+    // Plan gate: the UI hides gated actions and the operations re-check, so hiding alone is never
+    // the only protection.
+    private readonly Services.IPlanService? plan;
+    private bool CanUse(SystemCore.Core.Licensing.Feature feature) => plan is null || plan.CanUse(feature);
+    public bool PlanLocked => plan is not null && plan.Tier == SystemCore.Core.Licensing.PlanTier.Free;
+    public string PlanBadgeText => L["PlanPro"];
+    public string UpgradeText => L["PlanUpgrade"];
     private readonly IBulkUninstallExecutor? bulkExecutor;
     private readonly ILeftoverScanner leftovers;
     private readonly ILeftoverDeletionService deletion;
@@ -81,9 +88,10 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private bool disposed;
     private UninstallState state = UninstallState.Ready;
     public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion, IGameLauncher launcher,
-        IApplicationDataOrchestrator orchestrator, IAppDiagnostics diagnostics) : base(localizer)
+        IApplicationDataOrchestrator orchestrator, IAppDiagnostics diagnostics, Services.IPlanService? plan = null) : base(localizer)
     {
         this.executor = executor;
+        this.plan = plan;
         this.bulkExecutor = executor as IBulkUninstallExecutor;
         this.leftovers = leftovers;
         this.deletion = deletion;
@@ -185,8 +193,9 @@ public sealed class UninstallerViewModel : LocalizedViewModel
         if (!CanSelectApplications) return;
         foreach (var application in Rows.Where(RemovableApplications.IsVisible)) SelectApplication(application.Id, selected);
     }
-    public bool CanUninstallSelected => !Busy && !ShowLeftovers && session is not null && selectedApplications.Count is > 0 and <= 100;
+    public bool CanUninstallSelected => CanUse(SystemCore.Core.Licensing.Feature.UninstallerBulk) && !Busy && !ShowLeftovers && session is not null && selectedApplications.Count is > 0 and <= 100;
     // Quiet removal is an explicit opt-in and never silently changes the user's flow.
+    public bool CanUseQuiet => CanUse(SystemCore.Core.Licensing.Feature.UninstallerQuiet);
     public bool UseQuietUninstaller
     {
         get => useQuietUninstaller;
@@ -250,7 +259,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     // ---- orphan detection (read-only) ----
     public IReadOnlyList<OrphanDirectory> Orphans => orphans ?? [];
     public bool HasOrphans => Orphans.Count > 0;
-    public bool CanScanOrphans => !Busy && session?.Inventory.Complete == true;
+    public bool CanScanOrphans => !Busy && CanUse(SystemCore.Core.Licensing.Feature.UninstallerOrphans) && session?.Inventory.Complete == true;
     public string OrphanSummary => orphans is null ? "" : L.Format("UnOrphanResult", Orphans.Count, FormatSize(Orphans.Sum(o => o.SizeBytes)));
     public async Task ScanOrphansAsync()
     {

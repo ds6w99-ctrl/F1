@@ -611,4 +611,9 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="MemKindModifiedPageList" xml:space="preserve"><value>Modified page list</value></data>
   <data name="MemKindCombinedPageList" xml:space="preserve"><value>Combined page list</value></data>
   <data name="MemKindRegistryCache" xml:space="preserve"><value>Registry cache</value></data>
-  <data name="MemKindSystemFileCache" xml:space="preserve"><value>System file cache</value></data></root>
+  <data name="MemKindSystemFileCache" xml:space="preserve"><value>System file cache</value></data>
+  <data name="PlanPro" xml:space="preserve"><value>Pro</value></data>
+  <data name="PlanUpgrade" xml:space="preserve"><value>Upgrade</value></data>
+  <data name="PlanLockedHint" xml:space="preserve"><value>Available in F1 Pro</value></data>
+  <data name="PlanCurrentFree" xml:space="preserve"><value>Free plan</value></data>
+  <data name="PlanCurrentPro" xml:space="preserve"><value>Pro plan</value></data></root>

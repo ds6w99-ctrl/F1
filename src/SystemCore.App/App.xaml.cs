@@ -96,6 +96,7 @@ public partial class App : Application
         registrations.AddSingleton<ICleanerService, Cleaner.ValidationCleanerService>();
 #endif
         registrations.AddSingleton<CleanerScanState>();
+        registrations.AddSingleton<Services.IPlanService, Services.PlanService>();
         registrations.AddSingleton<CleanerViewModel>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IApplicationIdentityResolver, SystemCore.Infrastructure.Uninstaller.ApplicationIdentityResolver>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IWin32ApplicationProvider, SystemCore.Infrastructure.Uninstaller.RegistryApplicationProvider>();

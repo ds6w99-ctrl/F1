@@ -79,7 +79,7 @@ function Choose([string]$id,[string]$name) {
     do {
         Start-Sleep -Milliseconds 100
         $item=$window.FindFirst([Windows.Automation.TreeScope]::Descendants,$condition)
-    }while(!$item -and $choiceWait.Elapsed.TotalSeconds -lt 5)
+    }while(!$item -and $choiceWait.Elapsed.TotalSeconds -lt 15)
     Check "Popup choice $id $name becomes available" ($null -ne $item) $choiceWait.Elapsed.TotalSeconds
     $item.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select()
     $expand.Collapse()

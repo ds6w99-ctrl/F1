@@ -611,4 +611,8 @@
   <data name="MemKindModifiedPageList" xml:space="preserve"><value>قائمة الصفحات المعدّلة</value></data>
   <data name="MemKindCombinedPageList" xml:space="preserve"><value>قائمة الصفحات المدمجة</value></data>
   <data name="MemKindRegistryCache" xml:space="preserve"><value>كاش السجل</value></data>
-  <data name="MemKindSystemFileCache" xml:space="preserve"><value>كاش ملفات النظام</value></data></root>
+  <data name="MemKindSystemFileCache" xml:space="preserve"><value>كاش ملفات النظام</value></data>  <data name="PlanPro" xml:space="preserve"><value>مدفوع</value></data>
+  <data name="PlanUpgrade" xml:space="preserve"><value>ترقية</value></data>
+  <data name="PlanLockedHint" xml:space="preserve"><value>متاح في F1 المدفوع</value></data>
+  <data name="PlanCurrentFree" xml:space="preserve"><value>الخطة المجانية</value></data>
+  <data name="PlanCurrentPro" xml:space="preserve"><value>الخطة المدفوعة</value></data></root>
