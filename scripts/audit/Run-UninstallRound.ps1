@@ -8,7 +8,7 @@ param(
     [string]$AdminPass = 'F1Vm!2026',
     [string]$Round,                    # e.g. 'U-02'
     [Parameter(Mandatory)][string]$AppName,  # exact DisplayName for the probe
-    [string[]]$Keywords,               # state-diff keywords for this app
+    [string]$Keywords = '',            # semicolon-separated state-diff keywords
     [switch]$Quiet,
     [switch]$Deep,
     [switch]$LeftoverDelete,
@@ -19,6 +19,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $evidence = Join-Path $root "artifacts\audit-baseline\vm-evidence\$Round"
 New-Item -ItemType Directory -Force $evidence | Out-Null
+$kwList = @($Keywords -split ';' | Where-Object { $_ } | ForEach-Object { $_.Trim() })
 $sec = ConvertTo-SecureString $AdminPass -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential($AdminUser, $sec)
 $s = New-PSSession -ComputerName $VmIp -Credential $cred -Authentication Negotiate -ErrorAction Stop
@@ -36,11 +37,12 @@ try {
 
     # ---- 2. capture state after uninstall(+cleanup) and diff ----
     Invoke-Command -Session $s -ScriptBlock {
-        param($round, $kwList)
+        param($round, $kwJoined)
+        $kwList = @($kwJoined -split ';' | Where-Object { $_ })
         Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
         & 'C:\F1Audit\scripts\Capture-State.ps1' -Label "$round-after" -OutDir 'C:\F1Audit\states' -AppKeyNames @($kwList)
         & 'C:\F1Audit\scripts\Compare-States.ps1' -Before 'C:\F1Audit\states\installed.json' -After "C:\F1Audit\states\$round-after.json" -Out "C:\F1Audit\evidence\$round-compare.json" -Keywords @($kwList)
-    } -ArgumentList $Round, $Keywords
+    } -ArgumentList $Round, ($kwList -join ';')
 
     # ---- 3. pull evidence ----
     Invoke-Command -Session $s -ScriptBlock {

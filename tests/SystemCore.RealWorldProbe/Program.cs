@@ -4,6 +4,8 @@
 // on a real machine/VM. It reports facts as JSON; independent PowerShell verification scripts
 // decide PASS/FAIL. It never invents apps or skips the engine's own safety gates.
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
 using SystemCore.Core.Uninstaller;
@@ -31,7 +33,9 @@ try
         "leftovers" => await LeftoversAsync(inventory, evidence, token),
         "orphans" => await OrphansAsync(inventory, token),
         "export" => await ExportAsync(inventory, token),
+        "restore" => await RestoreAsync(token),
         "inspect-parse" => await InspectParseAsync(token),
+        "msi-debug" => await MsiDebugAsync(token),
         _ => Usage()
     };
 }
@@ -322,6 +326,83 @@ static List<string> SplitLikeArgv(string text)
     // Approximation sufficient for diagnostics of simple commands.
     if (text.Contains('"')) return new List<string> { text };
     return text.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+}
+
+[DllImport("msi.dll", CharSet = CharSet.Unicode)] static extern uint MsiEnumProductsExW(string? product, string? userSid, uint contexts, uint index, StringBuilder productCode, out uint context, StringBuilder sid, ref uint sidLength);
+[DllImport("msi.dll", CharSet = CharSet.Unicode)] static extern uint MsiGetProductInfoExW(string productCode, string? sid, uint context, string property, StringBuilder? value, ref uint length);
+[DllImport("msi.dll", CharSet = CharSet.Unicode)] static extern uint MsiEnumComponentsW(uint index, StringBuilder componentCode);
+[DllImport("msi.dll", CharSet = CharSet.Unicode)] static extern uint MsiGetProductCodeW(string component, StringBuilder productCode);
+[DllImport("msi.dll", CharSet = CharSet.Unicode)] static extern int MsiGetComponentPathExW(string productCode, string? userSid, uint context, string component, StringBuilder? path, ref uint pathLength);
+
+async Task<int> MsiDebugAsync(CancellationToken token)
+{
+    var name = Arg("--name");
+    var result = new Dictionary<string, object>();
+    string? product = null; uint context = 0; string? sid = null;
+    for (uint i = 0; i < 10000; i++)
+    {
+        token.ThrowIfCancellationRequested();
+        var code = new StringBuilder(39);
+        var s = new StringBuilder(256); uint sl = 256;
+        var r = MsiEnumProductsExW(null, null, 7, i, code, out var ctx, s, ref sl);
+        if (r == 259) break;
+        if (r != 0) { result["enum-products-error"] = r; break; }
+        string? Prop(string p)
+        {
+            uint len = 0;
+            var owner = ctx == 4 ? null : s.ToString();
+            var err = MsiGetProductInfoExW(code.ToString(), owner, ctx, p, null, ref len);
+            if (err is not 0 and not 234 || len > 32767) return null;
+            var sb = new StringBuilder((int)len + 1); len++;
+            return MsiGetProductInfoExW(code.ToString(), owner, ctx, p, sb, ref len) == 0 && sb.Length > 0 ? sb.ToString() : null;
+        }
+        var display = Prop("InstalledProductName");
+        if (display != null && display.Contains(name, StringComparison.OrdinalIgnoreCase))
+        {
+            product = code.ToString(); context = ctx; sid = s.ToString();
+            result["product"] = product; result["context"] = context; result["display"] = display;
+            result["InstallLocation"] = Prop("InstallLocation") ?? "<empty>";
+            break;
+        }
+    }
+    if (product is null) { result["found"] = false; await WriteJsonAsync(Arg("--out"), result, token); return 0; }
+    uint enumerated = 0; var matched = 0; var paths = new List<string>();
+    for (uint i = 0; i < 30000; i++)
+    {
+        token.ThrowIfCancellationRequested();
+        var comp = new StringBuilder(39);
+        var r = MsiEnumComponentsW(i, comp);
+        if (r != 0) { if (r != 259) result["enum-components-error"] = r; break; }
+        enumerated++;
+        var pc = new StringBuilder(39);
+        if (MsiGetProductCodeW(comp.ToString(), pc) != 0) continue;
+        if (!string.Equals(pc.ToString(), product, StringComparison.OrdinalIgnoreCase)) continue;
+        matched++;
+        var owner = context == 4 ? null : sid;
+        uint len = 0;
+        var sizeState = MsiGetComponentPathExW(product, owner, context, comp.ToString(), null, ref len);
+        string? path = null; int state = -1;
+        if (len > 0 && (sizeState >= 0 || sizeState == 234))
+        {
+            var sb = new StringBuilder((int)len + 1);
+            state = MsiGetComponentPathExW(product, owner, context, comp.ToString(), sb, ref len);
+            if (state >= 0 && sb.Length > 0) path = sb.ToString();
+        }
+        if (paths.Count < 12) paths.Add($"sizeState={sizeState} state={state} len={len} path={path}");
+    }
+    result["components-enumerated"] = enumerated; result["components-matched"] = matched; result["paths-sample"] = paths;
+    await WriteJsonAsync(Arg("--out"), result, token);
+    foreach (var kv in result) Console.WriteLine($"{kv.Key}: {kv.Value}");
+    return 0;
+}
+
+async Task<int> RestoreAsync(CancellationToken token)
+{
+    // Uses the product's own LeftoverBackupRestorer on a backup archive the engine produced.
+    var result = await LeftoverBackupRestorer.RestoreAsync(Arg("--file"), token);
+    await WriteJsonAsync(Arg("--out"), new { result.Restored, result.Skipped, result.Failed, result.Messages }, token);
+    Console.WriteLine($"restore: restored={result.Restored} skipped={result.Skipped} failed={result.Failed}");
+    return result.Failed == 0 ? 0 : 2;
 }
 
 async Task<int> ExportAsync(InstalledApplicationInventory inventory, CancellationToken token)

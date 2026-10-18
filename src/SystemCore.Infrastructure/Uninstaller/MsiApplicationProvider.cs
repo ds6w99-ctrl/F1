@@ -46,6 +46,7 @@ public sealed class MsiApplicationProvider(IApplicationIdentityResolver identity
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiGetProductInfoExW(string productCode, string? sid, uint context, string property, StringBuilder? value, ref uint length);
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiEnumComponentsW(uint index, StringBuilder componentCode);
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiGetProductCodeW(string component, StringBuilder productCode);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern int MsiGetComponentPathW(string productCode, string component, StringBuilder? path, ref uint pathLength);
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern int MsiGetComponentPathExW(string productCode, string? userSid, uint context, string component, StringBuilder? path, ref uint pathLength);
 
     // Many MSI products (7-Zip is a common example) register no InstallLocation property.
@@ -65,13 +66,11 @@ public sealed class MsiApplicationProvider(IApplicationIdentityResolver identity
             var product = new StringBuilder(39);
             if (MsiGetProductCodeW(code, product) != 0 || !string.Equals(product.ToString(), productCode, StringComparison.OrdinalIgnoreCase)) continue;
             var owner = context == 4 ? null : userSid.ToString();
-            uint length = 0;
-            var sizeState = MsiGetComponentPathExW(productCode, owner, context, code, null, ref length);
-            if (length == 0 || (sizeState < 0 && sizeState != 234)) continue;
-            var text = new StringBuilder((int)length + 1);
-            var state = MsiGetComponentPathExW(productCode, owner, context, code, text, ref length);
-            if (state < 0 || text.Length == 0) continue;
-            paths.Add(text.ToString());
+            string? resolved = ResolvePath(productCode, code, owner, context);
+            // Registry-only component references (qualified components such as "21:\Software\...")
+            // describe keys, not the install directory; only filesystem paths can anchor it.
+            if (resolved is null || resolved.Length <= 3 || !char.IsAsciiLetter(resolved[0]) || resolved[1] != ':' || resolved[2] != '\\') continue;
+            paths.Add(resolved);
             if (paths.Count >= 64) break;
         }
         if (paths.Count == 0) return null;
@@ -91,5 +90,31 @@ public sealed class MsiApplicationProvider(IApplicationIdentityResolver identity
             .Select(Environment.GetFolderPath).Where(r => !string.IsNullOrWhiteSpace(r)).Distinct(StringComparer.OrdinalIgnoreCase);
         if (roots.Contains(common, StringComparer.OrdinalIgnoreCase)) return null;
         return common;
+    }
+
+    private static string? ResolvePath(string productCode, string component, string? owner, uint context)
+    {
+        // Per-machine components resolve through the context-free API; the Ex variant covers
+        // per-user contexts and returns the component state on success. The second call passes
+        // the buffer CAPACITY (required size + 1), never the required size itself.
+        uint length = 0;
+        var sizeState = MsiGetComponentPathW(productCode, component, null, ref length);
+        if (length > 0 && (sizeState >= 0 || sizeState == 234))
+        {
+            length++;
+            var text = new StringBuilder((int)length);
+            var state = MsiGetComponentPathW(productCode, component, text, ref length);
+            if (state >= 0 && text.Length > 0) return text.ToString();
+        }
+        length = 0;
+        sizeState = MsiGetComponentPathExW(productCode, owner, context, component, null, ref length);
+        if (length > 0 && (sizeState >= 0 || sizeState == 234))
+        {
+            length++;
+            var text = new StringBuilder((int)length);
+            var state = MsiGetComponentPathExW(productCode, owner, context, component, text, ref length);
+            if (state >= 0 && text.Length > 0) return text.ToString();
+        }
+        return null;
     }
 }
