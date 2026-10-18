@@ -24,6 +24,7 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 New-Item -ItemType Directory -Force $EvidencePath | Out-Null
 $log = Join-Path $EvidencePath 'vm-validation.log'
+try { Start-Transcript -Path (Join-Path $EvidencePath 'vm-validation-transcript.txt') -Append -Force | Out-Null } catch { }
 function Log([string]$message) { $line = "[{0:HH:mm:ss}] {1}" -f (Get-Date), $message; $line | Tee-Object -FilePath $log -Append | Out-Null; Write-Host $line }
 
 # ---------- preconditions ----------
