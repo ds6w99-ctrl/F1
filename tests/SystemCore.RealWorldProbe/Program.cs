@@ -71,7 +71,9 @@ async Task<int> InventoryAsync(InstalledApplicationInventory inventory, Cancella
             a.Id, a.DisplayName, a.Publisher, a.DisplayVersion, a.InstallLocation, a.Architecture,
             a.ApplicationType, a.Source, a.ProductCode, a.PackageFullName,
             CanUninstall = a.CanUninstall, IsProtected = a.IsProtected, IsSystemComponent = a.IsSystemComponent,
-            IsFramework = a.IsFramework, a.ItemKind, a.RegistrySource
+            IsFramework = a.IsFramework, a.ItemKind, a.RegistrySource, a.UnavailableReason,
+            a.RegisteredUninstallCommand, a.QuietUninstallCommand, HasQuietUninstall = a.HasQuietUninstall,
+            a.EstimatedSize, a.InstallDate
         })
     };
     await WriteJsonAsync(Arg("--out"), payload, token);
