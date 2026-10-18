@@ -296,6 +296,19 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnLoading" xml:space="preserve"><value>Loading applications…</value></data>
   <data name="UnLoaded" xml:space="preserve"><value>Applications loaded. Select an application to review its details.</value></data>
   <data name="UnScanLeftovers" xml:space="preserve"><value>Scan for leftovers</value></data>
+  <data name="UnBulkSelected" xml:space="preserve"><value>{0} selected</value></data>
+  <data name="UnBulkResult" xml:space="preserve"><value>Removed {0}, failed {1}, cancelled {2}</value></data>
+  <data name="UnSelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="UnClearSelection" xml:space="preserve"><value>Clear selection</value></data>
+  <data name="UnQuietToggle" xml:space="preserve"><value>Silent uninstall where supported</value></data>
+  <data name="UnQuietNote" xml:space="preserve"><value>Uses each program's registered silent uninstaller when it exists; others fall back to their normal uninstaller.</value></data>
+  <data name="UnOrphanScan" xml:space="preserve"><value>Find orphaned folders</value></data>
+  <data name="UnOrphanResult" xml:space="preserve"><value>{0} orphaned folders - {1}</value></data>
+  <data name="UnOrphanNote" xml:space="preserve"><value>Read-only: these Program Files folders belong to no installed application. Nothing is deleted from here.</value></data>
+  <data name="UnExport" xml:space="preserve"><value>Export</value></data>
+  <data name="UnExportDone" xml:space="preserve"><value>Exported</value></data>
+  <data name="UnRestoreBackup" xml:space="preserve"><value>Restore backup</value></data>
+  <data name="UnBackupCreated" xml:space="preserve"><value>Backup created</value></data>
   <data name="UnScanComplete" xml:space="preserve"><value>Read-only leftover scan complete</value></data>
   <data name="UnStateScanningLeftovers" xml:space="preserve"><value>Scanning verified application leftovers…</value></data>
   <data name="UnStateLeftoversReady" xml:space="preserve"><value>Leftovers ready.</value></data>

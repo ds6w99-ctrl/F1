@@ -296,6 +296,19 @@
   <data name="UnLoading" xml:space="preserve"><value>جارٍ تحميل التطبيقات…</value></data>
   <data name="UnLoaded" xml:space="preserve"><value>تم تحميل التطبيقات. اختر تطبيقًا لمراجعة تفاصيله.</value></data>
   <data name="UnScanLeftovers" xml:space="preserve"><value>فحص البقايا</value></data>
+  <data name="UnBulkSelected" xml:space="preserve"><value>محدد: {0}</value></data>
+  <data name="UnBulkResult" xml:space="preserve"><value>أُزيل {0}، فشل {1}، أُلغي {2}</value></data>
+  <data name="UnSelectAll" xml:space="preserve"><value>تحديد الكل</value></data>
+  <data name="UnClearSelection" xml:space="preserve"><value>إلغاء التحديد</value></data>
+  <data name="UnQuietToggle" xml:space="preserve"><value>إزالة صامتة حيثما كان مدعومًا</value></data>
+  <data name="UnQuietNote" xml:space="preserve"><value>يستخدم مُزيل التثبيت الصامت المسجّل لكل برنامج عند توفره؛ وما لا يملكه يعود إلى مزيله العادي.</value></data>
+  <data name="UnOrphanScan" xml:space="preserve"><value>البحث عن مجلدات يتيمة</value></data>
+  <data name="UnOrphanResult" xml:space="preserve"><value>مجلدات يتيمة: {0} — {1}</value></data>
+  <data name="UnOrphanNote" xml:space="preserve"><value>للقراءة فقط: هذه مجلدات في Program Files لا تنتمي لأي تطبيق مثبت. لا يُحذف منها شيء هنا.</value></data>
+  <data name="UnExport" xml:space="preserve"><value>تصدير</value></data>
+  <data name="UnExportDone" xml:space="preserve"><value>تم التصدير</value></data>
+  <data name="UnRestoreBackup" xml:space="preserve"><value>استعادة نسخة احتياطية</value></data>
+  <data name="UnBackupCreated" xml:space="preserve"><value>أُنشئت نسخة احتياطية</value></data>
   <data name="UnScanComplete" xml:space="preserve"><value>اكتمل فحص البقايا للقراءة فقط</value></data>
   <data name="UnStateScanningLeftovers" xml:space="preserve"><value>جارٍ فحص بقايا التطبيق الموثقة…</value></data>
   <data name="UnStateLeftoversReady" xml:space="preserve"><value>البقايا جاهزة.</value></data>

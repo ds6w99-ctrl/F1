@@ -1,5 +1,7 @@
 # مقارنة: قسم «إزالة التطبيقات» في F1 مقابل Bulk Crap Uninstaller (BCU)
 
+> **تحديث 2026-10-18:** نُفِّذت ميزات التكافؤ الخمس أدناه. انظر قسم «ما تغيّر» في نهاية الملف.
+
 > المرجع: [BCUninstaller/Bulk-Crap-Uninstaller](https://github.com/BCUninstaller/Bulk-Crap-Uninstaller)
 > وتوثيقه: [Leftover Cleanup](https://mintlify.wiki/Klocman/Bulk-Crap-Uninstaller/features/junk-cleanup)،
 > [Application Detection](https://mintlify.wiki/Klocman/Bulk-Crap-Uninstaller/features/application-detection)،
@@ -98,3 +100,20 @@
 3. **نسخ احتياطي للملفات قبل حذف المخلفات + استعادة** — الفجوة الأمنية الأهم في F1 نفسه.
 4. **كشف اليتامى في Program Files** كفحص مستقل (قراءة فقط) — قيمة عالية.
 5. **تصدير نتائج الجرد/المخلفات** (CSV/JSON) — قيمة عالية وتكلفة منخفضة.
+
+---
+
+## ما تغيّر بعد التنفيذ (2026-10-18)
+
+| الفجوة السابقة | الحالة الآن | التنفيذ |
+|---|---|---|
+| الإزالة المجمّعة | ✅ **مُنفَّذة** | `BulkUninstallExecutor`: طابور متسلسل، كل عنصر يمر بنفس مسار العنصر الواحد (تحقق هوية + دليل + جلسة أحادية). الحد 100، ويرفض الدفعة كاملة إن كان أي معرّف غير صالح. |
+| الإزالة الصامتة | ✅ **مُنفَّذة** | `QuietUninstallCommand` + `ResolveDesktopCommand`: يستخدم `QuietUninstallString` فقط إن مرّ بتحقق المسار الآمن، وإلا يرجع للمزيل المرئي. MSI يحصل على `/qn`. خيار صريح في الواجهة. |
+| نسخ احتياطي للملفات + استعادة | ✅ **مُنفَّذة** | `LeftoverBackupWriter` ينسخ الملفات والمجلدات إلى ZIP موثّق قبل الحذف (سقف 2GB/20000 عنصر، واحتفاظ بـ20 نسخة)، فشل النسخ يُلغي الحذف. `LeftoverBackupRestorer` يستعيد دون الكتابة فوق أي موجود. |
+| كشف اليتامى في Program Files | ✅ **مُنفَّذ** | `OrphanDirectoryScanner`: قراءة فقط، لا يحذف، يتجاهل المسارات المحمية ويستثني ما تدّعيه أي حزمة مثبتة. |
+| تصدير الجرد/المخلفات | ✅ **مُنفَّذ** | `UninstallerExport`: CSV (اقتباس صحيح) وJSON، إلى `%LOCALAPPDATA%\SystemCore\Exports`. |
+| الفحص المستقل للمخلفات | ⚠️ جزئي | كشف اليتامى أصبح فحصًا مستقلًا؛ فحص البقايا المرتبط بالإيصال يبقى كما هو. |
+| Windows Features و CLI والتصدير/الاستيراد | ❌ لم تُنفَّذ | خارج نطاق هذه الدفعة. |
+
+الاختبارات: `tests/SystemCore.UninstallerTests/BcuParityTests.cs` تغطي الأوامر الصامتة (مع الرفض
+الآمن)، النسخ والاستعادة (بما فيها عدم الكتابة فوق ملف موجود)، اليتامى، التصدير، وحواجز الدفعة.

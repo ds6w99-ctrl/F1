@@ -8,6 +8,9 @@ namespace SystemCore.Infrastructure.Uninstaller;
 public interface INativeUninstallRunner
 {
     Task<int?> RunAsync(InstalledApplication application, CancellationToken token);
+    // Quiet mode is opt-in per request. Providers that do not implement it fall back to the
+    // visible uninstaller through the interface default.
+    Task<int?> RunAsync(InstalledApplication application, bool quiet, CancellationToken token) => RunAsync(application, token);
 }
 
 public sealed class UninstallCompletionDetector(IInstalledApplicationInventory inventory) : IUninstallCompletionDetector
@@ -31,8 +34,11 @@ public sealed class UninstallCompletionDetector(IInstalledApplicationInventory i
 public sealed class UninstallExecutor(IInstalledApplicationInventory inventory, INativeUninstallRunner runner,
     IUninstallCompletionDetector completion, ApplicationRemovalEvidence? evidence = null) : IUninstallExecutor, IDisposable
 {
+    internal ApplicationInventorySession? PublishedSession;
+
     private readonly SemaphoreSlim operation = new(1, 1);
     private ApplicationInventorySession? session;
+    internal volatile bool QuietRequested;
     public async Task<ApplicationInventorySession> RefreshAsync(CancellationToken token)
     {
         await operation.WaitAsync(token).ConfigureAwait(false);
@@ -42,6 +48,7 @@ public sealed class UninstallExecutor(IInstalledApplicationInventory inventory, 
             var result = await inventory.ReadAsync(token).ConfigureAwait(false);
             // Clone collections at this ownership boundary.
             session = new(Guid.NewGuid(), DateTimeOffset.UtcNow, result with { Applications = Array.AsReadOnly(result.Applications.ToArray()) });
+            PublishedSession = session;
             return session;
         }
         finally { operation.Release(); }
@@ -66,7 +73,7 @@ public sealed class UninstallExecutor(IInstalledApplicationInventory inventory, 
             token.ThrowIfCancellationRequested();
             if (evidence is not null) await evidence.CaptureAsync(current, fresh, token).ConfigureAwait(false);
             progress?.Report(UninstallState.Launching);
-            var pending = runner.RunAsync(current, token);
+            var pending = runner.RunAsync(current, QuietRequested, token);
             progress?.Report(UninstallState.WaitingForUninstaller);
             exit = await pending.ConfigureAwait(false);
             progress?.Report(UninstallState.UninstallerExited);
@@ -95,7 +102,9 @@ public sealed class UninstallExecutor(IInstalledApplicationInventory inventory, 
 
 public sealed class NativeUninstallRunner : INativeUninstallRunner
 {
-    public async Task<int?> RunAsync(InstalledApplication application, CancellationToken token)
+    public Task<int?> RunAsync(InstalledApplication application, CancellationToken token) => RunAsync(application, false, token);
+
+    public async Task<int?> RunAsync(InstalledApplication application, bool quiet, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         if (!application.CanUninstall || application.IsProtected) throw new InvalidOperationException("Protected application");
@@ -108,7 +117,7 @@ public sealed class NativeUninstallRunner : INativeUninstallRunner
             if (result.ExtendedErrorCode is not null && result.ExtendedErrorCode.HResult < 0) throw result.ExtendedErrorCode;
             return 0;
         }
-        var command = BuildDesktopCommand(application);
+        var command = ResolveDesktopCommand(application, quiet);
         // Hold a no-write/no-delete file handle across launch to prevent executable
         // contents being replaced between validation and CreateProcess/ShellExecute.
         var info = new ProcessStartInfo(command.Executable) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(command.Executable)! };
@@ -129,11 +138,27 @@ public sealed class NativeUninstallRunner : INativeUninstallRunner
         await process.WaitForExitAsync(token).ConfigureAwait(false);
         return process.ExitCode;
     }
-    public static UninstallCommand BuildDesktopCommand(InstalledApplication application) => application.ApplicationType switch
+    public static UninstallCommand BuildDesktopCommand(InstalledApplication application, bool quiet = false) => application.ApplicationType switch
     {
         ApplicationType.Msi when application.ProductCode is { } product && product != Guid.Empty =>
-            new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msiexec.exe"), ["/x", product.ToString("B")]),
+            new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "msiexec.exe"), quiet ? ["/x", product.ToString("B"), "/qn"] : ["/x", product.ToString("B")]),
+        // Quiet mode uses the registration's own QuietUninstallString when it parses safely;
+        // otherwise it falls back to the visible command instead of inventing switches.
+        ApplicationType.Win32 when quiet && application.QuietUninstallCommand is { } quietCommand &&
+            UninstallCommandParser.Parse(quietCommand) is { } parsedQuiet => parsedQuiet,
         ApplicationType.Win32 => UninstallCommandParser.Parse(application.RegisteredUninstallCommand) ?? throw new InvalidOperationException("Uninstall command unavailable"),
         _ => throw new InvalidOperationException("Desktop uninstall identity unavailable")
     };
+
+    // Quiet selection is a preference, never a precondition: an unusable quiet registration falls
+    // back to the visible command, and only a truly missing desktop command fails.
+    public static UninstallCommand ResolveDesktopCommand(InstalledApplication application, bool quiet)
+    {
+        if (quiet)
+        {
+            try { return BuildDesktopCommand(application, true); }
+            catch (InvalidOperationException) { }
+        }
+        return BuildDesktopCommand(application, false);
+    }
 }

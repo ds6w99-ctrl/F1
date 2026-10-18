@@ -105,6 +105,8 @@ public partial class App : Application
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.INativeUninstallRunner, SystemCore.Infrastructure.Uninstaller.NativeUninstallRunner>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IUninstallCompletionDetector, SystemCore.Infrastructure.Uninstaller.UninstallCompletionDetector>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IUninstallExecutor, SystemCore.Infrastructure.Uninstaller.UninstallExecutor>();
+        registrations.AddSingleton<SystemCore.Core.Uninstaller.IBulkUninstallExecutor>(s => new SystemCore.Infrastructure.Uninstaller.BulkUninstallExecutor(
+            (SystemCore.Infrastructure.Uninstaller.UninstallExecutor)s.GetRequiredService<SystemCore.Core.Uninstaller.IUninstallExecutor>()));
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.ApplicationRemovalEvidence>();
         registrations.AddSingleton<SystemCore.Infrastructure.Uninstaller.LeftoverScanner>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.ILeftoverScanner>(s => s.GetRequiredService<SystemCore.Infrastructure.Uninstaller.LeftoverScanner>());

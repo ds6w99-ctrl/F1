@@ -4,6 +4,7 @@ using SystemCore.App.ViewModels;
 using SystemCore.Core.Uninstaller;
 using SystemCore.Core.Orchestration;
 using SystemCore.Core.Diagnostics;
+using SystemCore.Infrastructure.Uninstaller;
 
 namespace SystemCore.App.Uninstaller;
 
@@ -20,11 +21,18 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private bool inventoryActionable;
     private ApplicationsSummarySnapshot? cachedSummary;
     private readonly IUninstallExecutor executor;
+    private readonly IBulkUninstallExecutor? bulkExecutor;
     private readonly ILeftoverScanner leftovers;
     private readonly ILeftoverDeletionService deletion;
     private readonly IGameLauncher launcher;
     private bool launcherFailed;
     private readonly HashSet<Guid> selectedLeftovers = [];
+    // Multi-selection for bulk removal. Every id must stay valid in the live session.
+    private readonly HashSet<string> selectedApplications = [];
+    private bool useQuietUninstaller;
+    private BulkUninstallOutcome? bulkResult;
+    private IReadOnlyList<OrphanDirectory>? orphans;
+    private string? lastExportFile;
     private LeftoverDeletionResult? cleanup;
     private RemovalReceipt? receipt;
     private LeftoverScanSession? leftoverSession;
@@ -61,6 +69,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
         IApplicationDataOrchestrator orchestrator, IAppDiagnostics diagnostics) : base(localizer)
     {
         this.executor = executor;
+        this.bulkExecutor = executor as IBulkUninstallExecutor;
         this.leftovers = leftovers;
         this.deletion = deletion;
         this.launcher = launcher;
@@ -142,6 +151,116 @@ public sealed class UninstallerViewModel : LocalizedViewModel
         finally { EndOperation(); }
     }
     public IReadOnlyList<InstalledApplication> Inventory => session?.Inventory.Applications ?? [];
+    // ---- bulk selection ----
+    public bool IsApplicationSelected(string id) => selectedApplications.Contains(id);
+    public int SelectedApplicationCount => selectedApplications.Count;
+    public bool CanSelectApplications => !Busy && !ShowLeftovers && session is not null;
+    public void SelectApplication(string id, bool selected)
+    {
+        if (!CanSelectApplications || session is null) return;
+        var application = session.Inventory.Applications.FirstOrDefault(a => a.Id == id);
+        if (application is null || !RemovableApplications.IsVisible(application)) return;
+        if (selected) selectedApplications.Add(id); else selectedApplications.Remove(id);
+        OnPropertyChanged(nameof(SelectedApplicationCount));
+        OnPropertyChanged(nameof(CanUninstallSelected));
+        OnPropertyChanged(nameof(BulkSummary));
+    }
+    public void SelectVisibleApplications(bool selected)
+    {
+        if (!CanSelectApplications) return;
+        foreach (var application in Rows.Where(RemovableApplications.IsVisible)) SelectApplication(application.Id, selected);
+    }
+    public bool CanUninstallSelected => !Busy && !ShowLeftovers && session is not null && selectedApplications.Count is > 0 and <= 100;
+    // Quiet removal is an explicit opt-in and never silently changes the user's flow.
+    public bool UseQuietUninstaller
+    {
+        get => useQuietUninstaller;
+        set { if (SetProperty(ref useQuietUninstaller, value)) OnPropertyChanged(nameof(QuietNote)); }
+    }
+    public string QuietNote => L["UnQuietNote"];
+    public bool AnySelectedHasQuiet => session is not null && selectedApplications.Any(id => session.Inventory.Applications.Any(a => a.Id == id && a.HasQuietUninstall));
+    public BulkUninstallOutcome? BulkResult => bulkResult;
+    public string BulkSummary => bulkResult is { } result
+        ? L.Format("UnBulkResult", result.Removed, result.Failed, result.Cancelled)
+        : selectedApplications.Count > 0 ? L.Format("UnBulkSelected", selectedApplications.Count) : "";
+    public async Task UninstallSelectedConfirmedAsync(string[] confirmedIds)
+    {
+        if (session is null || !selectedApplications.SetEquals(confirmedIds)) return;
+        if (bulkExecutor is null) return;
+        bulkResult = null;
+        CancellationToken token = default;
+        try
+        {
+            Busy = true;
+            state = UninstallState.Launching;
+            token = BeginOperation();
+            var sessionId = session.Id;
+            var ids = selectedApplications.OrderBy(id => id, StringComparer.Ordinal).ToArray();
+            orchestrator.Publish(DataDataset.InstalledApplications, session, TimeSpan.Zero);
+            orchestrator.Publish(DataDataset.Games, Summarize(session), TimeSpan.Zero);
+            bulkResult = null;
+            // The executor owns its session; the cached id must not be replayed afterwards.
+            inventoryActionable = false;
+            selectedId = "";
+            session = null;
+            var request = new BulkUninstallRequest(sessionId, ids, useQuietUninstaller);
+            var progress = new Progress<BulkUninstallItemResult>(_ => { });
+            bulkResult = await bulkExecutor.UninstallAsync(request, progress, token).ConfigureAwait(true);
+            state = bulkResult.Failed == 0 && bulkResult.Cancelled == 0 ? UninstallState.Removed : UninstallState.Failed;
+            selectedApplications.Clear();
+            await RefreshAfterMutationAsync(token);
+        }
+        catch (OperationCanceledException) when (GenuineCancel(token)) { state = UninstallState.Cancelled; }
+        catch (ObjectDisposedException) when (ShuttingDown) { }
+        catch (Exception e) { state = UninstallState.Failed; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
+        finally { selectedApplications.Clear(); EndOperation(); OnPropertyChanged(string.Empty); }
+    }
+    // ---- orphan detection (read-only) ----
+    public IReadOnlyList<OrphanDirectory> Orphans => orphans ?? [];
+    public bool HasOrphans => Orphans.Count > 0;
+    public bool CanScanOrphans => !Busy && session?.Inventory.Complete == true;
+    public string OrphanSummary => orphans is null ? "" : L.Format("UnOrphanResult", Orphans.Count, FormatSize(Orphans.Sum(o => o.SizeBytes)));
+    public async Task ScanOrphansAsync()
+    {
+        if (!CanScanOrphans || session is null) return;
+        CancellationToken token = default;
+        try
+        {
+            Busy = true;
+            token = BeginOperation();
+            orphans = await OrphanDirectoryScanner.ScanAsync(session.Inventory, token).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException) when (GenuineCancel(token)) { }
+        catch (Exception e) { diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
+        finally { EndOperation(); OnPropertyChanged(string.Empty); }
+    }
+    // ---- export ----
+    public string ExportDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "Exports");
+    public string LastExportFile => lastExportFile ?? "";
+    public string ExportNote => lastExportFile is null ? "" : L["UnExportDone"] + ": " + SystemCore.Core.SystemInformation.InfoFormatting.Technical(lastExportFile);
+    public async Task ExportAsync(UninstallerExportFormat format)
+    {
+        try
+        {
+            lastExportFile = ShowLeftovers
+                ? await UninstallerExport.WriteLeftoversAsync(Leftovers, format, ExportDirectory, CancellationToken.None).ConfigureAwait(true)
+                : await UninstallerExport.WriteInventoryAsync(Inventory, format, ExportDirectory, CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { lastExportFile = null; diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
+        OnPropertyChanged(nameof(LastExportFile));
+        OnPropertyChanged(nameof(ExportNote));
+    }
+    public async Task RestoreBackupAsync(string archivePath)
+    {
+        try
+        {
+            var restored = await LeftoverBackupRestorer.RestoreAsync(archivePath, CancellationToken.None).ConfigureAwait(true);
+            lastExportFile = archivePath;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        { diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
+        OnPropertyChanged(string.Empty);
+    }
     public bool CanScanLeftovers => !Busy && receipt is not null;
     public string LeftoverSummary => leftoverSession is not { } scan ? ""
         : scan.Items.Count == 0 ? L[scan.Complete ? "UnLeftoversEmpty" : "UnTruncated"]

@@ -9,5 +9,5 @@ public static class LeftoverDeletionFactory
     // (no elevated client) remains available for tests that never leave user-writable trees.
     public static ILeftoverDeletionService Create(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
         IInstalledApplicationInventory inventory, IRegistryBackupWriter backups)
-        => new LeftoverDeletionService(scanner, evidence, inventory, backups, new WindowsElevatedLeftoverClient());
+        => new LeftoverDeletionService(scanner, evidence, inventory, backups, new WindowsElevatedLeftoverClient(), new LeftoverBackupWriter());
 }

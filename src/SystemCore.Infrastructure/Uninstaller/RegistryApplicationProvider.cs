@@ -67,6 +67,7 @@ public sealed class RegistryApplicationProvider(IApplicationIdentityResolver ide
         return new(identity.Resolve(type, source, code, null), name, Text("Publisher"), Text("DisplayVersion"), date,
             Text("InstallLocation"), size, null, type, command, Text("QuietUninstallString") is not null, code, null, null, source,
             Text("DisplayIcon"), system, false, protectedEntry, canUninstall,
-            canUninstall ? null : protectedEntry ? "Protected registration" : msi ? "MSI registration requires Windows Installer verification" : "Native uninstaller unavailable");
+            canUninstall ? null : protectedEntry ? "Protected registration" : msi ? "MSI registration requires Windows Installer verification" : "Native uninstaller unavailable")
+        { QuietUninstallCommand = Text("QuietUninstallString") };
     }
 }

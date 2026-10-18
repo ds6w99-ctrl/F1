@@ -6,6 +6,7 @@ namespace SystemCore.Infrastructure.Uninstaller;
 public static class LeftoverSafety
 {
     private static readonly string[] SharedNames = ["Microsoft", "Adobe", "Google", "NVIDIA Corporation", "Steam", "Epic Games", "Epic", "EA", "Ubisoft", "Battle.net", "Common Files", "Packages", "Temp", "Cache", "Apps", "Programs", "Windows", "Users", "Documents", "Desktop", "Downloads"];
+    internal static IReadOnlyList<string> SharedNamesList => SharedNames;
     private static readonly string[] SharedGameNames = ["steam", "steamlibrary", "steamapps", "epic", "epicgames", "epicgameslauncher", "ea", "eagames", "eadesktop", "ubisoft", "ubisoftgamelauncher", "battlenet", "launcher", "launchers", "launcherroot",
             "shadercache", "shadercaches", "sharedshadercache", "dxcache", "glcache", "d3dscache", "anticheat", "easyanticheat", "battleye", "sharedanticheat",
             "redistributable", "redistributables", "sharedredistributable", "sharedredistributables", "commonredist", "redist", "mods", "sharedmods", "sharedmodsdirectory", "workshop", "sharedworkshop", "workshopcontent", "sharedworkshopcontent"];

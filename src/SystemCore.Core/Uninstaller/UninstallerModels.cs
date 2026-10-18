@@ -21,6 +21,9 @@ public sealed record InstalledApplication(
     public ItemKind ItemKind { get; init; }
     public Source Source { get; init; } = ApplicationType switch { ApplicationType.Msi => Source.MSI, ApplicationType.Msix => Source.MSIX, _ => Source.Win32 };
     public string? GameIdentity { get; init; }
+    // Raw registration value only; nothing runs it unless the user opts into quiet mode and it
+    // passes the same executable validation as the visible command.
+    public string? QuietUninstallCommand { get; init; }
     public string? GameInstallLocation { get; init; }
     public string? LibraryPath { get; init; }
     public string? InstallState { get; init; }
@@ -53,6 +56,15 @@ public sealed record InventoryResult(IReadOnlyList<InstalledApplication> Applica
     public int GameDuplicatesMerged { get; init; }
 }
 public sealed record UninstallRequest(Guid InventorySessionId, string ApplicationId);
+// Bulk removal is an ordered queue, not a concurrent fan-out: each entry keeps the same
+// single-item authorization, evidence capture and identity verification as a single removal.
+public sealed record BulkUninstallRequest(Guid InventorySessionId, IReadOnlyList<string> ApplicationIds, bool UseQuietUninstaller = false);
+public sealed record BulkUninstallItemResult(string ApplicationId, UninstallState State, int? NativeExitCode, string? Detail);
+public sealed record BulkUninstallOutcome(IReadOnlyList<BulkUninstallItemResult> Items, int Removed, int Failed, int Cancelled);
+public interface IBulkUninstallExecutor
+{
+    Task<BulkUninstallOutcome> UninstallAsync(BulkUninstallRequest request, IProgress<BulkUninstallItemResult>? progress, CancellationToken token);
+}
 public sealed record ApplicationInventorySession(Guid Id, DateTimeOffset CreatedAt, InventoryResult Inventory);
 public sealed record UninstallOutcome(UninstallState State, string ApplicationId, int? NativeExitCode, string? Detail, RemovalReceipt? Receipt = null);
 

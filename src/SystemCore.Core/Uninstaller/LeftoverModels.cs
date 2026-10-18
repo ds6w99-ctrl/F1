@@ -21,7 +21,11 @@ public enum LeftoverDeletionStatus { Deleted, Skipped, Changed, SafetyRejected, 
 // may be destroyed. It is false everywhere by default: no caller can widen deletion implicitly.
 public sealed record LeftoverDeletionRequest(Guid SessionId, string ApplicationIdentityId, IReadOnlyList<Guid> ItemIds, bool IncludePersonalData = false);
 public sealed record LeftoverDeletionItemResult(Guid ItemId, LeftoverDeletionStatus Status, long RemovedBytes, string? BackupFile = null);
-public sealed record LeftoverDeletionResult(IReadOnlyList<LeftoverDeletionItemResult> Items, long RemovedBytes);
+public sealed record LeftoverDeletionResult(IReadOnlyList<LeftoverDeletionItemResult> Items, long RemovedBytes)
+{
+    // Where the pre-deletion file archive was written, when file backups are enabled.
+    public string? BackupFile { get; init; }
+}
 public interface ILeftoverDeletionService
 {
     Task<LeftoverDeletionResult> DeleteAsync(LeftoverDeletionRequest request, CancellationToken token);

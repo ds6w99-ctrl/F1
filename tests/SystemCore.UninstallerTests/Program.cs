@@ -118,6 +118,7 @@ await GameDiscoveryTests.Run(Check);
 await AutomaticLeftoverTests.Run(Check);
 await LeftoverElevationTests.Run(Check);
 await InventoryAutoLoadTests.Run(Check);
+await BcuParityTests.Run(Check);
 Check("Unified library model distinguishes games without replacing native type", typeof(InstalledApplication).GetProperty("ItemKind") is not null && typeof(InstalledApplication).GetProperty("Source") is not null);
 if (args.Contains("--leftover-scan")) await LeftoverScannerTests.Run(Check);
 if (args.Contains("--leftover-delete")) await LeftoverScannerTests.Run(Check, true);

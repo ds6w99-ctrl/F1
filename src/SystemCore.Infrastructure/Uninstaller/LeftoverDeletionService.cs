@@ -42,13 +42,15 @@ public sealed class LeftoverDeletionService : ILeftoverDeletionService
     private readonly IInstalledApplicationInventory inventory;
     private readonly IRegistryBackupWriter backups;
     private readonly IElevatedLeftoverClient? elevated;
+    private readonly ILeftoverBackupWriter? fileBackups;
     public LeftoverDeletionService(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
         IInstalledApplicationInventory inventory, IRegistryBackupWriter backups)
-        : this(scanner, evidence, inventory, backups, null) { }
+        : this(scanner, evidence, inventory, backups, null, null) { }
     internal LeftoverDeletionService(LeftoverScanner scanner, ApplicationRemovalEvidence evidence,
-        IInstalledApplicationInventory inventory, IRegistryBackupWriter backups, IElevatedLeftoverClient? elevated)
+        IInstalledApplicationInventory inventory, IRegistryBackupWriter backups, IElevatedLeftoverClient? elevated,
+        ILeftoverBackupWriter? fileBackups = null)
     {
-        this.scanner = scanner; this.evidence = evidence; this.inventory = inventory; this.backups = backups; this.elevated = elevated;
+        this.scanner = scanner; this.evidence = evidence; this.inventory = inventory; this.backups = backups; this.elevated = elevated; this.fileBackups = fileBackups;
     }
     public async Task<LeftoverDeletionResult> DeleteAsync(LeftoverDeletionRequest request, CancellationToken token)
     {
@@ -67,8 +69,6 @@ public sealed class LeftoverDeletionService : ILeftoverDeletionService
             var selected = request.ItemIds.Select(id => session.Items[id]).OrderBy(i => i.Item.Type == LeftoverType.Directory ? 1 : 0)
                 .ThenByDescending(i => i.Path.Count(c => c == '\\')).ToArray();
             var changedDirectories = new List<string>();
-            // Review directories join the identity pre-check only when the caller explicitly
-            // acknowledged personal-data destruction; Ignore items are never eligible.
             foreach (var directory in session.Items.Values.Where(i => i.Item.Type == LeftoverType.Directory
                 && (i.Item.Confidence == LeftoverConfidence.Safe || (request.IncludePersonalData && i.Item.Confidence == LeftoverConfidence.Review))))
             {
@@ -79,6 +79,12 @@ public sealed class LeftoverDeletionService : ILeftoverDeletionService
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception) { changedDirectories.Add(directory.Path); }
             }
+            // File backup is mandatory when a writer is wired: a backup that cannot be produced
+            // and verified aborts the whole removal instead of leaving it unrecoverable.
+            var backupFile = fileBackups is null ? null : await fileBackups.SaveAsync(
+                receipt.Application, selected.Where(i => i.Registry is null
+                    && (i.Item.Confidence == LeftoverConfidence.Safe || (request.IncludePersonalData && i.Item.Confidence == LeftoverConfidence.Review))),
+                token).ConfigureAwait(false);
             foreach (var item in selected)
             {
                 if (token.IsCancellationRequested) { results.Add(new(item.Item.Id, LeftoverDeletionStatus.Cancelled, 0)); continue; }
@@ -159,7 +165,7 @@ public sealed class LeftoverDeletionService : ILeftoverDeletionService
                     results[index] = replacement;
                 }
             }
-            return new(results.AsReadOnly(), removed);
+            return new(results.AsReadOnly(), removed) { BackupFile = backupFile };
         }
         finally { scanner.Operation.Release(); }
     }
