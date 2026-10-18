@@ -31,7 +31,24 @@ static class BoundaryTests
         var parsed = UninstallCommandParser.Parse($"\"{executable}\" /remove \"space argument\"");
         check("Quoted executable and spaced argument", parsed is not null && parsed.Arguments.SequenceEqual(new[] { "/remove", "space argument" }));
         var unquoted = UninstallCommandParser.Parse(executable + " /remove");
-        check("Unquoted executable requires unambiguous token", executable.Any(char.IsWhiteSpace) ? unquoted is null : unquoted?.Executable == executable);
+        check("Unquoted executable without spaces keeps single-token semantics", unquoted is null || unquoted.Executable == executable);
+        // F1-004: unquoted paths with spaces are common in real registrations
+        // (e.g. "C:\Program Files\Everything\Uninstall.exe"). Windows resolves them by trying
+        // progressively longer prefixes; the parser must mirror that instead of rejecting them.
+        var spacedDirectory = Path.Combine(Path.GetTempPath(), "F1 parser fixture " + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(spacedDirectory);
+        var spacedExecutable = Path.Combine(spacedDirectory, "fixture.exe");
+        File.Copy(executable, spacedExecutable);
+        try
+        {
+            check("Unquoted spaced executable resolves like Windows", UninstallCommandParser.Parse(spacedExecutable)?.Executable == spacedExecutable);
+            check("Unquoted spaced executable with trailing arguments resolves like Windows",
+                UninstallCommandParser.Parse(spacedExecutable + " /S") is { } spacedParsed
+                && spacedParsed.Executable == spacedExecutable && spacedParsed.Arguments.SequenceEqual(new[] { "/S" }));
+            check("Unquoted spaced executable with no argument list is executable-only",
+                UninstallCommandParser.Parse(spacedExecutable + " /S") is { } spacedArgs && spacedArgs.Arguments.Count == 1);
+        }
+        finally { Directory.Delete(spacedDirectory, true); }
         var embedded = UninstallCommandParser.Parse($"\"{executable}\" /remove \"say \\\"hello\\\"\"");
         check("Embedded quoted argument follows Windows parsing", embedded?.Arguments.Last() == "say \"hello\"");
         var variable = "SYSTEMCORE_UNINSTALL_TEST_" + Guid.NewGuid().ToString("N");

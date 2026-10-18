@@ -5,6 +5,7 @@
 // decide PASS/FAIL. It never invents apps or skips the engine's own safety gates.
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Win32;
 using SystemCore.Core.Uninstaller;
 using SystemCore.Infrastructure.Uninstaller;
 
@@ -29,6 +30,7 @@ try
         "leftovers" => await LeftoversAsync(inventory, evidence, token),
         "orphans" => await OrphansAsync(inventory, token),
         "export" => await ExportAsync(inventory, token),
+        "inspect-parse" => await InspectParseAsync(token),
         _ => Usage()
     };
 }
@@ -172,6 +174,88 @@ async Task<int> OrphansAsync(InstalledApplicationInventory inventory, Cancellati
     }, token);
     Console.WriteLine($"orphans: {orphans.Count} candidates");
     return 0;
+}
+
+async Task<int> InspectParseAsync(CancellationToken token)
+{
+    // Audit diagnostics: dump the raw UninstallString of matching entries and the parser's
+    // verdict, byte by byte, so a rejected native uninstaller can be explained exactly.
+    var name = Arg("--name");
+    var results = new List<object>();
+    foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+    foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+    {
+        using var baseKey = RegistryKey.OpenBaseKey(hive, view);
+        using var root = baseKey.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
+        if (root is null) continue;
+        foreach (var n in root.GetSubKeyNames())
+        {
+            token.ThrowIfCancellationRequested();
+            using var key = root.OpenSubKey(n);
+            var display = key?.GetValue("DisplayName") as string;
+            if (display is null || !display.Contains(name, StringComparison.OrdinalIgnoreCase)) continue;
+            var raw = key!.GetValue("UninstallString") as string;
+            var parsed = UninstallCommandParser.Parse(raw);
+            results.Add(new
+            {
+                Hive = hive.ToString(), View = view.ToString(), KeyName = n, DisplayName = display,
+                Raw = raw, RawLength = raw?.Length,
+                Parsed = parsed is null ? null : new { parsed.Executable, ArgumentCount = parsed.Arguments.Count },
+                Checks = DiagnoseParse(raw)
+            });
+        }
+    }
+    await WriteJsonAsync(Arg("--out"), results, token);
+    foreach (var r in results) Console.WriteLine(JsonSerializer.Serialize(r));
+    return 0;
+}
+
+static Dictionary<string, object> DiagnoseParse(string? value)
+{
+    // Mirrors UninstallCommandParser.Parse/IsSafeExecutable conditions for audit diagnostics.
+    var d = new Dictionary<string, object>();
+    d["value-null-or-blank"] = string.IsNullOrWhiteSpace(value);
+    if (value is null) return d;
+    d["length"] = value.Length;
+    d["length>32767"] = value.Length > 32767;
+    d["has-forbidden-char"] = value.IndexOfAny(['\0', '\r', '\n', '|', '&', '<', '>']) >= 0;
+    var text = value.Trim();
+    d["odd-quote-count"] = text.Count(c => c == '"') % 2 != 0;
+    // emulate CommandLineToArgvW for the simple no-quote case
+    var tokens = SplitLikeArgv(text);
+    d["token-count"] = tokens.Count;
+    var executable = tokens.Count == 0 ? "" : Environment.ExpandEnvironmentVariables(tokens[0]);
+    d["executable"] = executable;
+    d["path-len<4"] = executable.Length < 4;
+    d["path-len>240"] = executable.Length > 240;
+    d["has-control"] = executable.Any(char.IsControl);
+    d["not-absolute"] = executable.Length < 3 || !char.IsAsciiLetter(executable[0]) || executable[1] != ':' || executable[2] != '\\';
+    d["colon-after-drive"] = executable.Length > 2 && executable[2..].Contains(':');
+    d["slash-or-percent-or-quote"] = executable.Contains('/') || executable.Contains('%') || executable.Contains('"');
+    d["dot-or-space-segment"] = executable.Split('\\').Any(s => s is "." or ".." || s.EndsWith(' ') || s.EndsWith('.'));
+    d["not-exe"] = !executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
+    d["forbidden-name"] = executable.Length > 0 && new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "cmd.exe", "powershell.exe", "pwsh.exe", "wmic.exe", "wscript.exe", "cscript.exe", "mshta.exe", "rundll32.exe", "regsvr32.exe", "reg.exe", "msiexec.exe" }
+        .Contains(Path.GetFileName(executable));
+    try
+    {
+        d["file-exists"] = File.Exists(executable);
+        d["fullpath-mismatch"] = File.Exists(executable) && !string.Equals(Path.GetFullPath(executable), executable, StringComparison.OrdinalIgnoreCase);
+        var reparse = new List<string>();
+        for (var node = executable; node is not null; node = Path.GetDirectoryName(node))
+            if (File.Exists(node) && (File.GetAttributes(node) & FileAttributes.ReparsePoint) != 0) reparse.Add(node);
+        d["reparse-ancestors"] = reparse;
+    }
+    catch (Exception e) { d["attr-error"] = e.GetType().Name + ": " + e.Message; }
+    d["overall-parsed-null"] = UninstallCommandParser.Parse(value) is null;
+    return d;
+}
+
+static List<string> SplitLikeArgv(string text)
+{
+    // Approximation sufficient for diagnostics of simple commands.
+    if (text.Contains('"')) return new List<string> { text };
+    return text.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
 }
 
 async Task<int> ExportAsync(InstalledApplicationInventory inventory, CancellationToken token)

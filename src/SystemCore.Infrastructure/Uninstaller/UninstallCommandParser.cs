@@ -23,6 +23,43 @@ public static class UninstallCommandParser
             if (count < 1) return null;
             var parts = Enumerable.Range(0, count).Select(i => Marshal.PtrToStringUni(Marshal.ReadIntPtr(pointer, i * IntPtr.Size)) ?? "").ToArray();
             var executable = Environment.ExpandEnvironmentVariables(parts[0]);
+            if (!IsSafeExecutable(executable) && !text.Contains('"'))
+            {
+                // Windows resolves unquoted executable paths that contain spaces by trying
+                // progressively longer prefixes (CreateProcess "smart" parsing), and real
+                // uninstall registrations rely on it (e.g. "C:\Program Files\App\uninstall.exe"
+                // without quotes). Mirror that behavior conservatively: every candidate is still
+                // a fully validated, existing, non-forbidden executable; the remainder becomes
+                // the argument list. Longest valid prefix wins, matching Windows.
+                var remainder = "";
+                for (var i = text.Length - 1; i > 0; i--)
+                {
+                    if (text[i] != ' ') continue;
+                    var candidate = text[..i];
+                    if (!IsSafeExecutable(candidate)) continue;
+                    executable = candidate;
+                    remainder = text[(i + 1)..].TrimStart();
+                    break;
+                }
+                if (remainder.Length == 0)
+                {
+                    var trimmed = text.TrimEnd();
+                    if (IsSafeExecutable(trimmed)) { executable = trimmed; parts = [trimmed]; }
+                    else return null;
+                }
+                else
+                {
+                    var argumentParts = CommandLineToArgvW(remainder, out var argumentCount);
+                    if (argumentParts == IntPtr.Zero) return null;
+                    try
+                    {
+                        parts = argumentCount == 0
+                            ? [executable]
+                            : [executable, .. Enumerable.Range(0, argumentCount).Select(j => Marshal.PtrToStringUni(Marshal.ReadIntPtr(argumentParts, j * IntPtr.Size)) ?? "")];
+                    }
+                    finally { LocalFree(argumentParts); }
+                }
+            }
             if (!IsSafeExecutable(executable)) return null;
             return new(executable, Array.AsReadOnly(parts[1..]));
         }
