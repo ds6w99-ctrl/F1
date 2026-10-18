@@ -596,4 +596,10 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="StartLoadFailed" xml:space="preserve"><value>Could not refresh startup inventory.</value></data>
   <data name="ToolsLoadFailed" xml:space="preserve"><value>Could not refresh tool availability.</value></data>
   <data name="InfoRefreshFailed" xml:space="preserve"><value>Could not refresh system information.</value></data>
-</root>
+  <data name="CleanDeepScan" xml:space="preserve"><value>Deep scan for stray files</value></data>
+  <data name="CleanDeepScanNote" xml:space="preserve"><value>Opt-in and review-only: finds backup and developer litter (Thumbs.db, *.bak, __pycache__, node_modules) under your profile. Nothing is deleted until you select it.</value></data>
+  <data name="CleanDeepScanning" xml:space="preserve"><value>Deep scanning…</value></data>
+  <data name="CleanDeepResult" xml:space="preserve"><value>{0} candidates - {1} - {2} selected</value></data>
+  <data name="CleanWindowsUpdateCache" xml:space="preserve"><value>Windows Update download cache</value></data>
+  <data name="UnBulkProgress" xml:space="preserve"><value>{0} of {1} still queued</value></data>
+  <data name="UnRestoreResult" xml:space="preserve"><value>Restored {0}, skipped {1}, failed {2}</value></data></root>

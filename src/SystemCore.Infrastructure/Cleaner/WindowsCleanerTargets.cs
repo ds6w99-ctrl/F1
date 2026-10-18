@@ -16,7 +16,10 @@ public sealed class WindowsCleanerTargets : ICleanerTargetProvider
     internal static bool IsAllowed(CleanerTarget target)
     {
         if (target.CanDeleteDirectories || target.MinimumAge < MinimumAgeFloor) return false;
-        if (target.Category != CleanerCategory.WindowsTemp && IsProtected(target.Root)) return false;
+        // The protected-tree gate applies to every elevated Windows tree except the two that are
+        // explicitly allowlisted below (temp and the update download payload). Each still gets its
+        // own exact path check, so this exception cannot widen the surface.
+        if (target.Category is not (CleanerCategory.WindowsTemp or CleanerCategory.WindowsUpdateCache) && IsProtected(target.Root)) return false;
         return target.Category switch
         {
             // A narrower UserTemp root is useful for isolated tests and cannot expand the allowlist.
@@ -25,6 +28,9 @@ public sealed class WindowsCleanerTargets : ICleanerTargetProvider
             CleanerCategory.ShaderCache => UnderOrEqual(Path.Combine(Local, "D3DSCache"), target.Root, child: false) && Simple(target, "*", recurse: true, elevated: false),
             CleanerCategory.CrashDumps => UnderOrEqual(Path.Combine(Local, "CrashDumps"), target.Root, child: false) && Simple(target, "*.dmp", recurse: false, elevated: false),
             CleanerCategory.Thumbnails => UnderOrEqual(Path.Combine(Local, "Microsoft", "Windows", "Explorer"), target.Root, child: false) && Simple(target, "thumbcache_*.db", recurse: false, elevated: false),
+            // Only the update download payload, never the servicing database, and only through the
+            // elevated helper. Individual files only: directories are never offered here.
+            CleanerCategory.WindowsUpdateCache => UnderOrEqual(Path.Combine(Windows, "SoftwareDistribution", "Download"), target.Root, child: false) && Simple(target, "*", recurse: true, elevated: true),
             // V1 policy (F1-002): browser caches and user WER are unsupported. They are
             // rejected here so no provider, scanner, or executor path can accept them,
             // even if a target with an otherwise valid shape is supplied directly.
@@ -51,6 +57,8 @@ public sealed class WindowsCleanerTargets : ICleanerTargetProvider
         Add(CleanerCategory.ShaderCache, Path.Combine(Local, "D3DSCache"), "*", true, ConservativeAge, true);
         Add(CleanerCategory.CrashDumps, Path.Combine(Local, "CrashDumps"), "*.dmp", false, ConservativeAge, false, review: true);
         Add(CleanerCategory.Thumbnails, Path.Combine(Local, "Microsoft", "Windows", "Explorer"), "thumbcache_*.db", false, ConservativeAge, false, review: true);
+        // Update download payload only; the servicing database and component store are never touched.
+        Add(CleanerCategory.WindowsUpdateCache, Path.Combine(Windows, "SoftwareDistribution", "Download"), "*", true, ConservativeAge, false, review: true, elevated: true);
         // V1 policy (F1-002): EdgeCache/ChromeCache/FirefoxCache/UserWer are unsupported.
         // Resolve() must not produce any target for them; IsAllowed() rejects them outright.
         return targets.AsReadOnly();

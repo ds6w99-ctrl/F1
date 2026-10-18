@@ -91,6 +91,43 @@ public sealed class CleanerViewModel : LocalizedViewModel
         NextCommand = new RelayCommand(() => { previewPage++; UpdatePreview(); }, () => !IsBusy && selectedCategory >= 0 && selectedCategory < Categories.Count && (previewPage + 1) * 100 < Categories[selectedCategory].Result.Items.Count);
     }
     public void Leave() { cancellation?.Cancel(); scanner.Invalidate(); session = null; excluded.Clear(); Render(); }
+    // ---- deep scan (explicit, opt-in, preview-first) ----
+    private IReadOnlyList<SystemCore.Infrastructure.Cleaner.DeepScanCandidate> deepFindings = Array.Empty<SystemCore.Infrastructure.Cleaner.DeepScanCandidate>();
+    private readonly HashSet<string> deepSelected = [];
+    private bool deepScanning, deepFailed;
+    public IReadOnlyList<SystemCore.Infrastructure.Cleaner.DeepScanCandidate> DeepFindings => deepFindings;
+    public bool IsDeepScanning => deepScanning;
+    public string DeepScanLabel => L["CleanDeepScan"];
+    public string DeepScanNote => L["CleanDeepScanNote"];
+    public string DeepScanSummary => deepScanning ? L["CleanDeepScanning"] : deepFailed ? L["CleanFailure"] :
+        deepFindings.Count == 0 ? "" : L.Format("CleanDeepResult", deepFindings.Count, InfoFormatting.Size((ulong)deepFindings.Sum(f => f.Size), L.Culture), deepSelected.Count);
+    public bool IsDeepSelected(string path) => deepSelected.Contains(path);
+    public void SelectDeep(string path, bool selected) { if (selected) deepSelected.Add(path); else deepSelected.Remove(path); OnPropertyChanged(nameof(DeepScanSummary)); OnPropertyChanged(nameof(CanCleanSelectedDeep)); }
+    public bool CanCleanSelectedDeep => !IsBusy && !deepScanning && deepSelected.Count > 0;
+    public async Task RunDeepScanAsync()
+    {
+        if (IsBusy || deepScanning) return;
+        deepScanning = true; deepFailed = false; deepFindings = Array.Empty<SystemCore.Infrastructure.Cleaner.DeepScanCandidate>(); deepSelected.Clear(); OnPropertyChanged(string.Empty);
+        try
+        {
+            var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            deepFindings = await new SystemCore.Infrastructure.Cleaner.DeepScanService().ScanAsync(new string[] { profile }, CancellationToken.None);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException) { deepFailed = true; Core.Diagnostics.ReliabilityDiagnostics.Log.UnexpectedFailure((int)Core.Diagnostics.ReliabilityComponent.Cleaner, ex.HResult); }
+        finally { deepScanning = false; OnPropertyChanged(string.Empty); }
+    }
+    // Removal goes item by item through the ordinary pinned-handle path, so every safety check
+    // that protects a normal clean also protects a deep-scan choice.
+    public async Task CleanDeepSelectionAsync()
+    {
+        if (!CanCleanSelectedDeep) return;
+        var selected = deepSelected.ToArray();
+        var results = await new SystemCore.Infrastructure.Cleaner.DeepScanService().RemoveAsync(selected, CancellationToken.None);
+        cleanResult = new(true, results);
+        deepFindings = deepFindings.Where(f => !selected.Contains(f.Path, StringComparer.OrdinalIgnoreCase)).ToArray();
+        deepSelected.Clear();
+        OnPropertyChanged(string.Empty);
+    }
     public CleanerCleanRequest? Selection() => CanClean ? new(session!.Id, Categories.Where(c => c.Selected && c.CanSelect).SelectMany(c => c.Result.Items).Where(i => !excluded.Contains(i.Id)).Select(i => i.Id).ToArray(),
         Categories.Any(c => c.Selected && c.CanSelect && c.Result.Category == CleanerCategory.RecycleBin)) : null;
     public string ConfirmationTitle => L["CleanConfirmTitle"];

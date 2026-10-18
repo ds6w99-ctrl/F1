@@ -1,6 +1,6 @@
 namespace SystemCore.Core.Cleaner;
 
-public enum CleanerCategory { UserTemp, WindowsTemp, ShaderCache, EdgeCache, ChromeCache, FirefoxCache, CrashDumps, UserWer, Thumbnails, RecycleBin, ExplorerHistory }
+public enum CleanerCategory { UserTemp, WindowsTemp, ShaderCache, EdgeCache, ChromeCache, FirefoxCache, CrashDumps, UserWer, Thumbnails, RecycleBin, ExplorerHistory, WindowsUpdateCache }
 public enum CleanerScanStatus { Complete, Unavailable, Incomplete, Cancelled }
 public enum CleanerSkip { Recent, Reparse, Inaccessible, UnsafePath, UnsupportedType, HardLink, InvalidMetadata, Limit }
 public sealed record CleanerTarget(CleanerCategory Category, string Root, string Pattern, bool Recurse,

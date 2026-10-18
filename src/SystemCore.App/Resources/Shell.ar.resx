@@ -596,4 +596,10 @@
   <data name="StartLoadFailed" xml:space="preserve"><value>تعذر تحديث عناصر بدء التشغيل.</value></data>
   <data name="ToolsLoadFailed" xml:space="preserve"><value>تعذر تحديث توفر الأدوات.</value></data>
   <data name="InfoRefreshFailed" xml:space="preserve"><value>تعذر تحديث معلومات النظام.</value></data>
-</root>
+  <data name="CleanDeepScan" xml:space="preserve"><value>فحص عميق للملفات المتناثرة</value></data>
+  <data name="CleanDeepScanNote" xml:space="preserve"><value>اختياري وللمراجعة فقط: يجد ملفات النسخ الاحتياطي وبقايا التطوير (Thumbs.db، ‎*.bak، ‎__pycache__، ‎node_modules) داخل مجلدك. لا يُحذف شيء حتى تحدده.</value></data>
+  <data name="CleanDeepScanning" xml:space="preserve"><value>جارٍ الفحص العميق…</value></data>
+  <data name="CleanDeepResult" xml:space="preserve"><value>مرشحات: {0} — {1} — المحدد: {2}</value></data>
+  <data name="CleanWindowsUpdateCache" xml:space="preserve"><value>كاش تنزيل تحديثات Windows</value></data>
+  <data name="UnBulkProgress" xml:space="preserve"><value>بقي {0} من {1} في قائمة الانتظار</value></data>
+  <data name="UnRestoreResult" xml:space="preserve"><value>أُعيد {0}، تُخطّي {1}، فشل {2}</value></data></root>

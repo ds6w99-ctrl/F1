@@ -29,8 +29,23 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private readonly HashSet<Guid> selectedLeftovers = [];
     // Multi-selection for bulk removal. Every id must stay valid in the live session.
     private readonly HashSet<string> selectedApplications = [];
+    // Live progress for the sequential bulk queue. One observable row per requested item:
+    // the user always sees which item is being removed now and what happened to the others.
+    public sealed class BulkProgressRow(string applicationId, string name, string initialState) : System.ComponentModel.INotifyPropertyChanged
+    {
+        public string ApplicationId { get; } = applicationId;
+        public string Name { get; } = name;
+        private string state = initialState;
+        private string detail = "";
+        public string State { get => state; set { if (state == value) return; state = value; PropertyChanged?.Invoke(this, new(nameof(State))); } }
+        public string Detail { get => detail; set { if (detail == value) return; detail = value; PropertyChanged?.Invoke(this, new(nameof(Detail))); } }
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    }
+    public string BulkProgressSummary => BulkProgress.Count == 0 ? "" : L.Format("UnBulkProgress", BulkProgress.Count(r => r.State is "Pending" or "Launched"), BulkProgress.Count);
     private bool useQuietUninstaller;
     private BulkUninstallOutcome? bulkResult;
+    // Live progress for the sequential bulk queue: one observable row per requested item.
+    public System.Collections.ObjectModel.ObservableCollection<BulkProgressRow> BulkProgress { get; } = [];
     private IReadOnlyList<OrphanDirectory>? orphans;
     private string? lastExportFile;
     private LeftoverDeletionResult? cleanup;
@@ -196,6 +211,13 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             token = BeginOperation();
             var sessionId = session.Id;
             var ids = selectedApplications.OrderBy(id => id, StringComparer.Ordinal).ToArray();
+            // Build the queue view before the session is consumed, so names and order are exact.
+            BulkProgress.Clear();
+            foreach (var id in ids)
+            {
+                var application = session.Inventory.Applications.FirstOrDefault(a => a.Id == id);
+                BulkProgress.Add(new BulkProgressRow(id, application?.DisplayName ?? id, "Pending"));
+            }
             orchestrator.Publish(DataDataset.InstalledApplications, session, TimeSpan.Zero);
             orchestrator.Publish(DataDataset.Games, Summarize(session), TimeSpan.Zero);
             bulkResult = null;
@@ -204,7 +226,17 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             selectedId = "";
             session = null;
             var request = new BulkUninstallRequest(sessionId, ids, useQuietUninstaller);
-            var progress = new Progress<BulkUninstallItemResult>(_ => { });
+            // The queue runs sequentially, so progress is reported per completed item. Each row is
+            // created up front so the user sees the full queue and where it currently is.
+            var names = session is null ? new Dictionary<string, string>() : [];
+            var progress = new Progress<BulkUninstallItemResult>(result =>
+            {
+                var row = BulkProgress.FirstOrDefault(r => r.ApplicationId == result.ApplicationId);
+                if (row is null) return;
+                row.State = result.State.ToString();
+                row.Detail = result.Detail ?? "";
+                OnPropertyChanged(nameof(BulkProgressSummary));
+            });
             bulkResult = await bulkExecutor.UninstallAsync(request, progress, token).ConfigureAwait(true);
             state = bulkResult.Failed == 0 && bulkResult.Cancelled == 0 ? UninstallState.Removed : UninstallState.Failed;
             selectedApplications.Clear();
@@ -256,11 +288,30 @@ public sealed class UninstallerViewModel : LocalizedViewModel
         {
             var restored = await LeftoverBackupRestorer.RestoreAsync(archivePath, CancellationToken.None).ConfigureAwait(true);
             lastExportFile = archivePath;
+            lastRestore = restored;
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
         { diagnostics.Record(DiagnosticFeature.Uninstaller, DiagnosticEvent.ProviderFailure, e.HResult); }
         OnPropertyChanged(string.Empty);
     }
+    private LeftoverBackupRestorer.RestoreResult? lastRestore;
+    // Backups the app itself wrote, newest first: the UI lists these instead of asking for a path.
+    public IReadOnlyList<BackupArchive> Backups
+    {
+        get
+        {
+            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SystemCore", "LeftoverBackups");
+            try
+            {
+                if (!Directory.Exists(directory)) return [];
+                return new DirectoryInfo(directory).GetFiles("*.zip").OrderByDescending(f => f.LastWriteTimeUtc)
+                    .Select(f => new BackupArchive(f.FullName, f.Name, f.Length, f.LastWriteTime)).ToArray();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return []; }
+        }
+    }
+    public sealed record BackupArchive(string Path, string Name, long Bytes, DateTimeOffset Created);
+    public string RestoreSummary => lastRestore is { } r ? L.Format("UnRestoreResult", r.Restored, r.Skipped, r.Failed) : "";
     public bool CanScanLeftovers => !Busy && receipt is not null;
     public string LeftoverSummary => leftoverSession is not { } scan ? ""
         : scan.Items.Count == 0 ? L[scan.Complete ? "UnLeftoversEmpty" : "UnTruncated"]
