@@ -67,7 +67,8 @@ function ClickNativeInstallerDialog {
         Log "  native win: pid=$($p2.Name) title='$($w.Current.Name)'"
         $btns = $w.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Button)))
         foreach ($b in $btns) {
-            if ($b.Current.IsEnabled -and $b.Current.Name -match '^(OK|Finish|Close|Yes)$') {
+            $n = ($b.Current.Name -replace '&','')
+            if ($b.Current.IsEnabled -and $n -match '^(OK|Finish|Close|Yes|Uninstall|Next)$') {
                 Log "clicking native dialog btn '$($b.Current.Name)' (pid=$($p2.Name))"
                 $b.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
                 return $true
