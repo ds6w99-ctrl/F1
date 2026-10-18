@@ -10,6 +10,14 @@ internal sealed record OwnedLeftoverSession(LeftoverScanSession Session, IReadOn
 
 public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstalledApplicationInventory inventory) : ILeftoverScanner
 {
+    // A truncated session still allows deleting items the user can see, because every single item is
+    // revalidated against its captured identity at execution time. Completeness describes the preview,
+    // not the safety of the individually verified items inside it.
+    private const int GlobalItemLimit = 10000;
+    // One unverified anchor (observed or name-derived) may not flood the review: its enumeration
+    // stops at this budget and the session is marked incomplete, visibly, instead of hiding the
+    // receipt-verified items behind thousands of Review rows or disabling deletion altogether.
+    private const int UnverifiedAnchorItemLimit = 300;
     private readonly SemaphoreSlim operation = new(1, 1);
     private OwnedLeftoverSession? current;
     internal SemaphoreSlim Operation => operation;
@@ -17,7 +25,7 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
     {
         var owned = current;
         if (owned is null || owned.Session.Id != request.SessionId || owned.Session.ApplicationIdentityId != request.ApplicationIdentityId
-            || !owned.Session.Complete || DateTimeOffset.UtcNow - owned.Session.CreatedAt > TimeSpan.FromMinutes(10)
+            || DateTimeOffset.UtcNow - owned.Session.CreatedAt > TimeSpan.FromMinutes(10)
             || request.ItemIds.Count is 0 or > 2000 || request.ItemIds.Distinct().Count() != request.ItemIds.Count
             || request.ItemIds.Any(id => !owned.Items.ContainsKey(id))) throw new InvalidOperationException("Invalid leftover selection/session");
         current = null;
@@ -65,15 +73,18 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                     {
                         using var lease = PinnedCleanerPath.Open(root.Path, true);
                         if (lease.Identity.Volume != root.Identity.Volume || lease.Identity.FileId != root.Identity.FileId || lease.Identity.CreationFileTime != root.Identity.CreationFileTime) continue;
-                        Visit(root.Path, root.Path, root.Reason, 0, false);
+                        var budget = int.MaxValue;
+                        Visit(root.Path, root.Path, root.Reason, 0, false, ref budget);
                     }
                     catch (Win32Exception ex) when (ex.NativeErrorCode is 2 or 3) { }
                     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception) { complete = false; }
                 }
-                // Directories the native uninstaller provably modified. This is the only signal that
-                // identifies an application-owned data directory whose name does not resemble the
-                // application, so it belongs to the conservative scan rather than the deep scan.
-                // Claimed before the name guess so the stronger evidence names the item.
+                // Directories the native uninstaller provably worked on: their last-write time moved
+                // and their direct entry count decreased while it ran, which is the observable
+                // footprint of an actual deletion. This is the only signal that identifies an
+                // application-owned data directory whose name does not resemble the application, so
+                // it belongs to the conservative scan rather than the deep scan. Claimed before the
+                // name guess so the stronger evidence names the item.
                 foreach (var touched in receipt.Touched ?? Array.Empty<string>())
                 {
                     token.ThrowIfCancellationRequested();
@@ -81,7 +92,11 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                     if (!LeftoverSafety.CanOwnObservedDirectory(receipt.Application, observed, fresh.Applications)) continue;
                     if (receipt.Directories.Any(directory => LeftoverSafety.Conflicts(directory.Path, observed))) continue;
                     if (items.Values.Any(existing => LeftoverSafety.Conflicts(existing.Path, observed))) continue;
-                    try { Visit(observed, observed, "Modified by the native uninstaller; ownership observed during removal", 0, true); }
+                    try
+                    {
+                        var budget = UnverifiedAnchorItemLimit;
+                        Visit(observed, observed, "Ownership observed: the native uninstaller deleted entries in this directory during removal", 0, true, ref budget);
+                    }
                     catch (Win32Exception ex) when (ex.NativeErrorCode is 2 or 3) { }
                     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception) { }
                 }
@@ -110,31 +125,37 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                         try
                         {
                             if (!Directory.Exists(candidate) && !File.Exists(candidate)) continue;
-                            Visit(candidate, candidate, "Name-derived candidate; not verified by a pre-uninstall receipt", 0, true);
+                            var budget = UnverifiedAnchorItemLimit;
+                            Visit(candidate, candidate, "Name-derived candidate; not verified by a pre-uninstall receipt", 0, true, ref budget);
                         }
                         catch (Win32Exception ex) when (ex.NativeErrorCode is 2 or 3) { }
                         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Win32Exception) { }
                     }
                 }
-                void Visit(string path, string root, string reason, int depth, bool unverified)
+                void Visit(string path, string root, string reason, int depth, bool unverified, ref int budget)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (depth > 32 || items.Count >= 10000) { complete = false; return; }
+                    if (depth > 32 || items.Count >= GlobalItemLimit || budget <= 0) { complete = false; return; }
                     try
                     {
                         var canonical = CleanerSafety.Canonical(path);
                         if (canonical is null || (canonical != root && !CleanerSafety.IsChild(root, canonical))) { complete = false; return; }
                         var attributes = File.GetAttributes(canonical);
                         if (receipt.Application.ItemKind == ItemKind.Game && LeftoverSafety.SharedGamePath(canonical))
-                        { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Shared game data rejected", null, unverified); return; }
-                        if ((attributes & FileAttributes.ReparsePoint) != 0) { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Reparse point rejected", null, unverified); return; }
+                        { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Shared game data rejected", null, unverified); budget--; return; }
+                        if ((attributes & FileAttributes.ReparsePoint) != 0) { Add(canonical, root, null, LeftoverType.Directory, LeftoverConfidence.Ignore, "Reparse point rejected", null, unverified); budget--; return; }
                         var directory = (attributes & FileAttributes.Directory) != 0;
                         using var pinned = PinnedCleanerPath.Open(canonical, directory);
                         if (!directory && !CleanerSafety.SafeFileAttributes(pinned.Attributes, pinned.Identity.Links))
-                        { Add(canonical, root, pinned.Identity, LeftoverType.File, LeftoverConfidence.Ignore, "Unsupported file attributes or hard links", null, unverified); return; }
+                        { Add(canonical, root, pinned.Identity, LeftoverType.File, LeftoverConfidence.Ignore, "Unsupported file attributes or hard links", null, unverified); budget--; return; }
                         Add(canonical, root, pinned.Identity, directory ? LeftoverType.Directory : LeftoverType.File, LeftoverConfidence.Safe, reason, directory ? null : pinned.Identity.Size, unverified);
+                        budget--;
                         if (directory)
-                            foreach (var child in Directory.EnumerateFileSystemEntries(canonical)) { if (items.Count >= 10000) { complete = false; break; } Visit(child, root, reason, depth + 1, unverified); }
+                            foreach (var child in Directory.EnumerateFileSystemEntries(canonical))
+                            {
+                                if (items.Count >= GlobalItemLimit || budget <= 0) { complete = false; break; }
+                                Visit(child, root, reason, depth + 1, unverified, ref budget);
+                            }
                     }
                     // Unverified candidates (name-derived and uninstaller-observed) are best-effort: a
                     // refused read narrows the preview instead of poisoning the receipt-verified
@@ -146,11 +167,11 @@ public sealed class LeftoverScanner(ApplicationRemovalEvidence evidence, IInstal
                     // Never downgrade Ignore: reparse/hard-link/attribute rejection wins. Name-derived
                     // candidates are never receipt-verified, so they can never be Safe. A pre-uninstall
                     // footprint is captured, not guessed, but its link to the application is still only
-                    // the name. A directory the uninstaller was observed to modify has a stronger link,
-                    // but the observation window is not airtight, so it is held at Review as well.
+                    // the name. A directory the uninstaller was observed to delete from has a stronger
+                    // link, but the observation window is not airtight, so it is held at Review as well.
                     if (confidence == LeftoverConfidence.Safe && (unverified || reason.StartsWith("Exact DataPath", StringComparison.Ordinal)
                         || reason.StartsWith("Pre-uninstall footprint", StringComparison.Ordinal)
-                        || reason.StartsWith("Modified by the native uninstaller", StringComparison.Ordinal)
+                        || reason.StartsWith("Ownership observed", StringComparison.Ordinal)
                         || LeftoverSafety.MayContainPersonalData(path)
                         || (type == LeftoverType.File && !LeftoverSafety.HasApplicationBinaryExtension(path)))) confidence = LeftoverConfidence.Review;
                     var id = Guid.NewGuid();

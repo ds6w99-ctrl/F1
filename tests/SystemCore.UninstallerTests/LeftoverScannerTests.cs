@@ -156,22 +156,44 @@ static class LeftoverScannerTests
             var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             check("Observed anchor refuses a shared vendor segment", !LeftoverSafety.CanOwnObservedDirectory(app, Path.Combine(local, "Google", "Synthetic"), []));
             check("Observed anchor accepts a nested application folder", LeftoverSafety.CanOwnObservedDirectory(app, Path.Combine(local, "SyntheticVendor", "SyntheticProduct"), []));
+            // An anchor now requires proof of an actual deletion: the last-write time moved AND the
+            // direct entry count decreased. An active cache that only rewrites or grows must never
+            // anchor a leftover review.
+            var noisy = Path.Combine(local, "SystemCoreNoisy-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(noisy);
+            File.WriteAllText(Path.Combine(noisy, "cache-1.bin"), "cache");
+            Directory.SetLastWriteTimeUtc(noisy, DateTime.UtcNow.AddMinutes(-5));
+            var noisyStore = new ApplicationRemovalEvidence();
+            await noisyStore.CaptureAsync(app, before, default);
+            // Active cache between the snapshots: it rewrites one file and adds two more, so its
+            // entry count rises and its timestamp moves — activity without a deletion.
+            File.Delete(Path.Combine(noisy, "cache-1.bin"));
+            File.WriteAllText(Path.Combine(noisy, "cache-2.bin"), "cache");
+            File.WriteAllText(Path.Combine(noisy, "cache-3.bin"), "cache");
+            File.WriteAllText(Path.Combine(noisy, "cache-4.bin"), "cache");
+            var noisyReceipt = noisyStore.ConfirmRemoved(app.Id)!;
+            var noisyScan = await new LeftoverScanner(noisyStore, inventory).ScanAsync(noisyReceipt.Id, default);
+            check("Rewrite/growth without deletion never anchors an observed review", noisyScan.Items.All(i => !i.DisplayLocation.StartsWith(noisy, StringComparison.Ordinal)));
+            if (Directory.Exists(noisy)) Directory.Delete(noisy, true);
             var observed = Path.Combine(local, "SystemCoreObserved-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(observed);
-            File.WriteAllText(Path.Combine(observed, "removed.tmp"), "removed");
+            File.WriteAllText(Path.Combine(observed, "removed-a.tmp"), "removed");
+            File.WriteAllText(Path.Combine(observed, "removed-b.tmp"), "removed");
             Directory.SetLastWriteTimeUtc(observed, DateTime.UtcNow.AddMinutes(-5));
             var observedStore = new ApplicationRemovalEvidence();
             await observedStore.CaptureAsync(app, before, default);
-            // Simulate the native uninstaller pruning one child and leaving another behind.
-            File.Delete(Path.Combine(observed, "removed.tmp"));
+            // Simulate the native uninstaller pruning two children and leaving one behind:
+            // two entries removed, one added — a net decrease that proves a real deletion.
+            File.Delete(Path.Combine(observed, "removed-a.tmp"));
+            File.Delete(Path.Combine(observed, "removed-b.tmp"));
             File.WriteAllText(Path.Combine(observed, "kept.dll"), "leftover");
             var observedReceipt = observedStore.ConfirmRemoved(app.Id)!;
             var observedScanner = new LeftoverScanner(observedStore, inventory);
             var observedScan = await observedScanner.ScanAsync(observedReceipt.Id, default);
             var observedItems = observedScan.Items.Where(i => i.DisplayLocation == observed || i.DisplayLocation == Path.Combine(observed, "kept.dll")).ToArray();
-            check("Uninstaller-observed directory is discovered without a name match", observedItems.Any(i => i.DisplayLocation == Path.Combine(observed, "kept.dll")));
-            check("Observed leftovers carry observation evidence and stay Review", observedItems.Length == 2
-                && observedItems.All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault && i.Evidence == "Modified by the native uninstaller; ownership observed during removal"));
+            check("Deletion-evidenced directory is discovered without a name match", observedItems.Any(i => i.DisplayLocation == Path.Combine(observed, "kept.dll")));
+            check("Observed leftovers carry deletion evidence and stay Review", observedItems.Length == 2
+                && observedItems.All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault && i.Evidence == "Ownership observed: the native uninstaller deleted entries in this directory during removal"));
             var observedFile = observedScan.Items.Single(i => i.DisplayLocation == Path.Combine(observed, "kept.dll"));
             var observedResult = await new LeftoverDeletionService(observedScanner, observedStore, inventory, new RegistryBackupWriter())
                 .DeleteAsync(new(observedScan.Id, app.Id, [observedFile.Id]), default);
@@ -190,6 +212,19 @@ static class LeftoverScannerTests
                     && !File.Exists(Path.Combine(observed, "kept.dll")));
             }
             if (Directory.Exists(observed)) Directory.Delete(observed, true);
+            // The observation records exactly two levels below the shared roots. A data directory
+            // one level deeper is deliberately invisible, so a deletion inside it cannot anchor.
+            var depthVendor = Path.Combine(local, "SystemCoreDeep-" + Guid.NewGuid().ToString("N"));
+            var depthData = Path.Combine(depthVendor, "Product", "Data");
+            Directory.CreateDirectory(depthData);
+            File.WriteAllText(Path.Combine(depthData, "a.tmp"), "x");
+            var depthStore = new ApplicationRemovalEvidence();
+            await depthStore.CaptureAsync(app, before, default);
+            File.Delete(Path.Combine(depthData, "a.tmp"));
+            var depthReceipt = depthStore.ConfirmRemoved(app.Id)!;
+            var depthScan = await new LeftoverScanner(depthStore, inventory).ScanAsync(depthReceipt.Id, default);
+            check("Observation stays within the documented two levels", depthScan.Items.All(i => !i.DisplayLocation.StartsWith(depthVendor, StringComparison.Ordinal)));
+            if (Directory.Exists(depthVendor)) Directory.Delete(depthVendor, true);
             if (deletion)
             {
                 var deleteStore = new ApplicationRemovalEvidence();
@@ -247,6 +282,25 @@ static class LeftoverScannerTests
                 result = await deletionService.DeleteAsync(new(scan.Id, app.Id, [fileItem.Id]), default);
                 check("Changed folder blocks selected descendants", result.Items.Single().Status == LeftoverDeletionStatus.Changed && File.Exists(Path.Combine(root, "owned.dll")));
                 File.Delete(Path.Combine(root, "new-after-scan.txt"));
+                // A truncated session must not disable deletion of the individually verified items
+                // the user can still see. One overflowing observed anchor floods its own budget,
+                // the session reports incomplete, and a receipt-verified Safe item still deletes.
+                var big = Path.Combine(local, "SystemCoreBig-" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(big);
+                for (var i = 0; i < 350; i++) File.WriteAllText(Path.Combine(big, $"c{i:D3}.tmp"), "x");
+                var bigStore = new ApplicationRemovalEvidence();
+                await bigStore.CaptureAsync(app, before, default);
+                for (var i = 0; i < 40; i++) File.Delete(Path.Combine(big, $"c{i:D3}.tmp"));
+                var bigReceipt = bigStore.ConfirmRemoved(app.Id)!;
+                var bigScanner = new LeftoverScanner(bigStore, inventory);
+                var bigScan = await bigScanner.ScanAsync(bigReceipt.Id, default);
+                check("Overflowing observed anchor is truncated, not unlimited", !bigScan.Complete && bigScan.Items.Count(i => i.DisplayLocation.StartsWith(big, StringComparison.Ordinal)) <= 300);
+                var truncatedFile = bigScan.Items.First(i => i.DisplayLocation == Path.Combine(root, "owned.dll"));
+                var truncatedDelete = await new LeftoverDeletionService(bigScanner, bigStore, inventory, new RegistryBackupWriter())
+                    .DeleteAsync(new(bigScan.Id, app.Id, [truncatedFile.Id]), default);
+                check("Truncated session still deletes individually verified safe items", truncatedDelete.Items.Single().Status == LeftoverDeletionStatus.Deleted && !File.Exists(Path.Combine(root, "owned.dll")));
+                if (Directory.Exists(big)) Directory.Delete(big, true);
+                File.WriteAllText(Path.Combine(root, "owned.dll"), "changed content");
                 scan = await deleteScanner.ScanAsync(deleteReceipt.Id, default);
                 var expectedBytes = scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe && i.Type == LeftoverType.File).Sum(i => i.Size ?? 0);
                 var request = new LeftoverDeletionRequest(scan.Id, app.Id, scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe).Select(i => i.Id).ToArray());

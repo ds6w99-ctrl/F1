@@ -144,15 +144,15 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     public IReadOnlyList<InstalledApplication> Inventory => session?.Inventory.Applications ?? [];
     public bool CanScanLeftovers => !Busy && receipt is not null;
     public string LeftoverSummary => leftoverSession is not { } scan ? ""
-        : scan.Items.Count == 0 ? L[scan.Complete ? "UnLeftoversEmpty" : "UnPartial"]
+        : scan.Items.Count == 0 ? L[scan.Complete ? "UnLeftoversEmpty" : "UnTruncated"]
         : L["UnLeftoversFound"] + "\n" + L.Format("UnLeftoverCountSize", scan.Items.Count, FormatSize(scan.Items.Sum(i => i.Size ?? 0)))
-            + (scan.Complete ? "" : "\n" + L["UnPartial"]);
+            + (scan.Complete ? "" : "\n" + L["UnTruncated"]);
     public IReadOnlyList<LeftoverItem> Leftovers => leftoverSession?.Items ?? [];
     public bool ShowLeftovers => leftoverSession is not null;
     public IReadOnlyList<LeftoverItem> LeftoverRows => Leftovers.Skip(page * 20).Take(20).ToArray();
     public bool IsLeftoverSelected(Guid id) => selectedLeftovers.Contains(id);
     public int SelectedLeftoverCount => selectedLeftovers.Count;
-    public bool CanDeleteLeftovers => !Busy && cleanup is null && leftoverSession is { Complete: true } && selectedLeftovers.Count > 0;
+    public bool CanDeleteLeftovers => !Busy && cleanup is null && leftoverSession is not null && selectedLeftovers.Count > 0;
     public bool CanChangeLeftoverSelection => !Busy && cleanup is null;
     public string LeftoverResult(Guid id)
     {
@@ -172,7 +172,7 @@ public sealed class UninstallerViewModel : LocalizedViewModel
             "Shared game data rejected" => "UnEvidenceSharedGame",
             "Name-derived candidate; not verified by a pre-uninstall receipt" => "UnEvidenceNameDerived",
             "Pre-uninstall footprint recorded under a non-shared application directory" => "UnEvidenceFootprint",
-            "Modified by the native uninstaller; ownership observed during removal" => "UnEvidenceObserved",
+            "Ownership observed: the native uninstaller deleted entries in this directory during removal" => "UnEvidenceObserved",
             _ => "UnEvidenceUnsupported"
         };
         var warningKey = item.Confidence == LeftoverConfidence.Ignore || (item.Confidence == LeftoverConfidence.Review && !allowPersonalData) ? "UnDeleteSafetyRejected"

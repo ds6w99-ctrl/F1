@@ -36,7 +36,7 @@ static class AutomaticLeftoverTests
                 ("Unsupported file attributes or hard links", "UnEvidenceAttributes", LeftoverType.File),
                 ("Shared game data rejected", "UnEvidenceSharedGame", LeftoverType.Directory),
                 ("Pre-uninstall footprint recorded under a non-shared application directory", "UnEvidenceFootprint", LeftoverType.Directory),
-                ("Modified by the native uninstaller; ownership observed during removal", "UnEvidenceObserved", LeftoverType.Directory),
+                ("Ownership observed: the native uninstaller deleted entries in this directory during removal", "UnEvidenceObserved", LeftoverType.Directory),
                 ("UNRECOGNIZED_RAW_ENGLISH_EVIDENCE", "UnEvidenceUnsupported", LeftoverType.File)
             };
             foreach (var confidence in Enum.GetValues<LeftoverConfidence>())
@@ -77,6 +77,13 @@ static class AutomaticLeftoverTests
             check("Mismatched confirmation cannot delete " + language, deletion.Calls == 0);
             await vm.DeleteLeftoversConfirmedAsync([safe.Id]);
             check("Explicit exact confirmation deletes only selected safe item " + language, deletion.Calls == 1 && deletion.Last!.ItemIds.SequenceEqual(new[] { safe.Id }));
+            scanner.Complete = false;
+            await Remove();
+            vm.SelectLeftover(safe.Id, true);
+            check("Truncated session keeps verified selection deletable " + language, vm.CanDeleteLeftovers);
+            check("Truncated summary is honest " + language, vm.LeftoverSummary.Contains(vm.Text("UnTruncated"), StringComparison.Ordinal));
+            vm.SelectLeftover(safe.Id, false);
+            scanner.Complete = true;
             var calls = scanner.Calls;
             executor.Outcome = UninstallState.Removed; executor.WithReceipt = false; await Remove();
             check("No receipt means no scan " + language, scanner.Calls == calls && !vm.CanScanLeftovers);
@@ -143,7 +150,7 @@ static class AutomaticLeftoverTests
     }
     sealed class Scanner : ILeftoverScanner
     {
-        public int Calls; public bool Fail, Wait, UnexpectedFailure;
+        public int Calls; public bool Fail, Wait, UnexpectedFailure; public bool Complete = true;
         public IReadOnlyList<LeftoverItem> Items = [];
         public TaskCompletionSource Started = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public async Task<LeftoverScanSession> ScanAsync(Guid id, CancellationToken token)
@@ -152,7 +159,7 @@ static class AutomaticLeftoverTests
             if (Fail) throw new IOException("Synthetic scan failure");
             if (UnexpectedFailure) throw new ArgumentException("Synthetic unexpected scanner fault");
             if (Wait) { Started.TrySetResult(); await Task.Delay(Timeout.Infinite, token); }
-            return new(Guid.NewGuid(), id, "auto-test", DateTimeOffset.UtcNow, Items, true);
+            return new(Guid.NewGuid(), id, "auto-test", DateTimeOffset.UtcNow, Items, Complete);
         }
     }
     sealed class Deletion : ILeftoverDeletionService

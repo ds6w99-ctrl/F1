@@ -47,7 +47,7 @@
   <data name="Uptime" xml:space="preserve"><value>مدة تشغيل النظام</value></data>
   <data name="JunkFiles" xml:space="preserve"><value>ملفات التنظيف المكتشفة</value></data>
   <data name="NotScanned" xml:space="preserve"><value>لم يُفحص بعد</value></data>
-  <data name="ScannerLater" xml:space="preserve"><value>سيتوفر فاحص فعلي في مرحلة تطوير لاحقة.</value></data>
+  <data name="ScannerLater" xml:space="preserve"><value>سيتوفر فاحص فعلي في إصدار لاحق.</value></data>
   <data name="InventoryCoverage" xml:space="preserve"><value>يشمل جرد التطبيقات تسجيلات برامج سطح المكتب للمستخدم والجهاز وحزم MSIX للمستخدم الحالي، باستثناء حزم الأطر والموارد. لا يشمل البرامج المحمولة أو المستخدمين الآخرين. يستخدم عدد عناصر بدء التشغيل الجرد المشترك، بما فيه مهام بدء التشغيل المجدولة ومهام الحزم المدعومة؛ حالة المصدر منفصلة عن موافقة إدارة المهام.</value></data>
   <data name="Percent" xml:space="preserve"><value>{0:N1}٪</value></data>
   <data name="UsedTotal" xml:space="preserve"><value>{0} / {1}</value></data>
@@ -71,9 +71,9 @@
   <data name="ThemeDark" xml:space="preserve"><value>داكن</value></data>
   <data name="SessionSettingsActive" xml:space="preserve"><value>تُطبق الإعدادات فوراً.</value></data>
   <data name="StartOpenLocationFailed" xml:space="preserve"><value>تعذر فتح موقع الملف.</value></data>
-  <data name="LaterPhase" xml:space="preserve"><value>سيتوفر في مرحلة تطوير لاحقة</value></data>
+  <data name="LaterPhase" xml:space="preserve"><value>سيتوفر في إصدار لاحق</value></data>
   <data name="PlaceholderDescription" xml:space="preserve"><value>صفحة مبدئية للتنقل · لا يتوفر شيء هنا بعد</value></data>
-  <data name="AboutDescription" xml:space="preserve"><value>نسخة تطوير. معلومات نظام محلية وتحليل للأداء وأدوات صيانة تُراجع يدويًا. التحقق النهائي للإصدار والإنتاج قيد الانتظار.</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>معلومات نظام محلية وتحليل للأداء وأدوات صيانة تُراجع يدويًا لـ Windows 11 x64.</value></data>
   <data name="Version" xml:space="preserve"><value>الإصدار {0}</value></data>
   <data name="InfoTitle" xml:space="preserve"><value>معلومات النظام</value></data>
   <data name="InfoDescription" xml:space="preserve"><value>للقراءة فقط · حدد النص لنسخه · لا تُقدَّر القيم المفقودة</value></data>
@@ -280,8 +280,9 @@
   <data name="UnUnknown" xml:space="preserve"><value>غير معروف</value></data>
   <data name="UnUnavailable" xml:space="preserve"><value>الإزالة الأصلية غير متاحة أو التسجيل محمي.</value></data>
   <data name="UnPartial" xml:space="preserve"><value>تعذرت قراءة بعض مصادر الجرد.</value></data>
+  <data name="UnTruncated" xml:space="preserve"><value>اقتُصرت النتائج؛ قد توجد بقايا إضافية غير معروضة.</value></data>
   <data name="UnCancel" xml:space="preserve"><value>إلغاء</value></data>
-  <data name="UnConfirm" xml:space="preserve"><value>هل تريد بدء الإزالة الأصلية لهذا التطبيق؟ قد يطلب Windows رفع الصلاحيات. لن تُفحص البقايا أو تُحذف تلقائيًا.</value></data>
+  <data name="UnConfirm" xml:space="preserve"><value>هل تريد بدء الإزالة الأصلية لهذا التطبيق؟ قد يطلب Windows رفع الصلاحيات. بعد الإزالة، سيفحص F1 البقايا تلقائيًا، ولا تُحذف أي بقايا دون اختيارك صراحةً.</value></data>
   <data name="UnStateReady" xml:space="preserve"><value>جاهز — حدّث لتحميل التطبيقات.</value></data>
   <data name="UnStateLaunching" xml:space="preserve"><value>جارٍ تشغيل أداة الإزالة الأصلية…</value></data>
   <data name="UnStateWaitingForUninstaller" xml:space="preserve"><value>بانتظار أداة الإزالة الأصلية…</value></data>
@@ -536,8 +537,8 @@
   <data name="DiagnosticsOpenFailed" xml:space="preserve"><value>تعذّر فتح المجلد. راجع الصلاحيات وحاول مجددًا.</value></data>
   <data name="DiagnosticsClearConfirm" xml:space="preserve"><value>هل تريد حذف سجلات تشخيص {Brand} المغلقة؟ سيُحتفظ بالسجل النشط والصادرات والتفضيلات والنسخ الاحتياطية وحالة الاسترداد.</value></data>
   <data name="AboutArchitecture" xml:space="preserve"><value>المعمارية: {0}</value></data>
-  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · الحد الأدنى للبناء 22631 · اعتماد الإصدار قيد الانتظار</value></data>
-  <data name="AboutCopyright" xml:space="preserve"><value>المكونات الخارجية ملك لأصحابها · لم يُعيّن ناشر المنتج بعد</value></data>
+  <data name="AboutSupported" xml:space="preserve"><value>Windows 11 x64 · الحد الأدنى للبناء 22631</value></data>
+  <data name="AboutCopyright" xml:space="preserve"><value>المكونات الخارجية ملك لأصحابها</value></data>
   <data name="AboutCopyVersion" xml:space="preserve"><value>نسخ إصدار التطبيق</value></data>
   <data name="AboutLicenses" xml:space="preserve"><value>إشعارات تراخيص المكونات الخارجية بلغتها الأصلية</value></data>
   <data name="VersionCopied" xml:space="preserve"><value>نُسخ إصدار التطبيق.</value></data>
@@ -553,7 +554,7 @@
   <data name="UnPersonalDataConfirm" xml:space="preserve"><value>قد تُحذف بيانات شخصية نهائيًا.</value></data>
   <data name="UnEvidenceNameDerived" xml:space="preserve"><value>مرشّح مشتق من الاسم؛ غير مُثبَت بإيصال الإزالة.</value></data>
   <data name="UnEvidenceFootprint" xml:space="preserve"><value>مُسجَّلة قبل الإزالة ضمن مجلد مملوك للتطبيق.</value></data>
-  <data name="UnEvidenceObserved" xml:space="preserve"><value>مُراقَبة: عدّل المُزيل هذا المجلد أثناء الإزالة.</value></data>
+  <data name="UnEvidenceObserved" xml:space="preserve"><value>مُراقَبة: حذف المُزيل عناصر من هذا المجلد أثناء الإزالة.</value></data>
   <data name="UnKeepLeftovers" xml:space="preserve"><value>إبقاء</value></data>
   <data name="F1Welcome" xml:space="preserve"><value>مرحباً بك</value></data>
   <data name="F1Intro" xml:space="preserve"><value>كل ما تحتاجه لإدارة نظامك من مكان واحد</value></data>
