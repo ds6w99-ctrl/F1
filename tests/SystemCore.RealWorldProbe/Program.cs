@@ -5,6 +5,7 @@
 // decide PASS/FAIL. It never invents apps or skips the engine's own safety gates.
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -12,6 +13,7 @@ using SystemCore.Core.Cleaner;
 using SystemCore.Core.MemoryTools;
 using SystemCore.Core.Startup;
 using SystemCore.Core.Uninstaller;
+using SystemCore.Infrastructure;
 using SystemCore.Infrastructure.Cleaner;
 using SystemCore.Infrastructure.MemoryTools;
 using SystemCore.Infrastructure.Startup;
@@ -45,6 +47,7 @@ try
         "startup-list" => await StartupListAsync(token),
         "startup-toggle" => await StartupToggleAsync(token),
         "broker-delete" => await BrokerDeleteAsync(token),
+        "identity-dump" => await IdentityDumpAsync(token),
         "inspect-parse" => await InspectParseAsync(token),
         "msi-debug" => await MsiDebugAsync(token),
         _ => Usage()
@@ -511,6 +514,22 @@ async Task<int> StartupToggleAsync(CancellationToken token)
     return result.Outcome == StartupOutcome.Success ? 0 : 2;
 }
 
+async Task<int> IdentityDumpAsync(CancellationToken token)
+{
+    var path = Path.GetFullPath(Arg("--file"));
+    using var fileLease = PinnedCleanerPath.Open(path, false);
+    using var dirLease = PinnedCleanerPath.Open(Path.GetDirectoryName(path)!, true);
+    var fi = new FileInfo(path);
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        Path = path,
+        FileInfo = new { fi.Length, fi.LastWriteTimeUtc, fi.CreationTimeUtc, Attributes = fi.Attributes.ToString() },
+        FileLeaseIdentity = new { fileLease.Identity.Volume, fileLease.Identity.FileId, fileLease.Identity.Size, fileLease.Identity.LastWriteFileTime, fileLease.Identity.Links, fileLease.Identity.CreationFileTime },
+        DirLeaseIdentity = new { dirLease.Identity.Volume, dirLease.Identity.FileId, dirLease.Identity.Size }
+    }, token);
+    return 0;
+}
+
 async Task<int> BrokerDeleteAsync(CancellationToken token)
 {
     // Exercises the REAL elevated leftover broker end-to-end: this process must be the F1
@@ -518,7 +537,20 @@ async Task<int> BrokerDeleteAsync(CancellationToken token)
     // direct deletion pass cannot touch the elevated root. The helper re-derives every decision
     // from the captured identity; nothing is deleted without its protocol acceptance.
     var path = Path.GetFullPath(Arg("--file"));
-    var identity = PinnedCleanerPath.Open(Path.GetDirectoryName(path)!, true).Identity;
+    CleanerIdentity identity;
+    using (var lease = PinnedCleanerPath.Open(path, false)) { identity = lease.Identity; }
+    // Diagnostics: how the probe itself runs, and what the real helper launch returns.
+    var probeElevated = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    object? diag;
+    try
+    {
+        using var diagLease = new HelperLaunchLease();
+        using var diagProcess = Process.Start(diagLease.StartInfo("leftover",
+            "SystemCore-Leftover-" + Guid.NewGuid().ToString("N"), Environment.ProcessId, new string('A', 64)))!;
+        diagProcess.WaitForExit(20000);
+        diag = new { HelperPath = diagLease.Path, Exited = diagProcess.HasExited, ExitCode = diagProcess.HasExited ? (int?)diagProcess.ExitCode : null };
+    }
+    catch (Exception e) { diag = new { Error = e.GetType().Name + ": " + e.Message }; }
     var app = new InstalledApplication("broker-fixture", "Broker Fixture", "F1 audit", "1", null,
         Path.GetDirectoryName(path), null, null, ApplicationType.Win32,
         $"\"{Path.Combine(Path.GetDirectoryName(path)!, "uninstall.exe")}\"", false, null, null, null,
@@ -533,6 +565,7 @@ async Task<int> BrokerDeleteAsync(CancellationToken token)
     await WriteJsonAsync(Arg("--out"), new
     {
         File = path, ExistedBefore = File.Exists(path), Identity = new { identity.Volume, identity.FileId, identity.Size },
+        ProbeElevated = probeElevated, HelperDiagnostic = diag,
         Results = results.Select(r => new { r.ItemId, Status = r.Status.ToString(), r.RemovedBytes }),
         ExistsAfter = File.Exists(path)
     }, token);
