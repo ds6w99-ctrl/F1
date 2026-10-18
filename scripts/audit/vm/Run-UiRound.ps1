@@ -55,6 +55,25 @@ function AllButtons($win) {
     $buttons = $win.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Button)))
     foreach ($b in $buttons) { if ($b.Current.Name) { Log "  btn: '$($b.Current.Name)' id='$($b.Current.AutomationId)' enabled=$($b.Current.IsEnabled)" } }
 }
+function ClickNativeInstallerDialog {
+    # Simulates the real user closing the native uninstaller's completion dialog (msiexec/NSIS
+    # finish screens). Runs in the same session as F1, so UIA can see those windows.
+    $rootEl = [Windows.Automation.AutomationElement]::RootElement
+    $wins = $rootEl.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition)
+    foreach ($w in $wins) {
+        $p2 = Get-Process -Id $w.Current.ProcessId -ErrorAction SilentlyContinue
+        if (-not $p2 -or $p2.Name -notmatch 'msiexec|unins|setup|Un_A') { continue }
+        $btns = $w.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Button)))
+        foreach ($b in $btns) {
+            if ($b.Current.IsEnabled -and $b.Current.Name -match '^(OK|Finish|Close|Yes)$') {
+                Log "clicking native dialog btn '$($b.Current.Name)' (pid=$($p2.Name))"
+                $b.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+                return $true
+            }
+        }
+    }
+    return $false
+}
 
 $p = Start-Process $AppPath -PassThru
 $sw = [Diagnostics.Stopwatch]::StartNew()
@@ -106,21 +125,21 @@ if ($DriveUninstall) {
     else { Log 'dialog primary MISSING' }
     # wait for uninstall + automatic leftover scan (inventory refresh + scan)
     $status = Find $win 'UnStatus'
-    for ($i = 0; $i -lt 60; $i++) { Start-Sleep 5; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($i % 6 -eq 0) { Log "status t=$((5*$i))s: $sname" }; if ($sname -match 'leftover|Leftover|removed|Removed|scan|Scan') { Log "status settled: $sname"; break } }
+    for ($i = 0; $i -lt 60; $i++) { Start-Sleep 5; $null = ClickNativeInstallerDialog; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($i % 6 -eq 0) { Log "status t=$((5*$i))s: $sname" }; if ($sname -match 'leftover|Leftover|removed|Removed|scan|Scan') { Log "status settled: $sname"; break } }
     Shot '40-after-uninstall.png'
     Log "status after: $($status.Current.Name)"
     $summary = Find $win 'UnLeftoverSummary'
     if ($summary) { Log "leftover summary: $($summary.Current.Name)" }
-    Start-Sleep -Seconds 8
     Shot '50-leftovers.png'
+    $summary = Find $win 'UnLeftoverSummary'
     $list2 = Find $win 'UnApplications'
-    if ($list2) {
+    if ($summary -and $summary.Current.Name -and $list2) {
         $items2 = $list2.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition)
         Log "leftover items: $($items2.Count)"
         foreach ($i in $items2) { if ($i.Current.Name) { Log "  leftover: $($i.Current.Name)" } }
         foreach ($i in $items2) { try { $i.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { } }
         Log 'selected all visible leftover items'
-    } else { Log 'leftover list MISSING' }
+    } else { Log "leftover list absent; summary='$($summary.Current.Name)'" }
     $allow = Find $win 'UnAllowPersonalData'
     if ($allow -and $allow.Current.IsEnabled -and $allow.Current.Visibility -ne 'Offscreen') {
         $allow.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle(); Log 'toggled AllowPersonalData'
