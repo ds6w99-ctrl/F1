@@ -143,10 +143,17 @@ async Task<int> UninstallCleanAsync(UninstallExecutor executor, ApplicationRemov
         object? deletion = null;
         if (delete)
         {
-            var service = LeftoverDeletionFactory.Create(scanner, evidence, inventory, new RegistryBackupWriter());
             var ids = scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe || (includePersonal && i.Confidence == LeftoverConfidence.Review)).Select(i => i.Id).ToArray();
-            var result = await service.DeleteAsync(new LeftoverDeletionRequest(scan.Id, scan.ApplicationIdentityId, ids, includePersonal), token);
-            deletion = new { result.RemovedBytes, result.BackupFile, Items = result.Items.Select(i => new { i.ItemId, Status = i.Status.ToString(), i.RemovedBytes, i.BackupFile }) };
+            if (ids.Length == 0)
+            {
+                deletion = new { Note = "Nothing selectable to delete", RemovedBytes = 0L };
+            }
+            else
+            {
+                var service = LeftoverDeletionFactory.Create(scanner, evidence, inventory, new RegistryBackupWriter());
+                var result = await service.DeleteAsync(new LeftoverDeletionRequest(scan.Id, scan.ApplicationIdentityId, ids, includePersonal), token);
+                deletion = new { result.RemovedBytes, result.BackupFile, Items = result.Items.Select(i => new { i.ItemId, Status = i.Status.ToString(), i.RemovedBytes, i.BackupFile }) };
+            }
         }
         leftovers = new
         {
@@ -200,10 +207,17 @@ async Task<int> LeftoversAsync(InstalledApplicationInventory inventory, Applicat
     object? deletion = null;
     if (delete)
     {
-        var service = LeftoverDeletionFactory.Create(scanner, evidence, inventory, new RegistryBackupWriter());
         var ids = scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe || (includePersonal && i.Confidence == LeftoverConfidence.Review)).Select(i => i.Id).ToArray();
-        var result = await service.DeleteAsync(new LeftoverDeletionRequest(scan.Id, scan.ApplicationIdentityId, ids, includePersonal), token);
-        deletion = new { result.RemovedBytes, result.BackupFile, Items = result.Items.Select(i => new { i.ItemId, Status = i.Status.ToString(), i.RemovedBytes, i.BackupFile }) };
+        if (ids.Length == 0)
+        {
+            deletion = new { Note = "Nothing selectable to delete", RemovedBytes = 0L };
+        }
+        else
+        {
+            var service = LeftoverDeletionFactory.Create(scanner, evidence, inventory, new RegistryBackupWriter());
+            var result = await service.DeleteAsync(new LeftoverDeletionRequest(scan.Id, scan.ApplicationIdentityId, ids, includePersonal), token);
+            deletion = new { result.RemovedBytes, result.BackupFile, Items = result.Items.Select(i => new { i.ItemId, Status = i.Status.ToString(), i.RemovedBytes, i.BackupFile }) };
+        }
     }
     await WriteJsonAsync(Arg("--out"), new
     {

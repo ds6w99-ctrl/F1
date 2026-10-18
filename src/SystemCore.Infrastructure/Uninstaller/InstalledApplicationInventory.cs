@@ -25,7 +25,14 @@ public sealed class InstalledApplicationInventory(IWin32ApplicationProvider win3
             var verifiedMsi = registrations.Any(a => a.ApplicationType == ApplicationType.Msi && a.RegistrySource is null && a.CanUninstall);
             var restricted = registrations.Any(a => a.IsProtected);
             var canRemove = !restricted && (first.ApplicationType == ApplicationType.Msi ? verifiedMsi : registrations.All(a => a.CanUninstall));
+            // The Windows Installer API row carries the authoritative install location; registry
+            // rows for MSI products often omit it. Merge it only when Windows Installer itself
+            // verified the product, so a stale registry entry can never donate a location.
+            var msiLocation = verifiedMsi
+                ? registrations.FirstOrDefault(a => a.ApplicationType == ApplicationType.Msi && a.RegistrySource is null)?.InstallLocation
+                : null;
             applications.Add(first with { IsProtected = restricted, CanUninstall = canRemove,
+                InstallLocation = first.InstallLocation ?? msiLocation,
                 IconLocation = first.IconLocation ?? registrations.Select(a => a.IconLocation).FirstOrDefault(i => i is not null),
                 UnavailableReason = canRemove ? null : restricted ? "Protected registration" : first.UnavailableReason });
         }

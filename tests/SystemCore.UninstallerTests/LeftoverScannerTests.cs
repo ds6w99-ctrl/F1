@@ -47,6 +47,22 @@ static class LeftoverScannerTests
             check("Strong registry DataPath discovered", scan.Items.Any(i => i.DisplayLocation == Path.Combine(data, "data.txt")));
             check("DataPath is personal-data Review, never default selected", scan.Items.Where(i => i.DisplayLocation.StartsWith(data, StringComparison.Ordinal)).All(i => i.Confidence == LeftoverConfidence.Review && !i.SelectedByDefault));
             check("Every leftover defaults off", scan.Items.All(i => !i.SelectedByDefault));
+            // F1-005: an MSI product's install location is anchored when the Windows Installer
+            // API verified the product, so residuals the MSI uninstaller left behind are found.
+            var msiRoot = root + "-msi";
+            Directory.CreateDirectory(msiRoot);
+            File.WriteAllText(Path.Combine(msiRoot, "untracked.dll"), "msi residual");
+            File.WriteAllText(Path.Combine(msiRoot, "user-notes.txt"), "notes");
+            var msiProduct = Guid.NewGuid();
+            var msiApp = new InstalledApplication(name + "-msi", name + " (MSI)", "SystemCore tests", "2", null, msiRoot, null, null, ApplicationType.Msi,
+                null, false, msiProduct, null, null, new(InventoryHive.LocalMachine, InventoryView.Registry64, msiProduct.ToString("B")), null,
+                false, false, false, true, null);
+            var msiStore = new ApplicationRemovalEvidence();
+            await msiStore.CaptureAsync(msiApp, new([msiApp], true, []), default);
+            var msiScan = await new LeftoverScanner(msiStore, new Inventory()).ScanAsync(msiStore.ConfirmRemoved(msiApp.Id)!.Id, default);
+            check("MSI install location anchored and residuals discovered (F1-005)", msiScan.Items.Any(i => i.DisplayLocation == Path.Combine(msiRoot, "untracked.dll")));
+            check("MSI install directory carries the MSI anchor reason (F1-005)", msiScan.Items.Any(i => i.DisplayLocation == msiRoot && i.Evidence.Contains("Windows Installer verified product code", StringComparison.Ordinal)));
+            Directory.Delete(msiRoot, true);
             var saves = Path.Combine(root, "Save Games"); Directory.CreateDirectory(saves);
             var save = Path.Combine(saves, "slot.bin"); File.WriteAllText(save, "personal save");
             var config = Path.Combine(root, "settings.ini"); File.WriteAllText(config, "personal config");

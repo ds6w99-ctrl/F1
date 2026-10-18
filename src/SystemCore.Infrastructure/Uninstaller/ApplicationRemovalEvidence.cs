@@ -32,17 +32,30 @@ public sealed class ApplicationRemovalEvidence
         var registry = new List<RegistryEvidence>();
         // InstallLocation plus a verified executable inside it supplies two concrete
         // pre-uninstall facts. Display-name similarity never authorizes a directory.
-        if (inventory.Complete && app.ApplicationType == ApplicationType.Win32 && app.InstallLocation is { } location
+        // MSI products carry a product code verified by the Windows Installer API instead of a
+        // native uninstaller executable inside the directory (the uninstaller is msiexec.exe).
+        if (inventory.Complete && app.InstallLocation is { } location
             && CleanerSafety.Canonical(location) is { } canonical && LeftoverSafety.CanOwnDirectory(app, canonical, inventory.Applications)
-            && UninstallCommandParser.Parse(app.RegisteredUninstallCommand) is { } command && CleanerSafety.IsChild(canonical, command.Executable))
+            && Directory.Exists(canonical))
         {
-            try
+            var reason = app.ApplicationType switch
             {
-                using var directory = PinnedCleanerPath.Open(canonical, true);
-                using var executable = new FileStream(command.Executable, FileMode.Open, FileAccess.Read, FileShare.Read);
-                directories.Add(new(canonical, directory.Identity, "Registered install location and validated native uninstaller inside the same non-shared directory"));
+                ApplicationType.Win32 when UninstallCommandParser.Parse(app.RegisteredUninstallCommand) is { } command
+                    && CleanerSafety.IsChild(canonical, command.Executable) =>
+                    "Registered install location and validated native uninstaller inside the same non-shared directory",
+                ApplicationType.Msi when app.ProductCode is { } product && product != Guid.Empty =>
+                    "Registered MSI install location with a Windows Installer verified product code",
+                _ => null
+            };
+            if (reason is not null)
+            {
+                try
+                {
+                    using var directory = PinnedCleanerPath.Open(canonical, true);
+                    directories.Add(new(canonical, directory.Identity, reason));
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
         }
         if (inventory.Complete && !LeftoverSafety.SharedComponent(app) && LeftoverSafety.SafeRegistryName(app.DisplayName))
         {
