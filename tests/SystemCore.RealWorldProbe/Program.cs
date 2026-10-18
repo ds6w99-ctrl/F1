@@ -8,7 +8,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
+using SystemCore.Core.Cleaner;
+using SystemCore.Core.MemoryTools;
+using SystemCore.Core.Startup;
 using SystemCore.Core.Uninstaller;
+using SystemCore.Infrastructure.Cleaner;
+using SystemCore.Infrastructure.MemoryTools;
+using SystemCore.Infrastructure.Startup;
 using SystemCore.Infrastructure.Uninstaller;
 
 if (args.Length == 0) { Usage(); return 64; }
@@ -34,6 +40,10 @@ try
         "orphans" => await OrphansAsync(inventory, token),
         "export" => await ExportAsync(inventory, token),
         "restore" => await RestoreAsync(token),
+        "clean-scan" => await CleanScanAsync(token),
+        "memory-release" => await MemoryReleaseAsync(token),
+        "startup-list" => await StartupListAsync(token),
+        "startup-toggle" => await StartupToggleAsync(token),
         "inspect-parse" => await InspectParseAsync(token),
         "msi-debug" => await MsiDebugAsync(token),
         _ => Usage()
@@ -405,6 +415,101 @@ async Task<int> RestoreAsync(CancellationToken token)
     return result.Failed == 0 ? 0 : 2;
 }
 
+async Task<int> CleanScanAsync(CancellationToken token)
+{
+    // The same engine wiring the product uses, minus the elevated broker (probe parents are
+    // rejected by the helper identity gate by design). Recycle bin is only emptied when the
+    // caller passes --empty-recycle-bin explicitly.
+    var service = new WindowsCleanerService(new WindowsCleanerTargets(),
+        recycleBin: new WindowsRecycleBinService(new WindowsRecycleBinShell()),
+        explorerHistory: new ExplorerHistoryCleaner());
+    var scan = await service.ScanAsync(token);
+    var clean = args.Contains("--clean");
+    var emptyBin = args.Contains("--empty-recycle-bin");
+    var categoriesArg = args.Contains("--categories") ? Arg("--categories") : null;
+    var wanted = categoriesArg is null ? null
+        : new HashSet<string>(categoriesArg.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries), StringComparer.OrdinalIgnoreCase);
+    object? deletion = null;
+    if (clean)
+    {
+        var ids = scan.Categories.Where(c => wanted is null || wanted.Contains(c.Category.ToString()))
+            .SelectMany(c => c.Items).Select(i => i.Id).ToArray();
+        if (ids.Length == 0 && !emptyBin)
+            deletion = new { Note = "No items in selected categories" };
+        else
+        {
+            var result = await service.CleanAsync(new CleanerCleanRequest(scan.Id, ids, emptyBin), token);
+            deletion = new { result.Accepted, Items = result.Items.Select(i => new { i.ItemId, Outcome = i.Outcome.ToString(), i.RemovedBytes }) };
+        }
+    }
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        scan.Id,
+        Categories = scan.Categories.Select(c => new
+        {
+            Category = c.Category.ToString(), Status = c.Status.ToString(), c.Bytes, c.ItemCount,
+            Sample = c.Items.Take(15).Select(i => new { i.Id, i.DisplayPath, i.Size })
+        }),
+        Deletion = deletion
+    }, token);
+    Console.WriteLine($"clean-scan: {scan.Categories.Count} categories, clean={clean}");
+    return 0;
+}
+
+static MemoryStatusEx MemoryNow() { var s = new MemoryStatusEx { Length = (uint)Marshal.SizeOf<MemoryStatusEx>() }; NativeMemory.GlobalMemoryStatusEx(ref s); return s; }
+
+async Task<int> MemoryReleaseAsync(CancellationToken token)
+{
+    var kinds = new List<MemoryReleaseKind> { MemoryReleaseKind.StandbyLowPriority, MemoryReleaseKind.WorkingSet };
+    if (args.Contains("--standby-all")) kinds.Add(MemoryReleaseKind.StandbyAll);
+    if (args.Contains("--modified")) kinds.Add(MemoryReleaseKind.ModifiedPageList);
+    if (args.Contains("--registry-cache")) kinds.Add(MemoryReleaseKind.RegistryCache);
+    var before = MemoryNow();
+    var results = await new SystemMemoryReleaser().ReleaseAsync(kinds, [], token);
+    var after = MemoryNow();
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        BeforeAvailPhys = before.AvailPhys, AfterAvailPhys = after.AvailPhys, DeltaAvailPhys = (long)(after.AvailPhys - before.AvailPhys),
+        Results = results.Select(r => new { Kind = r.Kind.ToString(), r.Succeeded, r.Affected, r.Detail })
+    }, token);
+    Console.WriteLine($"memory-release: avail {before.AvailPhys} -> {after.AvailPhys}");
+    return results.Any(r => !r.Succeeded) ? 2 : 0;
+}
+
+async Task<int> StartupListAsync(CancellationToken token)
+{
+    var inventory = new StartupInventoryService(new RegistryStartupProvider(), new StartupFolderProvider(),
+        new TaskSchedulerStartupProvider(), new StartupStateService());
+    var session = await inventory.RefreshAsync(token);
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        session.Id, Complete = session.Inventory.Complete, Summary = inventory.Summary,
+        Items = session.Inventory.Items.Select(i => new { i.Id, i.Name, i.Publisher, Source = i.SourceType.ToString(), i.SourceLocation,
+            Status = i.Status.ToString(), Protection = i.ProtectionReason.ToString(), i.RequiresElevation, i.CanManage })
+    }, token);
+    Console.WriteLine($"startup-list: {session.Inventory.Items.Count} items");
+    return 0;
+}
+
+async Task<int> StartupToggleAsync(CancellationToken token)
+{
+    var registry = new RegistryStartupProvider();
+    var folders = new StartupFolderProvider();
+    var tasks = new TaskSchedulerStartupProvider();
+    var state = new StartupStateService();
+    var inventory = new StartupInventoryService(registry, folders, tasks, state);
+    var session = await inventory.RefreshAsync(token);
+    var name = Arg("--name");
+    var action = args.Contains("--enable") ? StartupAction.Enable : StartupAction.Disable;
+    var item = session.Inventory.Items.FirstOrDefault(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase));
+    if (item is null) { await WriteJsonAsync(Arg("--out"), new { Error = "not-found", Name = name }, token); return 3; }
+    var mutation = new StartupMutationService(inventory, registry, folders, tasks, state);
+    var result = await mutation.ApplyAsync(new StartupOperationRequest(session.Id, item.Id, action, Confirmed: true), token);
+    await WriteJsonAsync(Arg("--out"), new { Requested = new { item.Id, item.Name, Action = action.ToString() }, Outcome = result.Outcome.ToString() }, token);
+    Console.WriteLine($"startup-toggle: {item.Name} -> {result.Outcome}");
+    return result.Outcome == StartupOutcome.Success ? 0 : 2;
+}
+
 async Task<int> ExportAsync(InstalledApplicationInventory inventory, CancellationToken token)
 {
     var result = await inventory.ReadAsync(token);
@@ -423,4 +528,12 @@ async Task WriteJsonAsync(string path, object payload, CancellationToken token)
     Directory.CreateDirectory(directory);
     await File.WriteAllTextAsync(path, JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true }), token);
     Console.WriteLine("  wrote: " + path);
+}
+
+// --- type declarations (must follow all top-level statements) ---
+[StructLayout(LayoutKind.Sequential)]
+struct MemoryStatusEx { public uint Length; public uint MemoryLoad; public ulong TotalPhys, AvailPhys, TotalPageFile, AvailPageFile, TotalVirtual, AvailVirtual, AvailExtendedVirtual; }
+static class NativeMemory
+{
+    [DllImport("kernel32.dll")] public static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx status);
 }
