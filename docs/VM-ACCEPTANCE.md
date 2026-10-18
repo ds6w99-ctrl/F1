@@ -1,55 +1,66 @@
 # F1 — VM / clean-machine acceptance
 
-Purpose: close the clean-machine rows of `docs/RELEASE-QA.md` without the work host.
+Purpose: close the clean-machine rows of `docs/RELEASE-QA.md` without relying on the work host.
 
-## What the kit does
+## Result to date (2026-10-18)
 
-`scripts/Test-F1VmAcceptance.ps1` runs **on the target machine** (a fresh Windows 11 x64 VM,
-22H2 build 22631+ / 24H2 / 25H2). It records the environment, verifies the release hashes,
-performs a silent **install → layout check → launch/close → apps-and-features entry →
-silent uninstall → residue check**, and (with `-Mode Both`) a portable extract → run → remove
-check. Evidence is a JSON file plus a text summary; exit code 0 = PASS.
+A fresh Hyper-V VM was provisioned from the official Windows 11 Enterprise Evaluation ISO and
+exercised:
 
-## How to run it
+| Check | Result |
+|---|---|
+| Guest OS | Windows 11 Enterprise Evaluation, build **26300** (25H2), x64, no SDKs/dev tools |
+| Portable archive SHA256 | verified (`7105E41D…`) |
+| Portable extract + core payload (F1.exe / F1.pri / ElevatedHost) | PASS |
+| Portable launch | real window titled **"F1"** in the interactive session, closed cleanly |
+| Installer edition gate | correctly refused the evaluation edition (`EnterpriseEval`) |
+| Installer silent fail-fast | exits in ~9.5 s with a non-zero code (no hang) |
 
-1. Copy the release artifacts and this script into the VM (shared folder, ISO, or RDP copy):
-   - `F1-1.0.0-win-x64-setup.exe`
-   - `F1-1.0.0-win-x64-portable.zip`
-   - `Test-F1VmAcceptance.ps1`
-2. Inside the VM, in an **administrator PowerShell** (the installer requires admin), from the
-   folder that contains the files:
+Evidence lives under `artifacts/vm-validation/` (host logs) and the guest `C:\F1Evidence\`.
 
-   ```
-   powershell -ExecutionPolicy Bypass -File .\Test-F1VmAcceptance.ps1 -Mode Both
-   ```
+## How it works
 
-   The script verifies the two SHA-256 hashes against the release record
-   (`329241B2…` setup, `7105E41D…` portable) and refuses mismatched payloads.
+1. **`scripts/Invoke-F1VmValidation.ps1`** (elevated, host) — creates a Gen2 VM, then drives
+   the rest of the flow.
+2. **`scripts/Invoke-F1VmOfflineProvision.ps1`** (elevated, host) — applies `install.wim`
+   directly to the VM disk (avoids the DVD "press any key" prompt), runs `bcdboot`, and stages
+   `scripts/vm/autounattend-offline.xml` (specialize + oobeSystem: local admin `F1Admin`,
+   autologon, WinRM enable).
+3. The orchestrator waits for WinRM, copies the release artifacts plus
+   **`scripts/Test-F1VmAcceptance.ps1`**, and runs the acceptance inside the guest.
+4. Because a WinUI app needs a real desktop, the **launch** check runs interactively:
+   `scripts/vm/launch-interactive.ps1` is invoked from the autologon user's `Run` key and the
+   guest is rebooted, so the app starts in the console session and reports its window title.
 
-3. The launcher must run in an **interactive desktop session** — the launch/close check needs a
-   real window. Run it from the VM's own console/RDP session, not from a service.
+### Host prerequisites (all recorded in this run)
 
-   When the kit is driven remotely over WinRM (the automated path), the direct launch happens in
-   the non-interactive WinRM session, where no window can appear. The kit then falls back to a
-   one-shot scheduled task running as the autologon user (`F1Admin`), which starts the app in the
-   real desktop session and reports the window title back. Both modes write the same evidence.
+- Hyper-V feature enabled (**reboot required** — `vmms` only registers after it).
+- Host WinRM service started (`winrm quickconfig -q`); client `TrustedHosts=*` and
+  `AllowUnencrypted=true` for the Basic fallback. Negotiate works once the service is up.
+- A Windows 11 ISO at `G:\ISO\Win11Eval.iso`.
 
-4. Copy `vm-acceptance.json` and `vm-acceptance.txt` back to the work host (they land on the
-   VM's Desktop under `F1-VM-Evidence` by default; override with `-EvidencePath`).
+## Evaluation-edition caveat
 
-## What it deliberately does not cover (still manual / deferred)
+The Microsoft **evaluation** ISO reports `EditionID = EnterpriseEval`, which is *not* in the
+installer's client-edition allowlist (correctly). Consequently:
 
-- **UAC accept / deny / alternate-admin** on the secure desktop.
-- **Standard User** run: create the account, sign in, launch F1 at medium integrity.
-- **Windows editions** beyond the VM's own edition (matrix rows).
-- **DPI / Narrator / High Contrast** visual passes.
-- Reboot persistence (log off, reboot, confirm the installed app and preferences).
+- **Portable** acceptance works on the clean VM.
+- The **installer** install/uninstall lifecycle can only be exercised on a supported retail
+  edition (Home/Pro/Enterprise/Education); on the eval edition the installer refuses — now
+  failing fast instead of hanging. Retail-edition install/uninstall and the Standard User/UAC
+  matrix remain `DEFERRED TO RELEASE VALIDATION` rows in `docs/RELEASE-QA.md`.
 
-Those remain `DEFERRED TO RELEASE VALIDATION` rows in `docs/RELEASE-QA.md` until executed.
+## Still manual / deferred
 
-## Turning a clean VM into release evidence
+- UAC accept / deny / alternate-admin on the secure desktop.
+- Standard User run (medium-integrity launch).
+- Windows editions beyond the VM's own edition (matrix).
+- DPI / Narrator / High Contrast visual passes.
+- Reboot persistence of an installed copy.
 
-Record in the QA log: VM image name/date, Windows build/edition, artifact hashes (from the
-script output), PASS/FAIL per row, and the evidence files. The Release Gate itself only moves
-once the signing row is closed too; an unsigned PASS on clean machines is strong development
-evidence, not a release certificate.
+## Note on the app's own edition gate
+
+`CompatibilityRules.IsSupportedEdition` exists in `SystemCore.Core` and is exercised by
+`CompatibilityTests`, but it is **not wired into the application startup path** — the runtime
+edition gate lives only in the installer. The portable app therefore starts on any Windows 11
+x64 build; documentation claiming the app "refuses twice" should be reconciled with this.

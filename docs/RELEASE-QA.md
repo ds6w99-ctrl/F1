@@ -38,6 +38,12 @@ environment for the clean-machine and signing rows.
 - F1-003 leftover-scan fix is implemented and proven on the work host (unit/runner tests,
   306/306 UI checks, end-to-end synthetic probe: 9/9 items, no pollution, delete enabled).
   Repeating the same end-to-end proof on a disposable clean VM remains a release row.
+- Clean-machine portable launch is now evidenced: a fresh Hyper-V VM (Windows 11 Enterprise
+  Evaluation, build 26300, no SDKs) verified the portable archive SHA256, extracted it, and
+  launched `F1.exe` to a real window titled "F1". The installer's edition gate correctly
+  refused the evaluation edition and now fails fast on silent install (no hang). The
+  install/uninstall lifecycle on a supported retail edition and the Standard User/UAC
+  matrix stay open.
 
 Phase 10 requires owner approval.
 

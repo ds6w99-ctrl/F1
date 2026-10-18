@@ -28,6 +28,14 @@ both described in `docs/INSTALL.md`.
 - The confirmation dialog and the truncated-result message now describe the actual
   behavior in both languages.
 
+## Installer
+
+- On an unsupported Windows edition the installer now **fails fast** during a silent
+  (`/VERYSILENT /SUPPRESSMSGBOXES`) install instead of hanging on a modal box that no one
+  can dismiss. `InitializeSetup` uses `SuppressibleMsgBox`; a silent install on a rejected
+  edition exits with a non-zero code in seconds (verified: ~9.5 s on Windows 11 Enterprise
+  Evaluation, which the edition gate correctly refuses).
+
 ## Verified for this build
 
 - Release solution build: 0 warnings, 0 errors.
@@ -37,12 +45,19 @@ both described in `docs/INSTALL.md`.
   navigation, About version copy, restart persistence).
 - Portable payload verified byte-identical to the publication and launches/closes
   normally.
+- **Clean machine** (fresh Hyper-V VM, Windows 11 Enterprise Evaluation build 26300, no
+  SDKs/dev tools): portable archive SHA256 verified, extracted, and `F1.exe` launched a
+  real window titled "F1" in the interactive session; the installer edition gate refused
+  the evaluation edition and failed fast. Full procedure: `docs/VM-ACCEPTANCE.md`.
 
 ## Known limitations
 
 - No code-signing certificate: SmartScreen may warn once per download
   (`docs/SIGNING.md`). The package is otherwise complete and runnable.
-- Clean-machine, Standard User/UAC and full edition matrix validation remain deferred
-  (`docs/GATES.md`, `docs/RELEASE-QA.md`).
+- The install/uninstall lifecycle on a **supported retail edition**, genuine Standard
+  User/UAC matrix and full edition matrix remain deferred: the evaluation edition used for
+  clean-machine work is correctly rejected by the installer's edition gate, so the
+  install/uninstall path was exercised on the work host (0.9.0-dev) but not on a retail
+  clean machine (`docs/GATES.md`, `docs/RELEASE-QA.md`).
 - Diagnostic export, memory optimization no-op behavior and other documented scope
   limits of previous versions still apply.
