@@ -62,7 +62,9 @@ function ClickNativeInstallerDialog {
     $wins = $rootEl.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition)
     foreach ($w in $wins) {
         $p2 = Get-Process -Id $w.Current.ProcessId -ErrorAction SilentlyContinue
-        if (-not $p2 -or $p2.Name -notmatch 'msiexec|unins|setup|Un_A') { continue }
+        if (-not $p2) { continue }
+        if ($p2.Name -notmatch 'msiexec|unins|setup|Un_A|consent') { continue }
+        Log "  native win: pid=$($p2.Name) title='$($w.Current.Name)'"
         $btns = $w.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Button)))
         foreach ($b in $btns) {
             if ($b.Current.IsEnabled -and $b.Current.Name -match '^(OK|Finish|Close|Yes)$') {
@@ -125,7 +127,7 @@ if ($DriveUninstall) {
     else { Log 'dialog primary MISSING' }
     # wait for uninstall + automatic leftover scan (inventory refresh + scan)
     $status = Find $win 'UnStatus'
-    for ($i = 0; $i -lt 60; $i++) { Start-Sleep 5; $null = ClickNativeInstallerDialog; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($i % 6 -eq 0) { Log "status t=$((5*$i))s: $sname" }; if ($sname -match 'leftover|Leftover|removed|Removed|scan|Scan') { Log "status settled: $sname"; break } }
+    for ($i = 0; $i -lt 60; $i++) { Start-Sleep 5; $null = ClickNativeInstallerDialog; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($i % 6 -eq 0) { Log "status t=$((5*$i))s: $sname"; ShotScreen "45-wait-$((5*$i))s.png" }; if ($sname -match 'leftover|Leftover|removed|Removed|scan|Scan') { Log "status settled: $sname"; break } }
     Shot '40-after-uninstall.png'
     Log "status after: $($status.Current.Name)"
     $summary = Find $win 'UnLeftoverSummary'
