@@ -80,6 +80,7 @@ public partial class App : Application
         registrations.AddSingleton<PerformanceViewModel>();
         registrations.AddSingleton<ICleanerTargetProvider, WindowsCleanerTargets>();
         registrations.AddSingleton<ICleanerScanner, WindowsCleanerScanner>();
+        registrations.AddSingleton<SystemCore.Infrastructure.Cleaner.IExplorerHistoryCleaner, SystemCore.Infrastructure.Cleaner.ExplorerHistoryCleaner>();
         registrations.AddSingleton<ICleanerService, WindowsCleanerService>();
         registrations.AddSingleton<IRecycleBinShell, WindowsRecycleBinShell>();
         registrations.AddSingleton<IRecycleBinService, WindowsRecycleBinService>();

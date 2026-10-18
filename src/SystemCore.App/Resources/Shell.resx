@@ -227,6 +227,7 @@
   <data name="CleanUserWer" xml:space="preserve"><value>User Windows Error Reporting — unsupported in V1</value></data>
   <data name="CleanThumbnails" xml:space="preserve"><value>Thumbnail cache</value></data>
   <data name="CleanRecycleBin" xml:space="preserve"><value>Recycle Bin — entire current contents</value></data>
+  <data name="CleanExplorerHistory" xml:space="preserve"><value>Explorer history and traces</value></data>
   <data name="CleanDashboardInitial" xml:space="preserve"><value>Run a manual scan from Cleaner to see real results.</value></data>
   <data name="CleanPotential" xml:space="preserve"><value>Potentially reclaimable in the last completed scan; files may have changed.</value></data>
   <data name="CleanSafety" xml:space="preserve"><value>Cleaning permanently removes selected files. Locked, changed or uncertain files are skipped. Cancel cannot undo removals or stop a running Recycle Bin operation. Browser caches and WER are unsupported in V1.</value></data>

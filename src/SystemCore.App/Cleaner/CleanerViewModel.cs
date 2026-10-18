@@ -154,6 +154,10 @@ public sealed class CleanerViewModel : LocalizedViewModel
         ClearCategories(); ClearPreview(); selectedCategory = -1;
         if (session is not null) foreach (var category in session.Categories)
         {
+            // Requested behavior: an option the user cannot actually clean is not shown at all.
+            // Unavailable categories (no existing target after the allowlist) are hidden instead
+            // of being displayed as a disabled "unsupported" row.
+            if (category.Status == CleanerScanStatus.Unavailable) continue;
             var row = new CleanerCategoryRow(category, L);
             row.PropertyChanged += CategoryChanged;
 #if CLEANER_VALIDATION

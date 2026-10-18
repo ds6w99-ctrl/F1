@@ -6,7 +6,7 @@ namespace SystemCore.Infrastructure.Cleaner;
 
 // Owns the only accepted session. Callers submit opaque IDs, never paths or metadata.
 public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimeProvider? timeProvider = null,
-    IRecycleBinService? recycleBin = null, IElevatedCleanerClient? elevated = null) : ICleanerService
+    IRecycleBinService? recycleBin = null, IElevatedCleanerClient? elevated = null, IExplorerHistoryCleaner? explorerHistory = null) : ICleanerService
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly SemaphoreSlim operation = new(1, 1);
@@ -45,6 +45,29 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
             }
             lock (sync)
                 if (generation == version && !token.IsCancellationRequested) latest = session;
+            // Explorer traces are a fixed HKCU catalog, so their scan result is merged into the
+            // same session: only locations that exist become items (missing ones stay unavailable
+            // and are hidden by the page), and each item carries a deterministic id so deletion
+            // can re-verify the exact location without trusting caller paths.
+            if (explorerHistory is not null && !token.IsCancellationRequested)
+            {
+                IReadOnlyList<string> traces = [];
+                try { traces = await explorerHistory.ScanAsync(token).ConfigureAwait(false); }
+                catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+                catch (Exception ex) when (ex is not OutOfMemoryException)
+                { Core.Diagnostics.ReliabilityDiagnostics.Log.UnexpectedFailure((int)Core.Diagnostics.ReliabilityComponent.Cleaner, ex.HResult); }
+                if (!token.IsCancellationRequested)
+                {
+                    var items = traces.Select(trace => new CleanerItem(ExplorerHistoryCleaner.ItemIdFor(trace), CleanerCategory.ExplorerHistory,
+                        trace, trace, 0, 0, new CleanerIdentity(0, 0, 0, 0, 1, 0))).ToArray();
+                    var explorer = new CleanerCategoryResult(CleanerCategory.ExplorerHistory,
+                        items.Length == 0 ? CleanerScanStatus.Unavailable : CleanerScanStatus.Complete,
+                        Array.AsReadOnly(items), 0, traces.Count, new Dictionary<CleanerSkip, long>().AsReadOnly(), false, false, true);
+                    session = session with { Categories = Array.AsReadOnly(session.Categories.Select(c => c.Category == CleanerCategory.ExplorerHistory ? explorer : c).ToArray()) };
+                    lock (sync)
+                        if (generation == version) latest = session;
+                }
+            }
             return session;
         }
         finally { operation.Release(); }
@@ -70,8 +93,24 @@ public sealed class WindowsCleanerService(ICleanerTargetProvider targets, TimePr
             var bin = session.Categories.Single(c => c.Category == CleanerCategory.RecycleBin);
             if (request.EmptyRecycleBin && (recycleBin is null || bin.Status != CleanerScanStatus.Complete || bin.ReportedItems is null)) return new(false, []);
             var selected = ids.Select(id => eligible[id]).ToArray();
-            var local = await Task.Run(() => Execute(selected.Where(i => i.Category != CleanerCategory.WindowsTemp).ToArray(), token), CancellationToken.None).ConfigureAwait(false);
+            var explorerItems = selected.Where(i => i.Category == CleanerCategory.ExplorerHistory).ToArray();
+            var local = await Task.Run(() => Execute(selected.Where(i => i.Category is not CleanerCategory.WindowsTemp and not CleanerCategory.ExplorerHistory).ToArray(), token), CancellationToken.None).ConfigureAwait(false);
             var results = local.Items.ToList();
+            if (explorerItems.Length > 0)
+            {
+                if (explorerHistory is null) results.AddRange(explorerItems.Select(i => new CleanerItemResult(i.Id, CleanerItemOutcome.SafetyRejected, 0)));
+                else
+                {
+                    // Re-scan right before deleting so a location that vanished is reported, not guessed.
+                    var current = await explorerHistory.ScanAsync(token).ConfigureAwait(false);
+                    var expected = explorerItems.Select(i => i.DisplayPath).Where(path => current.Contains(path, StringComparer.OrdinalIgnoreCase)).ToArray();
+                    var idsByPath = explorerItems.Where(i => expected.Contains(i.DisplayPath, StringComparer.OrdinalIgnoreCase))
+                        .ToDictionary(i => i.DisplayPath, i => i.Id, StringComparer.OrdinalIgnoreCase);
+                    var cleaned = await explorerHistory.CleanAsync(expected, idsByPath, token).ConfigureAwait(false);
+                    results.AddRange(cleaned);
+                    results.AddRange(explorerItems.Where(i => !idsByPath.ContainsValue(i.Id)).Select(i => new CleanerItemResult(i.Id, CleanerItemOutcome.AlreadyGone, 0)));
+                }
+            }
             var systemItems = selected.Where(i => i.Category == CleanerCategory.WindowsTemp).ToArray();
             if (systemItems.Length > 0)
             {

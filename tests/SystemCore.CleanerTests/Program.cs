@@ -85,6 +85,7 @@ var limited = await new WindowsCleanerScanner(new FixtureTargets(stress)) { Cate
 Check("real entry limit marks incomplete", limited.Categories.Single(c => c.Category == CleanerCategory.UserTemp) is { Status: CleanerScanStatus.Incomplete, Visited: 2000 });
 Check("incomplete scan not accepted as complete", !limited.Complete);
 if (await TargetTests.Run() != 0) passed = false;
+await ExplorerHistoryTests.Run(Check);
 Console.WriteLine("Fixture retained (no deletion): " + Path.GetFileName(root));
 return passed ? 0 : 1;
 

@@ -227,6 +227,7 @@
   <data name="CleanUserWer" xml:space="preserve"><value>تقارير أخطاء Windows للمستخدم — غير مدعومة في V1</value></data>
   <data name="CleanThumbnails" xml:space="preserve"><value>ذاكرة الصور المصغرة المؤقتة</value></data>
   <data name="CleanRecycleBin" xml:space="preserve"><value>سلة المحذوفات — جميع المحتويات الحالية</value></data>
+  <data name="CleanExplorerHistory" xml:space="preserve"><value>سجل وآثار مستكشف الملفات</value></data>
   <data name="CleanDashboardInitial" xml:space="preserve"><value>ابدأ فحصًا يدويًا من صفحة التنظيف لعرض نتائج حقيقية.</value></data>
   <data name="CleanPotential" xml:space="preserve"><value>المساحة المحتملة وفق آخر فحص مكتمل؛ قد تكون الملفات تغيرت منذ ذلك الحين.</value></data>
   <data name="CleanSafety" xml:space="preserve"><value>يحذف التنظيف الملفات المحددة نهائيًا. تُتجاوز الملفات المقفلة أو المتغيرة أو غير المؤكدة. لا يستعيد الإلغاء المحذوفات ولا يوقف عملية إفراغ سلة جارية. ذاكرة المتصفحات وWER غير مدعومتين في V1.</value></data>
