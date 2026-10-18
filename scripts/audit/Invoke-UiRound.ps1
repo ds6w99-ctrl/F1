@@ -51,7 +51,7 @@ Invoke-Command -Session $s -ScriptBlock {
     New-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -Name 'F1AuditUi' -Value 'C:\F1Audit\F1\F1.exe' -PropertyType String -Force | Out-Null
     'run key set; rebooting in 5s'
 } | Out-String
-Restart-Computer -ComputerName $VmIp -Credential $cred -Authentication Negotiate -Force -ErrorAction SilentlyContinue
+Invoke-Command -Session $s -ScriptBlock { shutdown /r /t 5 /f; 'reboot issued' } | Out-String
 Remove-PSSession $s
 Start-Sleep 60
 $s2 = $null
