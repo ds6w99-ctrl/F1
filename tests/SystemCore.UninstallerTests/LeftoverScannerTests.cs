@@ -63,6 +63,20 @@ static class LeftoverScannerTests
             check("MSI install location anchored and residuals discovered (F1-005)", msiScan.Items.Any(i => i.DisplayLocation == Path.Combine(msiRoot, "untracked.dll")));
             check("MSI install directory carries the MSI anchor reason (F1-005)", msiScan.Items.Any(i => i.DisplayLocation == msiRoot && i.Evidence.Contains("Windows Installer verified product code", StringComparison.Ordinal)));
             Directory.Delete(msiRoot, true);
+            // F1-006: Win32 registrations without InstallLocation anchor on the native
+            // uninstaller's own directory (the Notepad++ case: NSIS entries omit the location).
+            var nativeRoot = root + "-uninstaller-dir";
+            Directory.CreateDirectory(nativeRoot);
+            File.Copy(Path.Combine(AppContext.BaseDirectory, "SystemCore.UninstallerTests.exe"), Path.Combine(nativeRoot, "uninstall.exe"));
+            File.WriteAllText(Path.Combine(nativeRoot, "residual.dll"), "residual");
+            var noLocationApp = new InstalledApplication(name + "-noloc", name + " (NoLoc)", "SystemCore tests", "3", null, null, null, null, ApplicationType.Win32,
+                $"\"{Path.Combine(nativeRoot, "uninstall.exe")}\"", false, null, null, null, new(InventoryHive.LocalMachine, InventoryView.Registry64, name + "-noloc"), null,
+                false, false, false, true, null);
+            var noLocStore = new ApplicationRemovalEvidence();
+            await noLocStore.CaptureAsync(noLocationApp, new([noLocationApp], true, []), default);
+            var noLocScan = await new LeftoverScanner(noLocStore, new Inventory()).ScanAsync(noLocStore.ConfirmRemoved(noLocationApp.Id)!.Id, default);
+            check("Uninstaller directory anchors Win32 registrations without InstallLocation (F1-006)", noLocScan.Items.Any(i => i.DisplayLocation == Path.Combine(nativeRoot, "residual.dll")));
+            Directory.Delete(nativeRoot, true);
             var saves = Path.Combine(root, "Save Games"); Directory.CreateDirectory(saves);
             var save = Path.Combine(saves, "slot.bin"); File.WriteAllText(save, "personal save");
             var config = Path.Combine(root, "settings.ini"); File.WriteAllText(config, "personal config");

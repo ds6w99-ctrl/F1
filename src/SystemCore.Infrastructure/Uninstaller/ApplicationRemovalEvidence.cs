@@ -34,6 +34,9 @@ public sealed class ApplicationRemovalEvidence
         // pre-uninstall facts. Display-name similarity never authorizes a directory.
         // MSI products carry a product code verified by the Windows Installer API instead of a
         // native uninstaller executable inside the directory (the uninstaller is msiexec.exe).
+        // Win32 registrations often omit InstallLocation entirely; when they do, the native
+        // uninstaller's own directory is still a concrete fact and anchors the directory it
+        // provably operated on (same ownership validation as the registered location).
         if (inventory.Complete && app.InstallLocation is { } location
             && CleanerSafety.Canonical(location) is { } canonical && LeftoverSafety.CanOwnDirectory(app, canonical, inventory.Applications)
             && Directory.Exists(canonical))
@@ -56,6 +59,22 @@ public sealed class ApplicationRemovalEvidence
                 }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
             }
+        }
+        if (inventory.Complete && app.ApplicationType == ApplicationType.Win32 && app.InstallLocation is null
+            && UninstallCommandParser.Parse(app.RegisteredUninstallCommand) is { } nativeCommand
+            && Path.GetDirectoryName(nativeCommand.Executable) is { } nativeDirectory
+            && CleanerSafety.Canonical(nativeDirectory) is { } nativeCanonical
+            && LeftoverSafety.CanOwnDirectory(app, nativeCanonical, inventory.Applications)
+            && Directory.Exists(nativeCanonical)
+            && directories.All(d => !LeftoverSafety.Conflicts(d.Path, nativeCanonical)))
+        {
+            try
+            {
+                using var directory = PinnedCleanerPath.Open(nativeCanonical, true);
+                directories.Add(new(nativeCanonical, directory.Identity,
+                    "Native uninstaller directory; the registration carries no install location"));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
         }
         if (inventory.Complete && !LeftoverSafety.SharedComponent(app) && LeftoverSafety.SafeRegistryName(app.DisplayName))
         {
