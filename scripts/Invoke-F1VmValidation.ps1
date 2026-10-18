@@ -126,8 +126,8 @@ try {
         }
         Log "Acceptance exit code: $($run.ExitCode)"
         Write-Host $run.Output
-        Copy-Item -FromSession $session 'C:\F1Evidence\*' -Destination $EvidencePath -Force -ErrorAction SilentlyContinue
-        Copy-Item -FromSession $session 'C:\F1Kit\Test-F1VmAcceptance.ps1' -Destination $EvidencePath -Force -ErrorAction SilentlyContinue
+        Copy-Item -FromSession $session -Path 'C:\F1Evidence' -Destination $EvidencePath -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item -FromSession $session -Path 'C:\F1Kit\Test-F1VmAcceptance.ps1' -Destination $EvidencePath -Force -ErrorAction SilentlyContinue
     }
 } finally {
     if ($session) { Remove-PSSession $session }
