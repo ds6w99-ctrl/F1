@@ -7,6 +7,7 @@ param(
     [string]$TargetApp = '7-Zip'
 )
 $ErrorActionPreference = 'Continue'
+$script:lastEnter = $null
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
@@ -74,6 +75,15 @@ function ClickNativeInstallerDialog {
                 return $true
             }
         }
+        # Fallback: press Enter on the dialog (accepts its default action, as a real user would).
+        # Throttled to once per 60s so a repeat-press cannot confirm an unexpected second prompt.
+        if ($script:lastEnter -and ((Get-Date) - $script:lastEnter).TotalSeconds -lt 60) { continue }
+        $script:lastEnter = Get-Date
+        $null = [W2]::SetForegroundWindow($w.Current.NativeWindowHandle); Start-Sleep -Milliseconds 600
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+        Log "pressed ENTER on native window '$($w.Current.Name)'"
+        return $true
     }
     return $false
 }
