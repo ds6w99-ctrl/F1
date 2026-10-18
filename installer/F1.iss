@@ -86,5 +86,7 @@ function InitializeSetup: Boolean;
 begin
   Result := IsAllowedEdition;
   if not Result then
-    MsgBox('F1 requires Windows 11 Home, Pro, Enterprise or Education, version 23H2 or later, x64.', mbError, MB_OK);
+    // Suppressible so a silent (/VERYSILENT /SUPPRESSMSGBOXES) install fails fast on an
+    // unsupported edition instead of hanging on a modal box that no one can dismiss.
+    SuppressibleMsgBox('F1 requires Windows 11 Home, Pro, Enterprise or Education, version 23H2 or later, x64.', mbError, MB_OK, IDOK);
 end;
