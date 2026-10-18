@@ -41,6 +41,20 @@ function Shot([string]$file) {
     $g.Dispose(); $bmp.Dispose()
     Log "SHOT $file"
 }
+function ShotScreen([string]$file) {
+    Add-Type -AssemblyName System.Windows.Forms
+    $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+    $bmp = New-Object Drawing.Bitmap $bounds.Width, $bounds.Height
+    $g = [Drawing.Graphics]::FromImage($bmp)
+    try { $g.CopyFromScreen($bounds.Location, [Drawing.Point]::Empty, $bounds.Size) } catch { Log "SHOTSCREEN $file : $($_.Exception.Message)" }
+    $bmp.Save((Join-Path $OutDir $file), [Drawing.Imaging.ImageFormat]::Png)
+    $g.Dispose(); $bmp.Dispose()
+    Log "SHOTSCREEN $file"
+}
+function AllButtons($win) {
+    $buttons = $win.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Button)))
+    foreach ($b in $buttons) { if ($b.Current.Name) { Log "  btn: '$($b.Current.Name)' id='$($b.Current.AutomationId)' enabled=$($b.Current.IsEnabled)" } }
+}
 
 $p = Start-Process $AppPath -PassThru
 $sw = [Diagnostics.Stopwatch]::StartNew()
@@ -78,24 +92,56 @@ if ($DriveUninstall) {
     }
     if (-not $target) { Log "target app '$TargetApp' not found"; exit 2 }
     $target.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select()
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 3
     Shot '20-app-selected.png'
     $uninstall = Find $win 'UnUninstall'
     if (-not $uninstall) { Log 'UnUninstall MISSING'; exit 3 }
     $uninstall.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
     Start-Sleep -Seconds 4
     Shot '30-confirm-dialog.png'
+    AllButtons $win
     # ContentDialog primary button (English text "Uninstall")
     $primary = FindName $win 'Uninstall'
     if ($primary) { $primary.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); Log 'confirmed uninstall' }
     else { Log 'dialog primary MISSING' }
-    Start-Sleep -Seconds 30
-    Shot '40-after-uninstall.png'
+    # wait for uninstall + automatic leftover scan (inventory refresh + scan)
     $status = Find $win 'UnStatus'
+    for ($i = 0; $i -lt 36; $i++) { Start-Sleep 5; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($sname -match 'leftover|Leftover|removed|Removed') { Log "status after $((5*$i))s: $sname"; break } }
+    Shot '40-after-uninstall.png'
     Log "status after: $($status.Current.Name)"
     $summary = Find $win 'UnLeftoverSummary'
     if ($summary) { Log "leftover summary: $($summary.Current.Name)" }
-    Start-Sleep -Seconds 10
+    Start-Sleep -Seconds 8
     Shot '50-leftovers.png'
+    $list2 = Find $win 'UnApplications'
+    if ($list2) {
+        $items2 = $list2.FindAll([Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition)
+        Log "leftover items: $($items2.Count)"
+        foreach ($i in $items2) { if ($i.Current.Name) { Log "  leftover: $($i.Current.Name)" } }
+        foreach ($i in $items2) { try { $i.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch { } }
+        Log 'selected all visible leftover items'
+    } else { Log 'leftover list MISSING' }
+    $allow = Find $win 'UnAllowPersonalData'
+    if ($allow -and $allow.Current.IsEnabled -and $allow.Current.Visibility -ne 'Offscreen') {
+        $allow.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle(); Log 'toggled AllowPersonalData'
+    }
+    Shot '55-leftovers-selected.png'
+    $delete = Find $win 'UnDeleteLeftovers'
+    if ($delete -and $delete.Current.IsEnabled) {
+        $delete.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+        Start-Sleep -Seconds 4
+        Shot '60-delete-dialog.png'
+        AllButtons $win
+        $deletePrimary = FindName $win 'Delete'
+        if ($deletePrimary) { $deletePrimary.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); Log 'confirmed delete leftovers' }
+        else { Log 'delete dialog primary MISSING' }
+        Start-Sleep -Seconds 8
+        ShotScreen '70-uac-or-result.png'
+        Shot '70-after-delete.png'
+        $status = Find $win 'UnStatus'
+        Log "status after delete: $($status.Current.Name)"
+        Start-Sleep -Seconds 20
+        ShotScreen '80-final-screen.png'
+    } else { Log "UnDeleteLeftovers missing or disabled: $([bool]$delete)" }
 }
 Log 'UI ROUND DONE'
