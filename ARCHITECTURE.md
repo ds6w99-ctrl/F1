@@ -83,14 +83,17 @@ including last-write metadata. Current-token permission failures are per-item re
 Ownership is established before removal, never guessed after it. The pre-uninstall receipt
 records the registered install location, the registry data path, and the application's data
 directories under the shared roots. A second layer observes the directories beneath those
-roots immediately before and immediately after the native uninstaller runs: removing any
-direct child moves its parent's last-write time, so a moved directory is provably one the
-uninstaller worked on. That names an application-owned folder whose own name resembles
-nothing, which no amount of name matching can do. Name-linked and observed items are always
-Review and require explicit personal-data consent; only an exact pre-uninstall receipt fact
-can be Safe. Admin-only trees (Program Files, ProgramData) are routed through the elevated
-helper behind a closed operation allow-list, and the helper never receives a user-writable
-tree.
+roots immediately before and immediately after the native uninstaller runs: an anchor is
+accepted only when its last-write time moved **and** its direct entry count decreased between
+the two snapshots. An active cache rewrites or grows, so its count stays or rises and it never
+anchors; a real deletion by the native uninstaller shrinks the directory and proves it was
+worked on. Each unverified anchor is additionally capped so one noisy directory can never
+flood the review, and a truncated session still deletes the individually verified items it
+shows. That names an application-owned folder whose own name resembles nothing, which no
+amount of name matching can do. Name-linked and observed items are always Review and require
+explicit personal-data consent; only an exact pre-uninstall receipt fact can be Safe.
+Admin-only trees (Program Files, ProgramData) are routed through the elevated helper behind
+a closed operation allow-list, and the helper never receives a user-writable tree.
 
 ## Phase 4 additions
 

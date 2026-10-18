@@ -1,7 +1,7 @@
 # F1 rebrand compatibility
 
 The App project alone sets `AssemblyName=F1`, with explicit
-`RootNamespace=SystemCore.App`. Product version remains **0.9.0-dev**. Resources keep
+`RootNamespace=SystemCore.App`. Product version is **1.0.0**. Resources keep
 the `SystemCore.App.Resources.Shell` base name; the satellite assembly is named
 `F1.resources.dll`. The output is `F1.exe`, not a renamed standalone apphost.
 

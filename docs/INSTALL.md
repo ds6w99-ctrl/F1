@@ -21,7 +21,7 @@ powershell -File scripts/Build.ps1
 powershell -File scripts/Build-Installer.ps1 -Compiler <ISCC.exe 7.1.0>
 ```
 
-That yields `artifacts/installer/F1-0.9.0-dev-win-x64-setup.exe`.
+That yields `artifacts/installer/F1-1.0.0-win-x64-setup.exe`.
 
 What it does:
 
@@ -36,7 +36,7 @@ What it does:
   helper placed beside `App` instead of inside it is never found, which silently disables
   elevated leftover deletion.
 - Adds a Start-menu shortcut, an optional desktop shortcut, and an **Apps & features**
-  entry named `F1 0.9.0-dev`.
+  entry named `F1 1.0.0`.
 - Copies `THIRD-PARTY-NOTICES` and the dependency licences to `Notices\`.
 - Requires administrator rights, because it writes to Program Files.
 - Does **not** start anything elevated. F1 itself runs as the calling user (`asInvoker`);
@@ -45,7 +45,7 @@ What it does:
 Silent install:
 
 ```
-F1-0.9.0-dev-win-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+F1-1.0.0-win-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
 Uninstall from **Apps & features**, or run
@@ -58,7 +58,7 @@ Uninstall from **Apps & features**, or run
 powershell -File scripts/Build-Portable.ps1
 ```
 
-Produces `artifacts/portable/F1-0.9.0-dev-win-x64-portable.zip`. Extract it anywhere —
+Produces `artifacts/portable/F1-1.0.0-win-x64-portable.zip`. Extract it anywhere —
 a USB stick is fine — and run `F1.exe`. Same nested layout, no registration, and no
 administrator rights needed to start. F1 still asks for elevation only for leftover
 deletion outside your profile.

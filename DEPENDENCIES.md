@@ -17,10 +17,15 @@ The older resolved inventory and SBOM below describe phase 0, not the complete p
 
 This is a phase-0 inventory, not a completed distribution audit. Restore and publish
 succeeded; all five projects have generated lock files and locked restore passed.
-`docs/dependencies.resolved.json` records all **8 resolved NuGet packages** with source,
-version, license metadata and content hash. `docs/sbom.resolved-nuget.cdx.json` contains their
-dependency relationships. SDK/runtime packs and embedded native components require additional
-closure review; do not ship on the basis of the NuGet graph alone.
+`docs/dependencies.resolved.json` records all **13 resolved NuGet packages** with source,
+version, license metadata and content hash. `docs/sbom.resolved-nuget.cdx.json` contains them
+as CycloneDX components (SHA-512 of the restored .nupkg files, regenerated for the locked
+`1.0.0` restore). `docs/sbom.native-1.0.0.cdx.json` records the self-contained native payload
+for `1.0.0`: product binaries, the .NET 10.0.12 win-x64 runtime, WinUI/AppSDK runtime files and
+the WebView2 loader, with SHA-256 hashes of the shipped files; the full per-file inventory
+(665 files) is produced at build time in `artifacts/publish-inventory.json`. SDK/runtime packs
+and embedded native components still require a final redistribution-terms review on the signed
+payload; that row remains open under Release QA.
 
 | Component/version | Purpose | Source | License / required review |
 |---|---|---|---|

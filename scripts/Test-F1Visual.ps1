@@ -50,7 +50,7 @@ function Scroll-Containing([string]$id,[double]$percent){
 function Capture([string]$page,[string]$suffix=''){
  $name="$language-$theme-$page$suffix";Save-WindowPicture $name
  $r=New-Object F1CaptureNative+Rect;$null=[F1CaptureNative]::GetClientRect($p.MainWindowHandle,[ref]$r)
- $shots.Add([pscustomobject]@{File="$name.png";Page=$page;Language=$language;Theme=$theme;ClientPixels=@($r.Right,$r.Bottom);Dpi=[F1CaptureNative]::GetDpiForWindow($p.MainWindowHandle);Version='0.9.0-dev';Utc=[DateTimeOffset]::UtcNow;Source='Published F1.exe desktop capture';AssemblySha256=(Get-FileHash (Join-Path (Split-Path $AppPath) F1.dll)).Hash})
+ $shots.Add([pscustomobject]@{File="$name.png";Page=$page;Language=$language;Theme=$theme;ClientPixels=@($r.Right,$r.Bottom);Dpi=[F1CaptureNative]::GetDpiForWindow($p.MainWindowHandle);Version='1.0.0';Utc=[DateTimeOffset]::UtcNow;Source='Published F1.exe desktop capture';AssemblySha256=(Get-FileHash (Join-Path (Split-Path $AppPath) F1.dll)).Hash})
 }
 try{
  [IO.File]::WriteAllText($pref,'{"schemaVersion":1,"theme":"Dark","language":"ar","f1CompatibilitySentinel":{"preserve":true}}')
@@ -73,7 +73,7 @@ try{
     if($page -eq 'SystemInfo'){Start-Sleep -Seconds 3}
     if($page -eq 'About'){
      Scroll-Containing 'AboutCopyVersion' 0;Check 'Exact F1 attribution' ((Find 'F1Attribution').Current.Name -eq 'Made By Falcone') $null
-     Check 'Version remains a separate technical value in both languages' ((Find 'F1AboutVersion').Current.Name -eq '0.9.0-dev') $language
+     Check 'Version remains a separate technical value in both languages' ((Find 'F1AboutVersion').Current.Name -eq '1.0.0') $language
     }
     Capture $page
     if($theme -eq 'Dark' -and $page -in @('Cleaner','MemoryTools','Uninstaller','Startup','Settings','About')){Scroll-Containing $(switch($page){'Cleaner'{'CleanerScan'} 'MemoryTools'{'MemPhysical'} 'Uninstaller'{'UnSearch'} 'Startup'{'StartSearch'} 'Settings'{'LanguagePicker'} 'About'{'AboutCopyVersion'}}) 100;Capture $page '-details';Scroll-Containing $(switch($page){'Cleaner'{'CleanerScan'} 'MemoryTools'{'MemPhysical'} 'Uninstaller'{'UnSearch'} 'Startup'{'StartSearch'} 'Settings'{'LanguagePicker'} 'About'{'AboutCopyVersion'}}) 0}

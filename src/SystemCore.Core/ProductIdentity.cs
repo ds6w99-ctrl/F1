@@ -9,5 +9,5 @@ public static class ProductIdentity
     public const string AppExecutableName = "F1.exe";
     public const string Publisher = ""; // Unassigned; no commercial publisher is asserted.
     public const string LogoAsset = "ms-appx:///Assets/F1/mark.svg";
-    public const string Stage = "Phase 9 — development";
+    public const string Stage = "Release";
 }

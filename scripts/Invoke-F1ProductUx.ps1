@@ -15,4 +15,4 @@ do {
 Check 'Keyboard test targets focused language control' ((Find 'LanguagePicker').Current.HasKeyboardFocus -and [ShellSmokeNative]::GetForegroundWindow() -eq $p.MainWindowHandle) $null
 [Windows.Forms.SendKeys]::SendWait('{TAB}')
 '@)
-& ([scriptblock]::Create($source)) -AppPath $AppPath -EvidencePath $EvidencePath -ExpectedVersion '0.9.0-dev'
+& ([scriptblock]::Create($source)) -AppPath $AppPath -EvidencePath $EvidencePath -ExpectedVersion '1.0.0'

@@ -1,0 +1,26 @@
+{
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "version": 1,
+    "metadata": {
+        "component": { "type": "application", "name": "F1", "version": "1.0.0" },
+        "timestamp": "2026-10-18T00:00:00Z",
+        "properties": [
+            { "name": "systemcore:scope", "value": "Self-contained native payload (artifacts/publish/App) for F1 1.0.0. SHA-256 hashes are of the shipped files. The full publish inventory (665 files, 280.5 MB) is recorded in artifacts/publish-inventory.json at build time." }
+        ]
+    },
+    "components": [
+        { "type": "application", "name": "F1.exe", "version": "1.0.0", "publisher": "Falcone", "hashes": [ { "alg": "SHA-256", "content": "27181145572DD4D16655A94D140410A9B6CBA83968D239B6A9F102757C21DE14" } ] },
+        { "type": "library", "name": "F1.dll", "version": "1.0.0", "publisher": "Falcone", "hashes": [ { "alg": "SHA-256", "content": "E298A8F64EDDA219AAC37635FCD6209CD4B329578D7F2D8E7B223E822E1348A8" } ] },
+        { "type": "library", "name": "SystemCore.Core.dll", "version": "1.0.0", "publisher": "Falcone", "hashes": [ { "alg": "SHA-256", "content": "AB22DB99534F286018E9226CDF17664879991D94F68BE635BEF0D08AB0F9DE4A" } ] },
+        { "type": "library", "name": "SystemCore.Infrastructure.dll", "version": "1.0.0", "publisher": "Falcone", "hashes": [ { "alg": "SHA-256", "content": "ECA0FB777AB0562D00062E12CD5C67285542BD620769CEBDADA9648E50932AAD" } ] },
+        { "type": "application", "name": "SystemCore.ElevatedHost.exe", "version": "1.0.0", "publisher": "Falcone", "hashes": [ { "alg": "SHA-256", "content": "66540E4CA878113C81D87CE51644E89A49E2E1598FDA509AD6EA0C03700177E9" } ] },
+        { "type": "library", "name": "Microsoft.NETCore.App.Runtime.win-x64", "version": "10.0.12", "purl": "pkg:nuget/Microsoft.NETCore.App.Runtime.win-x64@10.0.12", "properties": [ { "name": "systemcore:shipment", "value": "Self-contained runtime; representative shipped file coreclr.dll below." } ] },
+        { "type": "library", "name": "coreclr.dll", "version": "10.0.12", "hashes": [ { "alg": "SHA-256", "content": "128AEE8C62A673D64739E585E3876B61133571CEC83A46240A62581D5465639B" } ] },
+        { "type": "library", "name": "Microsoft.UI.Xaml.dll", "version": "2.3", "purl": "pkg:nuget/Microsoft.WindowsAppSDK.WinUI@2.3.9", "hashes": [ { "alg": "SHA-256", "content": "AAD12524765E6FB63F0AE26A45A9BA3104F24FDE66413D8A3036FBED74A1E990" } ] },
+        { "type": "library", "name": "Microsoft.WindowsAppRuntime.Bootstrap.dll", "version": "2.0", "purl": "pkg:nuget/Microsoft.WindowsAppSDK.Runtime@2.5.1", "hashes": [ { "alg": "SHA-256", "content": "E4ACD665FF39F8A0D591459BD5901482E71B4FFBE644F421FFAD9431B5FED438" } ] },
+        { "type": "library", "name": "WebView2Loader.dll", "version": "1.0.3719.77", "purl": "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77", "hashes": [ { "alg": "SHA-256", "content": "AE69309C5E356350EA28D6B71A900BC43EE7E3F7A457D80A1F82EFE6C419CC08" } ] },
+        { "type": "library", "name": "Microsoft.Web.WebView2.Core.dll", "version": "1.0.3719.77", "purl": "pkg:nuget/Microsoft.Web.WebView2@1.0.3719.77", "hashes": [ { "alg": "SHA-256", "content": "17CCD9141C486D7A3689ED38D72D3BD8BB0E216B7990FCC76C132DC9102C6320" } ] },
+        { "type": "application", "name": "Inno Setup x64 compiler portable installer", "version": "7.1.0", "hashes": [ { "alg": "SHA-256", "content": "0362a383ed217d4c4239b5933866dd96d3eb2102737da92f80f6057a4b40df2f" } ], "externalReferences": [ { "type": "distribution", "url": "https://github.com/jrsoftware/issrc/releases/download/is-7_1_0/innosetup-7.1.0-x64.exe" } ], "properties": [ { "name": "systemcore:role", "value": "build tooling only; not shipped" } ] }
+    ]
+}

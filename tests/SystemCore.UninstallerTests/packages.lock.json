@@ -20,7 +20,7 @@
         "type": "Project",
         "dependencies": {
           "System.Management": "[10.0.12, )",
-          "SystemCore.Core": "[0.9.0-dev, )"
+          "SystemCore.Core": "[1.0.0, )"
         }
       },
       "System.Management": {

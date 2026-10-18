@@ -4,7 +4,7 @@ Release / Production Gate: **PENDING**.
 
 ## Distribution artifacts
 
-Two distribution paths exist for `0.9.0-dev`: the per-machine installer from
+Two distribution paths exist for `1.0.0`: the per-machine installer from
 `installer/F1.iss` (built by `scripts/Build-Installer.ps1`) and a no-install portable
 archive from `scripts/Build-Portable.ps1`. Both are described in `docs/INSTALL.md`, and
 both were exercised on the work host — silent install to `%ProgramFiles%\F1`, layout
@@ -33,7 +33,11 @@ environment for the clean-machine and signing rows.
   separate from primary memory evidence. Expected high-contrast subscription failure
   and shutdown cancellation must not be confused with unhandled exceptions.
 - Final NuGet/runtime/native/license payload SBOM refresh and notices, full Windows
-  edition/DPI/Narrator/high-contrast/install lifecycle matrix. `0.9.0-dev` is development.
+  edition/DPI/Narrator/high-contrast/install lifecycle matrix. The current `1.0.0`
+  package is unsigned and has no clean-machine certification yet.
+- F1-003 leftover-scan fix is implemented and proven on the work host (unit/runner tests,
+  306/306 UI checks, end-to-end synthetic probe: 9/9 items, no pollution, delete enabled).
+  Repeating the same end-to-end proof on a disposable clean VM remains a release row.
 
 Phase 10 requires owner approval.
 

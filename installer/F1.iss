@@ -12,7 +12,7 @@
 ; AppContext.BaseDirectory, SecurityTests and CompatibilityTests pin that relationship, and
 ; docs/CLEANER-PROTOCOL.md documents it. The recursive App\* entry below is what places it.
 #define ProductName "F1"
-#define ProductVersion "0.9.0-dev"
+#define ProductVersion "1.0.0"
 #define RepoRoot AddBackslash(SourcePath) + ".."
 
 [Setup]

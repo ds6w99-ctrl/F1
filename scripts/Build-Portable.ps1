@@ -1,4 +1,4 @@
-param([string]$Version = '0.9.0-dev')
+param([string]$Version = '1.0.0')
 # Produces a no-install portable archive: extract anywhere and run App\F1.exe.
 #
 # Why this exists next to the installer: the installer needs administrator rights because it
