@@ -1,4 +1,4 @@
-﻿# The tree is LF-first (matching .editorconfig). Pin it explicitly so a machine with
+# The tree is LF-first (matching .editorconfig). Pin it explicitly so a machine with
 # core.autocrlf=true still checks out LF; batch files are the deliberate exception below.
 * text=auto eol=lf
 
