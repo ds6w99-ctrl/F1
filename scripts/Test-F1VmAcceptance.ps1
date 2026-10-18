@@ -6,6 +6,8 @@ param(
     [string]$PortablePath = 'F1-1.0.0-win-x64-portable.zip',
     [string]$PortableSha256 = '7105E41D9BC1D46F45575550E80D65C431B8416CC379D65DFEA8CF16DEE87A2C',
     [string]$EvidencePath = "$env:USERPROFILE\Desktop\F1-VM-Evidence",
+    [string]$InteractiveUser = 'F1Admin',
+    [string]$InteractivePass = 'F1Vm!2026',
     [int]$LaunchTimeoutSeconds = 40,
     [int]$UninstallTimeoutSeconds = 180
 )
@@ -16,6 +18,9 @@ param(
 # verification, launch/close smoke, uninstall + residue check, and a portable extract/run/remove
 # check. It never touches user data outside the installer's own install root. Evidence is written
 # as JSON + a plain-text summary. Exit code 0 = every executed check passed.
+# When invoked over WinRM (no interactive desktop in that session), the launch smoke falls back
+# to a one-shot scheduled task running as the logged-on interactive user, so the window check is
+# still a real UI check.
 $ErrorActionPreference = 'Stop'
 $report = [ordered]@{
     StartedAt = [DateTimeOffset]::Now
@@ -44,6 +49,52 @@ function Step([string]$name, [scriptblock]$action) {
         Write-Output "FAIL: $name - $($_.Exception.Message)"
         return $null
     }
+}
+
+function Start-InteractiveApp([string]$exePath) {
+    # Direct launch works when the caller already owns an interactive desktop.
+    try {
+        $p = Start-Process $exePath -PassThru
+        $clock = [Diagnostics.Stopwatch]::StartNew()
+        do { Start-Sleep -Milliseconds 300; $p.Refresh() } while (!$p.HasExited -and $p.MainWindowHandle -eq [IntPtr]::Zero -and $clock.Elapsed.TotalSeconds -lt 15)
+        if (!$p.HasExited -and $p.MainWindowHandle -ne [IntPtr]::Zero) {
+            $title = $p.MainWindowTitle
+            $null = $p.CloseMainWindow(); $null = $p.WaitForExit(15000)
+            if (!$p.HasExited) { $p.Kill(); $null = $p.WaitForExit(5000) }
+            return [pscustomobject]@{ Ok = $true; Mode = 'direct'; Title = $title }
+        }
+        if (!$p.HasExited) { $p.Kill(); $null = $p.WaitForExit(5000) }
+    }
+    catch { }
+    # Fallback for WinRM/non-interactive sessions: one-shot task in the logged-on user's desktop.
+    $resultFile = Join-Path $EvidencePath ('launch-' + [guid]::NewGuid().ToString('N') + '.json')
+    $runner = Join-Path $env:TEMP ('f1-launch-' + [guid]::NewGuid().ToString('N') + '.ps1')
+    $exe = $exePath.Replace("'", "''")
+    $runnerText = @"
+param()
+try {
+  `$p = Start-Process '$exe' -PassThru
+  `$clock = [Diagnostics.Stopwatch]::StartNew()
+  do { Start-Sleep -Milliseconds 300; `$p.Refresh() } while (!`$p.HasExited -and `$p.MainWindowHandle -eq [IntPtr]::Zero -and `$clock.Elapsed.TotalSeconds -lt 40)
+  if (`$p.HasExited) { @{ Ok = `$false; Reason = 'exited' } | ConvertTo-Json | Set-Content '$resultFile' }
+  elseif (`$p.MainWindowHandle -eq [IntPtr]::Zero) { `$p.Kill(); @{ Ok = `$false; Reason = 'no-window' } | ConvertTo-Json | Set-Content '$resultFile' }
+  else { `$t = `$p.MainWindowTitle; `$null = `$p.CloseMainWindow(); `$null = `$p.WaitForExit(15000); if (!`$p.HasExited) { `$p.Kill() }; @{ Ok = `$true; Title = `$t } | ConvertTo-Json | Set-Content '$resultFile' }
+} catch { @{ Ok = `$false; Reason = `$_.Exception.Message } | ConvertTo-Json | Set-Content '$resultFile' }
+"@
+    Set-Content $runner $runnerText -Encoding utf8
+    $taskName = 'F1InteractiveLaunch'
+    & schtasks.exe /create /tn $taskName /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner" /sc once /st 00:00 /ru $InteractiveUser /rp $InteractivePass /it /f | Out-Null
+    & schtasks.exe /run /tn $taskName | Out-Null
+    $clock = [Diagnostics.Stopwatch]::StartNew()
+    while (!(Test-Path $resultFile) -and $clock.Elapsed.TotalSeconds -lt 120) { Start-Sleep -Milliseconds 500 }
+    $parsed = $null
+    if (Test-Path $resultFile) { try { $parsed = Get-Content $resultFile -Raw | ConvertFrom-Json } catch { } }
+    & schtasks.exe /delete /tn $taskName /f | Out-Null
+    Remove-Item $runner -Force -ErrorAction SilentlyContinue
+    Remove-Item $resultFile -Force -ErrorAction SilentlyContinue
+    if ($parsed -and $parsed.Ok -eq $true) { return [pscustomobject]@{ Ok = $true; Mode = 'scheduled-task'; Title = $parsed.Title } }
+    $reason = if ($parsed) { $parsed.Reason } else { 'timeout' }
+    return [pscustomobject]@{ Ok = $false; Mode = 'scheduled-task'; Reason = $reason }
 }
 
 # ---------- environment ----------
@@ -93,16 +144,9 @@ if ($Mode -in @('Install', 'Both')) {
     } | Out-Null
     Step 'Installed executable launches and closes cleanly' {
         $app = Join-Path $installRoot 'App\F1.exe'
-        $p = Start-Process $app -PassThru
-        $clock = [Diagnostics.Stopwatch]::StartNew()
-        do { Start-Sleep -Milliseconds 300; $p.Refresh() } while (!$p.HasExited -and $p.MainWindowHandle -eq [IntPtr]::Zero -and $clock.Elapsed.TotalSeconds -lt $LaunchTimeoutSeconds)
-        if ($p.HasExited) { throw "Exited during startup with code $($p.ExitCode)" }
-        if ($p.MainWindowHandle -eq [IntPtr]::Zero) { $p.Kill(); throw 'No window appeared (non-interactive session?)' }
-        $title = $p.MainWindowTitle
-        $null = $p.CloseMainWindow()
-        $null = $p.WaitForExit(15000)
-        if (!$p.HasExited) { $p.Kill(); $null = $p.WaitForExit(5000) }
-        "window '$title', closed"
+        $launch = Start-InteractiveApp $app
+        if (!$launch.Ok) { throw "Launch failed ($($launch.Mode)): $($launch.Reason)" }
+        "window '$($launch.Title)' appeared and closed [$($launch.Mode)]"
     } | Out-Null
     Step 'Apps & features entry exists' {
         $entry = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
@@ -152,15 +196,9 @@ if ($Mode -in @('Portable', 'Both')) {
     Step 'Portable executable launches and closes cleanly' {
         $root = Get-ChildItem $stage -Directory | Select-Object -First 1
         $exe = Join-Path $root.FullName 'F1.exe'
-        $p = Start-Process $exe -PassThru
-        $clock = [Diagnostics.Stopwatch]::StartNew()
-        do { Start-Sleep -Milliseconds 300; $p.Refresh() } while (!$p.HasExited -and $p.MainWindowHandle -eq [IntPtr]::Zero -and $clock.Elapsed.TotalSeconds -lt $LaunchTimeoutSeconds)
-        if ($p.HasExited) { throw "Exited during startup with code $($p.ExitCode)" }
-        if ($p.MainWindowHandle -eq [IntPtr]::Zero) { $p.Kill(); throw 'No window appeared (non-interactive session?)' }
-        $null = $p.CloseMainWindow()
-        $null = $p.WaitForExit(15000)
-        if (!$p.HasExited) { $p.Kill(); $null = $p.WaitForExit(5000) }
-        'closed'
+        $launch = Start-InteractiveApp $exe
+        if (!$launch.Ok) { throw "Launch failed ($($launch.Mode)): $($launch.Reason)" }
+        "window '$($launch.Title)' appeared and closed [$($launch.Mode)]"
     } | Out-Null
     Step 'Portable extraction cleanup' {
         Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue

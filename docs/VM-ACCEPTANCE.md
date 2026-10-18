@@ -29,6 +29,11 @@ check. Evidence is a JSON file plus a text summary; exit code 0 = PASS.
 3. The launcher must run in an **interactive desktop session** — the launch/close check needs a
    real window. Run it from the VM's own console/RDP session, not from a service.
 
+   When the kit is driven remotely over WinRM (the automated path), the direct launch happens in
+   the non-interactive WinRM session, where no window can appear. The kit then falls back to a
+   one-shot scheduled task running as the autologon user (`F1Admin`), which starts the app in the
+   real desktop session and reports the window title back. Both modes write the same evidence.
+
 4. Copy `vm-acceptance.json` and `vm-acceptance.txt` back to the work host (they land on the
    VM's Desktop under `F1-VM-Evidence` by default; override with `-EvidencePath`).
 
