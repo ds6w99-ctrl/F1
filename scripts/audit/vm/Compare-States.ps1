@@ -33,7 +33,7 @@ foreach ($key in $keys) {
     if ($b.Count -eq 1 -and $a.Count -eq 1) {
         $diff = @()
         foreach ($prop in 'DisplayName','Publisher','Version','UninstallString','QuietUninstallString','InstallLocation') {
-            if ([string]$b[0].$prop -ne [string]$a[0].$prop) { $diff += "$prop: '$($b[0].$prop)' -> '$($a[0].$prop)'" }
+            if ([string]$b[0].$prop -ne [string]$a[0].$prop) { $diff += ("{0}: '{1}' -> '{2}'" -f $prop, $b[0].$prop, $a[0].$prop) }
         }
         if ($diff.Count) { $detail = 'changed: ' + ($diff -join '; ') }
     }

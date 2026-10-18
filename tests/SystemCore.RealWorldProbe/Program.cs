@@ -26,6 +26,7 @@ try
     {
         "inventory" => await InventoryAsync(inventory, token),
         "uninstall" => await UninstallAsync(executor, token),
+        "uninstall-clean" => await UninstallCleanAsync(executor, evidence, inventory, token),
         "bulk" => await BulkAsync(executor, token),
         "leftovers" => await LeftoversAsync(inventory, evidence, token),
         "orphans" => await OrphansAsync(inventory, token),
@@ -110,6 +111,57 @@ async Task<int> UninstallAsync(UninstallExecutor executor, CancellationToken tok
         States = states
     }, token);
     Console.WriteLine($"uninstall: {app.DisplayName} -> {outcome.State} exit={outcome.NativeExitCode} receipt={outcome.Receipt?.Id}");
+    return outcome.State == UninstallState.Removed ? 0 : 2;
+}
+
+async Task<int> UninstallCleanAsync(UninstallExecutor executor, ApplicationRemovalEvidence evidence, InstalledApplicationInventory inventory, CancellationToken token)
+{
+    // Mirrors the product UI flow: uninstall -> automatic leftover scan -> optional deletion,
+    // all in one process so the in-memory removal receipt stays valid (by design, a receipt
+    // never survives its process).
+    var name = args.Contains("--name") ? Arg("--name") : null;
+    var quiet = args.Contains("--quiet");
+    var deep = args.Contains("--deep");
+    var delete = args.Contains("--delete");
+    var includePersonal = args.Contains("--include-personal");
+    var session = await executor.RefreshAsync(token);
+    var matches = session.Inventory.Applications.Where(a => name != null && string.Equals(a.DisplayName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
+    if (matches.Length == 0) { await WriteJsonAsync(Arg("--out"), new { Error = "not-found", Name = name }, token); return 3; }
+    if (matches.Length > 1) { await WriteJsonAsync(Arg("--out"), new { Error = "ambiguous", Name = name }, token); return 4; }
+    var app = matches[0];
+    executor.QuietRequested = quiet;
+    UninstallOutcome outcome;
+    try { outcome = await executor.UninstallAsync(new UninstallRequest(session.Id, app.Id), null, token); }
+    finally { executor.QuietRequested = false; }
+    Console.WriteLine($"uninstall: {app.DisplayName} -> {outcome.State} exit={outcome.NativeExitCode} receipt={outcome.Receipt?.Id}");
+    object? leftovers = null;
+    if (outcome.Receipt is not null)
+    {
+        var scanner = new LeftoverScanner(evidence, inventory);
+        var scan = await scanner.ScanAsync(outcome.Receipt.Id, deep, token);
+        Console.WriteLine($"leftovers: {scan.Items.Count} items, complete={scan.Complete}");
+        object? deletion = null;
+        if (delete)
+        {
+            var service = LeftoverDeletionFactory.Create(scanner, evidence, inventory, new RegistryBackupWriter());
+            var ids = scan.Items.Where(i => i.Confidence == LeftoverConfidence.Safe || (includePersonal && i.Confidence == LeftoverConfidence.Review)).Select(i => i.Id).ToArray();
+            var result = await service.DeleteAsync(new LeftoverDeletionRequest(scan.Id, scan.ApplicationIdentityId, ids, includePersonal), token);
+            deletion = new { result.RemovedBytes, result.BackupFile, Items = result.Items.Select(i => new { i.ItemId, Status = i.Status.ToString(), i.RemovedBytes, i.BackupFile }) };
+        }
+        leftovers = new
+        {
+            scan.Id, scan.ReceiptId, scan.Complete,
+            Items = scan.Items.Select(i => new { i.Id, Type = i.Type.ToString(), i.DisplayLocation, i.Evidence, Confidence = i.Confidence.ToString(), i.Risk, i.Size, i.RequiresElevation, i.SelectedByDefault, i.SafetyStatus }),
+            Deletion = deletion
+        };
+    }
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        Requested = new { app.DisplayName, app.Id, app.ApplicationType, app.Publisher, app.DisplayVersion, app.InstallLocation, app.ProductCode, Quiet = quiet },
+        outcome.State, outcome.NativeExitCode, outcome.Detail,
+        Receipt = outcome.Receipt is null ? null : new { outcome.Receipt.Id, outcome.Receipt.DisplayName, outcome.Receipt.VerifiedAt },
+        Leftovers = leftovers
+    }, token);
     return outcome.State == UninstallState.Removed ? 0 : 2;
 }
 
