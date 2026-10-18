@@ -33,8 +33,9 @@ public sealed class MsiApplicationProvider(IApplicationIdentityResolver identity
             // Native registration is authoritative. Registry restrictions are merged
             // conservatively by the inventory before enabling a user action.
             var installed = Property("State") == "5";
+            var location = Property("InstallLocation") ?? ResolveComponentLocation(code.ToString(), sid, context, token);
             rows.Add(new(identity.Resolve(ApplicationType.Msi, null, product, null), name, Property("Publisher"), Property("VersionString"),
-                null, Property("InstallLocation"), null, null, ApplicationType.Msi, null, false, product, null, null, null, Property("ProductIcon"),
+                null, location, null, null, ApplicationType.Msi, null, false, product, null, null, null, Property("ProductIcon"),
                 false, false, false, installed, installed ? null : "MSI product is not installed"));
         }
         failures.Add("Windows Installer inventory incomplete");
@@ -43,4 +44,52 @@ public sealed class MsiApplicationProvider(IApplicationIdentityResolver identity
 
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiEnumProductsExW(string? product, string? userSid, uint contexts, uint index, StringBuilder productCode, out uint context, StringBuilder sid, ref uint sidLength);
     [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiGetProductInfoExW(string productCode, string? sid, uint context, string property, StringBuilder? value, ref uint length);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiEnumComponentsW(uint index, StringBuilder componentCode);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern uint MsiGetProductCodeW(string component, StringBuilder productCode);
+    [DllImport("msi.dll", CharSet = CharSet.Unicode)] private static extern int MsiGetComponentPathExW(string productCode, string? userSid, uint context, string component, StringBuilder? path, ref uint pathLength);
+
+    // Many MSI products (7-Zip is a common example) register no InstallLocation property.
+    // Windows Installer does track every component path, so resolve the install location as the
+    // deepest common directory of the product's component paths. Bounded and fail-closed:
+    // the result must be a real directory that is not itself a protected/known root.
+    private static string? ResolveComponentLocation(string productCode, StringBuilder userSid, uint context, CancellationToken token)
+    {
+        const uint ComponentLimit = 30000;
+        var paths = new List<string>(16);
+        var component = new StringBuilder(39);
+        for (uint index = 0; index < ComponentLimit; index++)
+        {
+            token.ThrowIfCancellationRequested();
+            if (MsiEnumComponentsW(index, component) != 0) break;
+            var code = component.ToString();
+            var product = new StringBuilder(39);
+            if (MsiGetProductCodeW(code, product) != 0 || !string.Equals(product.ToString(), productCode, StringComparison.OrdinalIgnoreCase)) continue;
+            var owner = context == 4 ? null : userSid.ToString();
+            uint length = 0;
+            var sizeState = MsiGetComponentPathExW(productCode, owner, context, code, null, ref length);
+            if (length == 0 || (sizeState < 0 && sizeState != 234)) continue;
+            var text = new StringBuilder((int)length + 1);
+            var state = MsiGetComponentPathExW(productCode, owner, context, code, text, ref length);
+            if (state < 0 || text.Length == 0) continue;
+            paths.Add(text.ToString());
+            if (paths.Count >= 64) break;
+        }
+        if (paths.Count == 0) return null;
+        var common = Path.GetDirectoryName(paths[0]) ?? "";
+        foreach (var path in paths.Skip(1))
+        {
+            var directory = Path.GetDirectoryName(path) ?? "";
+            while (common.Length > 0 && !string.Equals(directory, common, StringComparison.OrdinalIgnoreCase)
+                && !directory.StartsWith(common.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase))
+                common = Path.GetDirectoryName(common) ?? "";
+            if (common.Length == 0) break;
+        }
+        if (common.Length <= 3 || !Directory.Exists(common)) return null;
+        var roots = new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86,
+            Environment.SpecialFolder.Windows, Environment.SpecialFolder.CommonProgramFiles, Environment.SpecialFolder.CommonProgramFilesX86,
+            Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolder.ApplicationData, Environment.SpecialFolder.CommonApplicationData }
+            .Select(Environment.GetFolderPath).Where(r => !string.IsNullOrWhiteSpace(r)).Distinct(StringComparer.OrdinalIgnoreCase);
+        if (roots.Contains(common, StringComparer.OrdinalIgnoreCase)) return null;
+        return common;
+    }
 }
