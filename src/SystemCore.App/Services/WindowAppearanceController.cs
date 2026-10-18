@@ -51,8 +51,14 @@ public sealed class WindowAppearanceController : IDisposable
     {
         if (disposed) return;
         root.RequestedTheme = settings.ThemeIndex switch { 1 => ElementTheme.Light, 2 => ElementTheme.Dark, _ => ElementTheme.Default };
-        root.FlowDirection = FlowDirection.LeftToRight;
-        content.FlowDirection = localizer.IsRightToLeft ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        // The window shell flips with the language: in Arabic the navigation pane must sit on the
+        // right, so the whole root mirrors instead of only the content area. The scenery image is
+        // geometry-relative and must not mirror.
+        var rtl = localizer.IsRightToLeft;
+        root.FlowDirection = rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        content.FlowDirection = rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        scenery.FlowDirection = FlowDirection.LeftToRight;
+        if (window.Content is FrameworkElement page && page != content) page.FlowDirection = root.FlowDirection;
         root.Language = localizer.Culture.Name;
         window.SystemBackdrop = null; // Deterministic local scenery/surfaces, no animated blur.
         solid.Visibility = Visibility.Visible;

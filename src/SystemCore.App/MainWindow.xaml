@@ -12,7 +12,7 @@
       <Border Grid.Column="3" x:Name="CaptionInset" Width="146" />
     </Grid>
     <NavigationView x:Name="Navigation" Grid.Row="1" IsSettingsVisible="False" IsBackButtonVisible="Collapsed" IsPaneToggleButtonVisible="False"
-      Background="Transparent" PaneDisplayMode="Left" IsPaneOpen="True" OpenPaneLength="294" CompactPaneLength="56" SelectionChanged="OnNavigationChanged"
+      Background="Transparent" PaneDisplayMode="Auto" IsPaneOpen="True" OpenPaneLength="294" CompactPaneLength="56" SelectionChanged="OnNavigationChanged"
       PaneOpened="OnPaneOpened" PaneClosed="OnPaneClosed" AutomationProperties.Name="{x:Bind ViewModel.NavigationLabel, Mode=OneWay}">
       <NavigationView.PaneHeader>
         <Grid x:Name="PaneHeaderText" Padding="18,10,12,22" ColumnDefinitions="62,*" ColumnSpacing="10">
