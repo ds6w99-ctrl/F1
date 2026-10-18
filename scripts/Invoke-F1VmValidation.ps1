@@ -100,7 +100,7 @@ while ($clock.Elapsed.TotalSeconds -lt $WinRmTimeoutSeconds) {
 }
 if (!$ip) { throw "WinRM did not become available within $WinRmTimeoutSeconds seconds; inspect the VM console." }
 Log "WinRM available at $ip"
-Set-Item WSMan:\localhost\Client\TrustedHosts -Value '*' -Force
+& winrm.cmd set winrm/config/client '@{TrustedHosts="*"}' | Out-Null
 $session = New-PSSession -ComputerName $ip -Credential $credential -Authentication Negotiate -ErrorAction Stop
 try {
     $os = Invoke-Command -Session $session -ScriptBlock {

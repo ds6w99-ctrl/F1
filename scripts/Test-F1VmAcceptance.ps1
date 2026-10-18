@@ -83,7 +83,8 @@ try {
 "@
     Set-Content $runner $runnerText -Encoding utf8
     $taskName = 'F1InteractiveLaunch'
-    & schtasks.exe /create /tn $taskName /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner" /sc once /st 00:00 /ru $InteractiveUser /rp $InteractivePass /it /f | Out-Null
+    $startTime = (Get-Date).AddMinutes(1).ToString('HH:mm')
+    & schtasks.exe /create /tn $taskName /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner" /sc once /st $startTime /ru $InteractiveUser /rp $InteractivePass /it /f | Out-Null
     & schtasks.exe /run /tn $taskName | Out-Null
     $clock = [Diagnostics.Stopwatch]::StartNew()
     while (!(Test-Path $resultFile) -and $clock.Elapsed.TotalSeconds -lt 120) { Start-Sleep -Milliseconds 500 }
