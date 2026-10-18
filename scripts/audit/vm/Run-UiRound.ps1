@@ -100,13 +100,13 @@ if ($DriveUninstall) {
     Start-Sleep -Seconds 4
     Shot '30-confirm-dialog.png'
     AllButtons $win
-    # ContentDialog primary button (English text "Uninstall")
-    $primary = FindName $win 'Uninstall'
+    # ContentDialog primary button carries AutomationId 'PrimaryButton'
+    $primary = Find $win 'PrimaryButton'
     if ($primary) { $primary.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); Log 'confirmed uninstall' }
     else { Log 'dialog primary MISSING' }
     # wait for uninstall + automatic leftover scan (inventory refresh + scan)
     $status = Find $win 'UnStatus'
-    for ($i = 0; $i -lt 36; $i++) { Start-Sleep 5; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($sname -match 'leftover|Leftover|removed|Removed') { Log "status after $((5*$i))s: $sname"; break } }
+    for ($i = 0; $i -lt 60; $i++) { Start-Sleep 5; $status = Find $win 'UnStatus'; $sname = $status.Current.Name; if ($i % 6 -eq 0) { Log "status t=$((5*$i))s: $sname" }; if ($sname -match 'leftover|Leftover|removed|Removed|scan|Scan') { Log "status settled: $sname"; break } }
     Shot '40-after-uninstall.png'
     Log "status after: $($status.Current.Name)"
     $summary = Find $win 'UnLeftoverSummary'
@@ -132,7 +132,7 @@ if ($DriveUninstall) {
         Start-Sleep -Seconds 4
         Shot '60-delete-dialog.png'
         AllButtons $win
-        $deletePrimary = FindName $win 'Delete'
+        $deletePrimary = Find $win 'PrimaryButton'
         if ($deletePrimary) { $deletePrimary.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); Log 'confirmed delete leftovers' }
         else { Log 'delete dialog primary MISSING' }
         Start-Sleep -Seconds 8
