@@ -33,6 +33,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Assets/F1/*.svg" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Theme backgrounds: shipped as resources so the shell can switch them with the theme. -->
+    <Content Include="Assets/F1/*.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Assets/Brand/F1_Logo.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Assets/Brand/F1.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../../THIRD-PARTY-NOTICES" LogicalName="Notices.Overview" />
