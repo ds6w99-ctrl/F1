@@ -44,6 +44,7 @@ try
         "memory-release" => await MemoryReleaseAsync(token),
         "startup-list" => await StartupListAsync(token),
         "startup-toggle" => await StartupToggleAsync(token),
+        "broker-delete" => await BrokerDeleteAsync(token),
         "inspect-parse" => await InspectParseAsync(token),
         "msi-debug" => await MsiDebugAsync(token),
         _ => Usage()
@@ -508,6 +509,35 @@ async Task<int> StartupToggleAsync(CancellationToken token)
     await WriteJsonAsync(Arg("--out"), new { Requested = new { item.Id, item.Name, Action = action.ToString() }, Outcome = result.Outcome.ToString() }, token);
     Console.WriteLine($"startup-toggle: {item.Name} -> {result.Outcome}");
     return result.Outcome == StartupOutcome.Success ? 0 : 2;
+}
+
+async Task<int> BrokerDeleteAsync(CancellationToken token)
+{
+    // Exercises the REAL elevated leftover broker end-to-end: this process must be the F1
+    // identity layout (F1.exe next to ElevatedHost\) and must run with a filtered token so the
+    // direct deletion pass cannot touch the elevated root. The helper re-derives every decision
+    // from the captured identity; nothing is deleted without its protocol acceptance.
+    var path = Path.GetFullPath(Arg("--file"));
+    var identity = PinnedCleanerPath.Open(Path.GetDirectoryName(path)!, true).Identity;
+    var app = new InstalledApplication("broker-fixture", "Broker Fixture", "F1 audit", "1", null,
+        Path.GetDirectoryName(path), null, null, ApplicationType.Win32,
+        $"\"{Path.Combine(Path.GetDirectoryName(path)!, "uninstall.exe")}\"", false, null, null, null,
+        new(InventoryHive.LocalMachine, InventoryView.Registry64, "BrokerFixture"), null,
+        false, false, false, true, null);
+    var item = new LeftoverItem(Guid.NewGuid(), app.Id, LeftoverType.File, path,
+        "Audit fixture: elevated-root file the unprivileged pass cannot delete", LeftoverConfidence.Safe,
+        "Application-owned", identity.Size, true, false, "Safe");
+    var scanned = new ScannedLeftover(item, path, identity, Path.GetDirectoryName(path)!);
+    var client = new WindowsElevatedLeftoverClient();
+    var results = await client.DeleteAsync(app, [scanned], token);
+    await WriteJsonAsync(Arg("--out"), new
+    {
+        File = path, ExistedBefore = File.Exists(path), Identity = new { identity.Volume, identity.FileId, identity.Size },
+        Results = results.Select(r => new { r.ItemId, Status = r.Status.ToString(), r.RemovedBytes }),
+        ExistsAfter = File.Exists(path)
+    }, token);
+    Console.WriteLine($"broker-delete: {path} -> {results[0].Status}");
+    return File.Exists(path) ? 2 : 0;
 }
 
 async Task<int> ExportAsync(InstalledApplicationInventory inventory, CancellationToken token)
