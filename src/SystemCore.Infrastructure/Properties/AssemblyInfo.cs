@@ -5,3 +5,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("SystemCore.StartupTests")]
 [assembly: InternalsVisibleTo("SystemCore.ReliabilityTests")]
 [assembly: InternalsVisibleTo("SystemCore.SecurityTests")]
+[assembly: InternalsVisibleTo("SystemCore.RealWorldProbe")]
+[assembly: InternalsVisibleTo("RealWorldProbe")]
