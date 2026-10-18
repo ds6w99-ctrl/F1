@@ -106,6 +106,25 @@ public static class F1Cli
                 case "clean" or "uninstall" or "delete":
                     write("Refused: F1 does not expose destructive operations to the command line. Use the application.");
                     return CommandRefused;
+                case "memory":
+                {
+                    // Each area must be named explicitly; there is no implicit "free everything".
+                    var kinds = new List<SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind>();
+                    if (args.Contains("/standbylow")) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.StandbyLowPriority);
+                    if (args.Contains("/standby")) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.StandbyAll);
+                    if (args.Contains("/workingset")) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.WorkingSet);
+                    if (args.Contains("/modifiedpages")) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.ModifiedPageList);
+                    if (args.Contains("/combinedpages")) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.CombinedPageList);
+                    if (kinds.Count == 0)
+                    {
+                        write("No area named. Use /standbylow, /standby, /workingset, /modifiedpages or /combinedpages.");
+                        return InvalidArguments;
+                    }
+                    var released = await new SystemCore.Infrastructure.MemoryTools.SystemMemoryReleaser().ReleaseAsync(kinds, Array.Empty<string>(), CancellationToken.None);
+                    foreach (var result in released)
+                        write($"{(result.Succeeded ? "OK" : "FAIL")} {result.Kind}: {result.Detail}");
+                    return released.All(r => r.Succeeded) ? Success : Failed;
+                }
                 default:
                     write($"Unknown command '{command}'. Try --help.");
                     return InvalidArguments;

@@ -602,4 +602,13 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="CleanDeepResult" xml:space="preserve"><value>{0} candidates - {1} - {2} selected</value></data>
   <data name="CleanWindowsUpdateCache" xml:space="preserve"><value>Windows Update download cache</value></data>
   <data name="UnBulkProgress" xml:space="preserve"><value>{0} of {1} still queued</value></data>
-  <data name="UnRestoreResult" xml:space="preserve"><value>Restored {0}, skipped {1}, failed {2}</value></data></root>
+  <data name="UnRestoreResult" xml:space="preserve"><value>Restored {0}, skipped {1}, failed {2}</value></data>  <data name="MemRelease" xml:space="preserve"><value>Release memory</value></data>
+  <data name="MemReleaseNote" xml:space="preserve"><value>Uses documented Windows memory calls: standby list (low priority) and, optionally, the working set of user processes. Excluded and system processes are never touched.</value></data>
+  <data name="MemReleasing" xml:space="preserve"><value>Releasing memory…</value></data>
+  <data name="MemKindStandbyLowPriority" xml:space="preserve"><value>Standby list (low priority)</value></data>
+  <data name="MemKindStandbyAll" xml:space="preserve"><value>Standby list (all)</value></data>
+  <data name="MemKindWorkingSet" xml:space="preserve"><value>Working set</value></data>
+  <data name="MemKindModifiedPageList" xml:space="preserve"><value>Modified page list</value></data>
+  <data name="MemKindCombinedPageList" xml:space="preserve"><value>Combined page list</value></data>
+  <data name="MemKindRegistryCache" xml:space="preserve"><value>Registry cache</value></data>
+  <data name="MemKindSystemFileCache" xml:space="preserve"><value>System file cache</value></data></root>

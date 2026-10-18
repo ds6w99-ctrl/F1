@@ -102,6 +102,7 @@ if (args.Contains("--integration"))
         TopCpu = report.Consumers.TopCpu.Select(p => new { p.Name, p.Pid, p.CpuPercent }), source.Samples }, new JsonSerializerOptions { WriteIndented = true }));
 }
 await OptimizationTests.Run(Check);
+await MemoryReleaseTests.Run(Check);
 Console.WriteLine(JsonSerializer.Serialize(new { Checks = checks.Count, Failed = checks.Count(c => !c.Passed) }));
 return checks.All(c => c.Passed) ? 0 : 1;
 

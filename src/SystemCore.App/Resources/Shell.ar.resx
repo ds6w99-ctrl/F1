@@ -602,4 +602,13 @@
   <data name="CleanDeepResult" xml:space="preserve"><value>مرشحات: {0} — {1} — المحدد: {2}</value></data>
   <data name="CleanWindowsUpdateCache" xml:space="preserve"><value>كاش تنزيل تحديثات Windows</value></data>
   <data name="UnBulkProgress" xml:space="preserve"><value>بقي {0} من {1} في قائمة الانتظار</value></data>
-  <data name="UnRestoreResult" xml:space="preserve"><value>أُعيد {0}، تُخطّي {1}، فشل {2}</value></data></root>
+  <data name="UnRestoreResult" xml:space="preserve"><value>أُعيد {0}، تُخطّي {1}، فشل {2}</value></data>  <data name="MemRelease" xml:space="preserve"><value>تحرير الذاكرة</value></data>
+  <data name="MemReleaseNote" xml:space="preserve"><value>يستخدم استدعاءات Windows الموثقة: قائمة الاستعداد (أولوية منخفضة)، واختياريًا مجموعة عمل عمليات المستخدم. العمليات المستثناة وعمليات النظام لا تُمس أبدًا.</value></data>
+  <data name="MemReleasing" xml:space="preserve"><value>جارٍ تحرير الذاكرة…</value></data>
+  <data name="MemKindStandbyLowPriority" xml:space="preserve"><value>قائمة الاستعداد (أولوية منخفضة)</value></data>
+  <data name="MemKindStandbyAll" xml:space="preserve"><value>قائمة الاستعداد (الكل)</value></data>
+  <data name="MemKindWorkingSet" xml:space="preserve"><value>مجموعة العمل</value></data>
+  <data name="MemKindModifiedPageList" xml:space="preserve"><value>قائمة الصفحات المعدّلة</value></data>
+  <data name="MemKindCombinedPageList" xml:space="preserve"><value>قائمة الصفحات المدمجة</value></data>
+  <data name="MemKindRegistryCache" xml:space="preserve"><value>كاش السجل</value></data>
+  <data name="MemKindSystemFileCache" xml:space="preserve"><value>كاش ملفات النظام</value></data></root>

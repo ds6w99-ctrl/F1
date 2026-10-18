@@ -27,6 +27,39 @@ public sealed class MemoryToolsViewModel : LocalizedViewModel
     public MemoryToolsViewModel(LocalizationService localizer, IPerformanceMonitorService monitor, IMemoryAnalysisService analysis,
         IProcessResourceAnalyzer processes, UiDispatcher dispatcher, IMemoryOptimizationService optimization) : base(localizer)
     { this.monitor = monitor; this.analysis = analysis; this.processes = processes; this.dispatcher = dispatcher; this.optimization = optimization; monitor.Updated += OnUpdated; }
+    // ---- native memory release (WMC parity) ----
+    private readonly SystemCore.Infrastructure.MemoryTools.ISystemMemoryReleaser releaser = new SystemCore.Infrastructure.MemoryTools.SystemMemoryReleaser();
+    private readonly HashSet<string> excludedProcesses = new(StringComparer.OrdinalIgnoreCase);
+    private IReadOnlyList<SystemCore.Infrastructure.MemoryTools.MemoryReleaseResult> releaseResults = [];
+    private bool releasing;
+    public IReadOnlyList<SystemCore.Infrastructure.MemoryTools.MemoryReleaseResult> ReleaseResults => releaseResults;
+    public bool IsReleasing => releasing;
+    public string ReleaseLabel => L["MemRelease"];
+    public string ReleaseNote => L["MemReleaseNote"];
+    public string ReleaseSummary => releasing ? L["MemReleasing"] : releaseResults.Count == 0 ? "" :
+        string.Join("\n", releaseResults.Select(r => (r.Succeeded ? "✓ " : "✗ ") + L["MemKind" + r.Kind] + " — " + r.Detail));
+    public bool IsExcluded(string processName) => excludedProcesses.Contains(processName);
+    public void ToggleExclusion(string processName)
+    {
+        if (!excludedProcesses.Add(processName)) excludedProcesses.Remove(processName);
+        OnPropertyChanged(nameof(ReleaseSummary));
+    }
+    // Only the two least invasive operations are exposed here. The remaining native areas stay
+    // available to scripts through the CLI, where the user names each one explicitly.
+    public async Task ReleaseMemoryAsync(bool includeWorkingSet)
+    {
+        if (releasing || disposed) return;
+        releasing = true; OnPropertyChanged(string.Empty);
+        try
+        {
+            var kinds = new List<SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind> { SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.StandbyLowPriority };
+            if (includeWorkingSet) kinds.Add(SystemCore.Infrastructure.MemoryTools.MemoryReleaseKind.WorkingSet);
+            releaseResults = await releaser.ReleaseAsync(kinds, excludedProcesses.ToArray(), CancellationToken.None);
+            MemoryToolsDiagnostics.Log.OptimizationRequested();
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException) { status = "MemOptimizationFailed"; MemoryToolsDiagnostics.Log.FailureReason("NativeReleaseFailure"); }
+        finally { releasing = false; OnPropertyChanged(string.Empty); }
+    }
     public string Text(string key) => L[key];
     public string Title => L["NavMemoryTools"];
     public string Status => L[status];
