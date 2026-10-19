@@ -65,7 +65,9 @@ Dismount-DiskImage -ImagePath $IsoPath | Out-Null
 
 # Boot from the disk (no DVD).
 Log 'Configuring disk-first boot and starting VM'
-$diskDrv = Get-VMHardDiskDrive -VMName $VmName | Where-Object { $_.Path -like '*F1-Clean-Win11.vhdx' }
+$vhdName = Split-Path $VhdPath -Leaf
+$diskDrv = Get-VMHardDiskDrive -VMName $VmName | Where-Object { (Split-Path $_.Path -Leaf) -eq $vhdName } | Select-Object -First 1
+if (-not $diskDrv) { throw "Disk drive for $vhdName not found on $VmName" }
 Set-VMFirmware -VMName $VmName -FirstBootDevice $diskDrv
 Start-VM -Name $VmName
 Log 'Provisioned VM started; first boot will run specialize/OOBE and enable WinRM'

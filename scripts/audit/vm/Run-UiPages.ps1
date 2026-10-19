@@ -49,7 +49,7 @@ Shot $p '20-systeminfo-en.png'
 $title = Find $win 'PageTitle'
 Log "systeminfo title: $($title.Current.Name)"
 
-# Settings + themes
+# Settings + themes + language (the language picker lives on the Settings page)
 Nav $win 'NavSettings'
 Start-Sleep -Seconds 5
 Shot $p '30-settings.png'
@@ -63,21 +63,42 @@ foreach ($theme in @('Light','Dark')) {
     Shot $p ("40-theme-" + $theme.ToLower() + ".png")
     Log "theme $theme captured"
 }
-
-# Arabic language + Uninstaller page
-Nav $win 'NavUninstaller'
-Start-Sleep -Seconds 15
+# Arabic language — selected by item index (0=English, 1=Arabic) so the script stays ASCII.
 $picker = Find $win 'LanguagePicker'
 if ($picker) {
     try {
-        $picker.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand(); Start-Sleep -Milliseconds 800
-        $arabic = $win.FindFirst([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::NameProperty, 'العربية')))
-        if ($arabic) { $arabic.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select(); Start-Sleep -Seconds 5; Log 'arabic selected' } else { Log 'arabic item MISSING' }
+        $picker.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand(); Start-Sleep -Milliseconds 900
+        $items = $picker.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)))
+        Log "language items: $($items.Count)"
+        if ($items.Count -ge 2) {
+            $items[1].GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select()
+            Start-Sleep -Seconds 5
+            Log 'arabic selected (index 1)'
+        } else { Log 'language items MISSING' }
     } catch { Log "language picker error: $($_.Exception.Message)" }
-}
+} else { Log 'LanguagePicker MISSING on Settings' }
+Shot $p '45-settings-ar.png'
+
+# Uninstaller page in Arabic
+Nav $win 'NavUninstaller'
+Start-Sleep -Seconds 15
 Shot $p '50-uninstaller-ar.png'
 $title = Find $win 'PageTitle'
 Log "uninstaller ar title: $($title.Current.Name)"
+$status = Find $win 'UnStatus'
+Log "uninstaller ar status: $($status.Current.Name)"
+
+# Back to English for a clean end state (index 0 = English)
+Nav $win 'NavSettings'
+Start-Sleep -Seconds 4
+$picker = Find $win 'LanguagePicker'
+if ($picker) {
+    try {
+        $picker.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand(); Start-Sleep -Milliseconds 900
+        $items = $picker.FindAll([Windows.Automation.TreeScope]::Descendants, (New-Object Windows.Automation.PropertyCondition([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)))
+        if ($items.Count -ge 1) { $items[0].GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select(); Start-Sleep -Seconds 3; Log 'english restored (index 0)' }
+    } catch { Log "english restore error: $($_.Exception.Message)" }
+}
 
 $null = $p.CloseMainWindow(); $null = $p.WaitForExit(10000); if (-not $p.HasExited) { $p.Kill() }
 Log 'UI PAGES DONE'

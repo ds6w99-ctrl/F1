@@ -1,4 +1,4 @@
-; F1 — the installable product build.
+﻿; F1 â€” the installable product build.
 ;
 ; This is the spec that ships. SystemCore.Phase0.iss is a different thing: the isolated
 ; phase-0 validation fixture whose AppId ADR-0001 deliberately keeps separate from the
@@ -47,7 +47,7 @@ SignedUninstaller=yes
 #endif
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 Source: "{#RepoRoot}\artifacts\publish\App\*"; DestDir: "{app}\App"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -90,3 +90,4 @@ begin
     // unsupported edition instead of hanging on a modal box that no one can dismiss.
     SuppressibleMsgBox('F1 requires Windows 11 Home, Pro, Enterprise or Education, version 23H2 or later, x64.', mbError, MB_OK, IDOK);
 end;
+
