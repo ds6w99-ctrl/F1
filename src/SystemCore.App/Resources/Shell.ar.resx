@@ -292,6 +292,7 @@
   <data name="UnStateRemoved" xml:space="preserve"><value>تم التحقق من إزالة التطبيق.</value></data>
   <data name="UnStateStillInstalled" xml:space="preserve"><value>لا يزال مثبتًا. قد تكون عملية تثبيت فرعية قيد التشغيل؛ حدّث للتحقق مجددًا.</value></data>
   <data name="UnStateCancelled" xml:space="preserve"><value>أُلغي الانتظار. لم تُنهَ أي أداة إزالة أصلية قيد التشغيل.</value></data>
+  <data name="UnWaitHint" xml:space="preserve"><value>مزيل التطبيق الأصلي ما زال يعمل في نافذته الخاصة. يمكنك مواصلة الانتظار، أو الضغط على «إلغاء» لإيقاف الانتظار — الإلغاء لا يُنهي عمليته.</value></data>
   <data name="UnStateFailed" xml:space="preserve"><value>تعذر إكمال العملية. حدّث القائمة وتحقق من الاختيار.</value></data>
   <data name="UnStateUnknown" xml:space="preserve"><value>تعذر التحقق من اكتمال الإزالة.</value></data>
   <data name="UnLoading" xml:space="preserve"><value>جارٍ تحميل التطبيقات…</value></data>

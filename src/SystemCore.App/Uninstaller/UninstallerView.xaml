@@ -10,7 +10,10 @@
     <ComboBox x:Name="Filter" Grid.Column="2" HorizontalAlignment="Stretch" SelectionChanged="OnFilter" AutomationProperties.AutomationId="UnFilter"/>
     <ComboBox x:Name="Sort" Grid.Column="3" HorizontalAlignment="Stretch" SelectionChanged="OnSort" AutomationProperties.AutomationId="UnSort"/>
    </Grid>
-   <TextBlock x:Name="Status" Grid.Row="2" TextTrimming="CharacterEllipsis" MaxLines="1" AutomationProperties.AutomationId="UnStatus"/>
+   <StackPanel Grid.Row="2" Spacing="4">
+    <TextBlock x:Name="Status" TextTrimming="CharacterEllipsis" MaxLines="1" AutomationProperties.AutomationId="UnStatus"/>
+    <TextBlock x:Name="WaitHintText" FontSize="13" Opacity="0.85" TextWrapping="Wrap" Visibility="Collapsed" AutomationProperties.AutomationId="UnWaitHint"/>
+   </StackPanel>
    <ListView x:Name="Applications" Grid.Row="3" SelectionMode="Single" SelectionChanged="OnSelection" ContainerContentChanging="OnContainerChanging" AutomationProperties.AutomationId="UnApplications" ScrollViewer.HorizontalScrollMode="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
     <ListView.ItemsPanel><ItemsPanelTemplate><ItemsStackPanel/></ItemsPanelTemplate></ListView.ItemsPanel>
     <ListView.ItemContainerStyle><Style TargetType="ListViewItem" BasedOn="{StaticResource F1ListItemStyle}"><Setter Property="Padding" Value="10,4"/><Setter Property="MinHeight" Value="52"/></Style></ListView.ItemContainerStyle>

@@ -292,6 +292,7 @@ This permanently removes the selected files. Locked or changed files will be ski
   <data name="UnStateRemoved" xml:space="preserve"><value>Application removal verified.</value></data>
   <data name="UnStateStillInstalled" xml:space="preserve"><value>Still installed. A child installer may still be running; refresh to check again.</value></data>
   <data name="UnStateCancelled" xml:space="preserve"><value>Cancelled. Any running native installer was not terminated.</value></data>
+  <data name="UnWaitHint" xml:space="preserve"><value>The original uninstaller is still running in its own window. You can keep waiting, or press Cancel to stop waiting — cancelling does not terminate it.</value></data>
   <data name="UnStateFailed" xml:space="preserve"><value>Unable to complete the operation. Refresh and verify the selection.</value></data>
   <data name="UnStateUnknown" xml:space="preserve"><value>Uninstall completion could not be verified.</value></data>
   <data name="UnLoading" xml:space="preserve"><value>Loading applications…</value></data>

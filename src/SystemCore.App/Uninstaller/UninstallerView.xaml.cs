@@ -52,6 +52,8 @@ public sealed partial class UninstallerView : UserControl, IDisposable
             Sort.Items.Clear(); foreach (var key in new[] { "UnName", "UnPublisher", "UnDate", "UnSize" }) Sort.Items.Add(ViewModel.Text(key));
             Sort.SelectedIndex = ViewModel.Sort;
             Status.Text = string.IsNullOrEmpty(ViewModel.CleanupSummary) || ViewModel.InventoryLoadFailed ? ViewModel.Status : ViewModel.Text("UnCleanupComplete");
+            WaitHintText.Visibility = ViewModel.ShowWaitHint ? Visibility.Visible : Visibility.Collapsed;
+            WaitHintText.Text = ViewModel.WaitHint;
             Refresh.IsEnabled = !ViewModel.Busy; Search.IsEnabled = Filter.IsEnabled = Sort.IsEnabled = Applications.IsEnabled = !ViewModel.Busy;
             var rows = ViewModel.Rows;
             var leftovers = ViewModel.LeftoverRows;

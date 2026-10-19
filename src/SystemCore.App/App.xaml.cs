@@ -96,7 +96,9 @@ public partial class App : Application
         registrations.AddSingleton<ICleanerService, Cleaner.ValidationCleanerService>();
 #endif
         registrations.AddSingleton<CleanerScanState>();
-        registrations.AddSingleton<Services.IPlanService, Services.PlanService>();
+        // Personal release: the Free/Pro split, licensing and payment are deferred to a later
+        // version. All completed features are enabled; the licensing foundation stays intact.
+        registrations.AddSingleton<Services.IPlanService>(_ => new Services.PlanService(SystemCore.Core.Licensing.PlanTier.Pro));
         registrations.AddSingleton<CleanerViewModel>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IApplicationIdentityResolver, SystemCore.Infrastructure.Uninstaller.ApplicationIdentityResolver>();
         registrations.AddSingleton<SystemCore.Core.Uninstaller.IWin32ApplicationProvider, SystemCore.Infrastructure.Uninstaller.RegistryApplicationProvider>();

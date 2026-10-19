@@ -86,7 +86,18 @@ public sealed class UninstallerViewModel : LocalizedViewModel
     private int filter, sort, page, kindFilter;
     private bool busy;
     private bool disposed;
-    private UninstallState state = UninstallState.Ready;
+    private UninstallState stateValue = UninstallState.Ready;
+    private UninstallState state
+    {
+        get => stateValue;
+        set { if (stateValue != value) { stateValue = value; OnPropertyChanged(nameof(Status)); OnPropertyChanged(nameof(ShowWaitHint)); } }
+    }
+    public UninstallState State => stateValue;
+    // Honest wait UX: the native uninstaller runs in its own window; the wait is cancellable
+    // and cancelling never terminates it (see UnStateCancelled). Success is only ever reported
+    // after the completion verifier confirms the identity is gone.
+    public bool ShowWaitHint => stateValue == UninstallState.WaitingForUninstaller;
+    public string WaitHint => L["UnWaitHint"];
     public UninstallerViewModel(LocalizationService localizer, IUninstallExecutor executor, ILeftoverScanner leftovers, ILeftoverDeletionService deletion, IGameLauncher launcher,
         IApplicationDataOrchestrator orchestrator, IAppDiagnostics diagnostics, Services.IPlanService? plan = null) : base(localizer)
     {
